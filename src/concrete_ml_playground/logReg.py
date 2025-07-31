@@ -1,15 +1,18 @@
-import numpy as np
 import shutil
 import time
+
+import numpy as np
+from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
+from concrete.ml.sklearn import LogisticRegression
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
 from sklearn.metrics import accuracy_score
 
-from concrete.ml.sklearn import LogisticRegression
-from concrete.ml.deployment import FHEModelDev, FHEModelClient, FHEModelServer
-
 from .interfaces import InferenceExperimentResult
 
-def logistical_regression(X_train: list, X_test: list, y_train: list, y_test: list) -> InferenceExperimentResult:
+
+def logistical_regression(
+    X_train: list, X_test: list, y_train: list, y_test: list
+) -> InferenceExperimentResult:
     # Instantiate the model:
     model = SKlearnLogisticRegression()
 
@@ -30,37 +33,39 @@ def logistical_regression(X_train: list, X_test: list, y_train: list, y_test: li
     dev = FHEModelDev(path_dir=model_path, model=cml_model)
     dev.save()
 
-    #client init
+    # client init
     client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
     serialized_evaluation_keys = client.get_serialized_evaluation_keys()
-    assert type(serialized_evaluation_keys) == bytes #only returns tuple if include_tfhers_key is set to True
+    assert (
+        type(serialized_evaluation_keys) == bytes
+    )  # only returns tuple if include_tfhers_key is set to True
 
-    #server init
+    # server init
     server = FHEModelServer(path_dir=model_path)
     server.load()
 
-    #pre-processing
+    # pre-processing
     encrypted_data_array = []
     start_fhe_pre = time.time()
     for X in X_test:
         encrypted_data_array.append(client.quantize_encrypt_serialize(np.array([X])))
     end_fhe_pre = time.time()
 
-    #server processes data
+    # server processes data
     encrypted_result_array = []
     start_fhe_proc = time.time()
     for X_enc in encrypted_data_array:
         encrypted_result_array.append(server.run(X_enc, serialized_evaluation_keys))
     end_fhe_proc = time.time()
 
-    #post-processing
+    # post-processing
     y_pred_fhe = []
     start_fhe_post = time.time()
     for Y_enc in encrypted_result_array:
         y_pred_fhe.append(np.argmax(client.deserialize_decrypt_dequantize(Y_enc)))
     end_fhe_post = time.time()
 
-    #cleanup model dir
+    # cleanup model dir
     shutil.rmtree(model_path)
 
     return InferenceExperimentResult(
