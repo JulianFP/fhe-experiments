@@ -1,34 +1,36 @@
-import pickle
+import shutil
 import time
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
-from concrete.ml.common.serialization.loaders import load
+from concrete import fhe
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
 from concrete.ml.deployment.fhe_client_server import DeploymentMode
 from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
 from sklearn.metrics import accuracy_score
 
-from .interfaces import InferenceExperimentResult, TrainingExperimentResult
+from .interfaces import ExperimentResult
 
 model_file_fhe = Path("./sgd_classifier_fhe.model")
 model_file_clear = Path("./sgd_classifier_clear.model")
 
 
-def sgd_training(X_train: list, y_train: list) -> TrainingExperimentResult:
+def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> ExperimentResult:
     print("Training clear model...")
     model = SKlearnSGDClassifier(
         random_state=42,
         max_iter=50,
     )
 
-    clear_training_start = time.time()
+    start_clear = time.time()
     model.fit(X_train, y_train)
-    clear_training_end = time.time()
-    with open(model_file_clear, "wb") as file:
-        pickle.dump(model, file)
+    end_clear = time.time()
+
+    print("Evaluating clear-trained model...")
+    y_pred_clear = []
+    for X in X_test:
+        y_pred_clear.append(model.predict([X]))
 
     print("Training FHE model...")
     # generate an example dataset that has the same number of features, targets and features distribution as our train set
@@ -64,56 +66,71 @@ def sgd_training(X_train: list, y_train: list) -> TrainingExperimentResult:
     server.load()
 
     # pre-processing
-    encrypted_data = client.quantize_encrypt_serialize(np.array(X_train))
-    assert type(encrypted_data) == bytes
+    X_batches_enc, y_batches_enc = [], []
+    start_fhe_pre = time.time()
+    X_train_np = np.array(X_train)
+    y_train_np = np.array(y_train)
+    weights = np.zeros((1, X_train_np.shape[1], 1))
+    bias = np.zeros((1, 1, 1))
+    for i in range(0, X_train_np.shape[0], batch_size):
+        if i + batch_size < X_train_np.shape[0]:
+            batch_range = range(i, i + batch_size)
+        else:
+            break
+
+        X_batch = np.expand_dims(X_train_np[batch_range, :], 0)
+        y_batch = np.expand_dims(y_train_np[batch_range], (0, 2))
+
+        X_batch_enc, y_batch_enc, _, _ = client.quantize_encrypt_serialize(
+            X_batch, y_batch, None, None
+        )
+
+        X_batches_enc.append(X_batch_enc)
+        y_batches_enc.append(y_batch_enc)
+    _, _, weights_enc, bias_enc = client.quantize_encrypt_serialize(None, None, weights, bias)
+    end_fhe_pre = time.time()
 
     # training
-    fhe_training_start = time.time()
-    encrypted_result = server.run(encrypted_data, serialized_evaluation_keys)
-    fhe_training_end = time.time()
-
-    model = client.deserialize_decrypt_dequantize(encrypted_result)
-    with open(model_file_fhe, "w") as file:
-        fhe_model.dump(file)
+    start_fhe_proc = time.time()
+    weights_enc = fhe.Value.deserialize(weights_enc)
+    bias_enc = fhe.Value.deserialize(bias_enc)
+    evaluation_keys = fhe.EvaluationKeys.deserialize(serialized_evaluation_keys)
+    for x_batch, y_batch in zip(X_batches_enc, y_batches_enc):
+        x_batch = fhe.Value.deserialize(x_batch)
+        y_batch = fhe.Value.deserialize(y_batch)
+        weights_enc, bias_enc = server.run(
+            (x_batch, y_batch, weights_enc, bias_enc), evaluation_keys
+        )
+    fitted_weights_enc = weights_enc.serialize()
+    fitted_bias_enc = bias_enc.serialize()
+    end_fhe_proc = time.time()
 
     # post-processing
+    start_fhe_post = time.time()
+    weights, bias = client.deserialize_decrypt_dequantize(fitted_weights_enc, fitted_bias_enc)
+    end_fhe_post = time.time()
 
-    return TrainingExperimentResult(
-        duration_in_sec_fhe=fhe_training_end - fhe_training_start,
-        duration_in_sec_clear=clear_training_end - clear_training_start,
+    # cleanup model dir
+    shutil.rmtree(model_path)
+
+    print("Evaluating fhe-trained model...")
+    fhe_model = SKlearnSGDClassifier(
+        random_state=42,
+        max_iter=50,
     )
+    fhe_model.coef_ = weights
+    fhe_model.intercept_ = bias
+    y_pred_fhe = []
+    for X in X_test:
+        y_pred_fhe.append(model.predict([X]))
 
-
-def sgd_inference_native_model(
-    X_train: list, X_test, _: list, y_test: list
-) -> InferenceExperimentResult:
-    if not model_file_clear.is_file():
-        raise Exception(
-            f"Couldn't find model file (model_file_clear), please run the xgd_training experiment first!"
-        )
-    if not model_file_fhe.is_file():
-        raise Exception(
-            f"Couldn't find model file (model_file_fhe), please run the xgd_training experiment first!"
-        )
-
-    with open(model_file_clear, "rb") as file:
-        model = pickle.load(file)
-    clear_inference_start = time.time()
-    y_pred_clear = model.predict(X_test)
-    clear_inference_end = time.time()
-
-    with open(model_file_fhe, "r") as file:
-        fhe_model = load(file)
-        fhe_model.compile(X_train)  # required because FHE circuit is not dumped with the model
-    fhe_inference_start = time.time()
-    y_pred_fhe = model.predict(X_test)
-    fhe_inference_end = time.time()
-
-    return InferenceExperimentResult(
+    return ExperimentResult(
         accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
         accuracy_clear=accuracy_score(y_test, y_pred_clear),
-        duration_in_sec_fhe=fhe_inference_end - fhe_inference_start,
-        duration_in_sec_clear=clear_inference_end - clear_inference_start,
+        clear_duration=end_clear - start_clear,
+        fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
+        fhe_duration_processing=end_fhe_proc - start_fhe_proc,
+        fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
     )
 
 

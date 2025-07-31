@@ -7,12 +7,12 @@ from concrete.ml.sklearn import LogisticRegression
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
 from sklearn.metrics import accuracy_score
 
-from .interfaces import InferenceExperimentResult
+from .interfaces import ExperimentResult
 
 
 def logistical_regression(
     X_train: list, X_test: list, y_train: list, y_test: list
-) -> InferenceExperimentResult:
+) -> ExperimentResult:
     # Instantiate the model:
     model = SKlearnLogisticRegression()
 
@@ -68,7 +68,7 @@ def logistical_regression(
     # cleanup model dir
     shutil.rmtree(model_path)
 
-    return InferenceExperimentResult(
+    return ExperimentResult(
         accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
         accuracy_clear=accuracy_score(y_test, y_pred_clear),
         clear_duration=end_clear - start_clear,

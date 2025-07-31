@@ -5,7 +5,7 @@ from typing import Callable
 
 
 @dataclass
-class InferenceExperimentResult:
+class ExperimentResult:
     accuracy_fhe: float
     accuracy_clear: float
     fhe_duration_preprocessing: float
@@ -14,7 +14,7 @@ class InferenceExperimentResult:
     clear_duration: float
 
     def __add__(self, o):
-        return InferenceExperimentResult(
+        return ExperimentResult(
             accuracy_fhe=self.accuracy_fhe + o.accuracy_fhe,
             accuracy_clear=self.accuracy_clear + o.accuracy_clear,
             fhe_duration_preprocessing=self.fhe_duration_preprocessing
@@ -26,7 +26,7 @@ class InferenceExperimentResult:
         )
 
     def __truediv__(self, o):
-        return InferenceExperimentResult(
+        return ExperimentResult(
             accuracy_fhe=self.accuracy_fhe / o,
             accuracy_clear=self.accuracy_clear / o,
             fhe_duration_preprocessing=self.fhe_duration_preprocessing / o,
@@ -36,23 +36,4 @@ class InferenceExperimentResult:
         )
 
 
-@dataclass
-class TrainingExperimentResult:
-    duration_in_sec_fhe: float
-    duration_in_sec_clear: float
-
-    def __add__(self, o):
-        return TrainingExperimentResult(
-            duration_in_sec_clear=self.duration_in_sec_clear + o.duration_in_sec_clear,
-            duration_in_sec_fhe=self.duration_in_sec_fhe + o.duration_in_sec_fhe,
-        )
-
-    def __truediv__(self, o):
-        return TrainingExperimentResult(
-            duration_in_sec_clear=self.duration_in_sec_clear / o,
-            duration_in_sec_fhe=self.duration_in_sec_fhe / o,
-        )
-
-
-InferenceExpFunction = Callable[[list, list, list, list], InferenceExperimentResult]
-TrainingExpFunction = Callable[[list, list], TrainingExperimentResult]
+ExpFunction = Callable[[list, list, list, list], ExperimentResult]

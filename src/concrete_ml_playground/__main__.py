@@ -2,10 +2,7 @@ import click
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 
-from concrete_ml_playground.interfaces import (
-    InferenceExperimentResult,
-    TrainingExperimentResult,
-)
+from concrete_ml_playground.interfaces import ExperimentResult
 
 from .experiment_collector import get_inference_experiments, get_training_experiments
 
@@ -57,18 +54,18 @@ def main(run_all: bool, run_all_inference: bool, run: str | None, execs: int):
         raise Exception("Either --all, --all_inference or --run option is required")
 
     for exp_name, exp in scheduled_train_exp.items():
-        mean_result = TrainingExperimentResult(0.0, 0.0)
+        mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         for i in range(execs):
             print(f"Running {exp_name} training experiment, {i+1}th execution...")
-            mean_result += exp(X_train, y_train)
+            mean_result += exp(X_train, X_test, y_train, y_test)
         mean_result = mean_result / execs
         print(f"Mean result of {execs} executions of {exp_name} training experiment:")
         print(mean_result)
         print(
-            f"Training on encrypted data with FHE was {mean_result.duration_in_sec_fhe / mean_result.duration_in_sec_clear} times slower than normal training on clear data"
+            f"Training on encrypted data with FHE was {mean_result.fhe_duration_processing / mean_result.clear_duration} times slower than normal inference on clear data"
         )
     for exp_name, exp in scheduled_inf_exp.items():
-        mean_result = InferenceExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         for i in range(execs):
             print(f"Running {exp_name} inference experiment, {i+1}th execution...")
             mean_result += exp(X_train, X_test, y_train, y_test)

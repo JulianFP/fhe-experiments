@@ -1,16 +1,15 @@
-from .interfaces import InferenceExpFunction, TrainingExpFunction
+from .interfaces import ExpFunction
 from .logReg import logistical_regression
-from .sgdClassifier_encrypted_training import sgd_inference_native_model, sgd_training
+from .sgdClassifier_encrypted_training import sgd_training
 
 
-def get_inference_experiments() -> dict[str, InferenceExpFunction]:
+def get_inference_experiments() -> dict[str, ExpFunction]:
     return {
         "logistical_regression": logistical_regression,
-        "sgd_classifier_native_model": sgd_inference_native_model,
     }
 
 
-def get_training_experiments() -> dict[str, TrainingExpFunction]:
+def get_training_experiments() -> dict[str, ExpFunction]:
     return {
         "sgd_classifier_training": sgd_training,
     }
