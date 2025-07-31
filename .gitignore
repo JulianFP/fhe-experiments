@@ -204,3 +204,4 @@ __marimo__/
 
 # custom stuff
 *.model
+*model_dir

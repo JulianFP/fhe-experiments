@@ -1,11 +1,15 @@
 import time
 import pickle
 from pathlib import Path
+from typing import Tuple
+import numpy as np
 
+from concrete.ml.deployment.fhe_client_server import DeploymentMode
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
 from sklearn.metrics import accuracy_score
 from concrete.ml.common.serialization.loaders import load
 from concrete.ml.sklearn import SGDClassifier
+from concrete.ml.deployment import FHEModelDev, FHEModelClient, FHEModelServer
 
 from .interfaces import InferenceExperimentResult, TrainingExperimentResult
 
@@ -27,17 +31,52 @@ def sgd_training(X_train: list, y_train: list) -> TrainingExperimentResult:
         pickle.dump(model, file)
 
     print("Training FHE model...")
+    #generate an example dataset that has the same number of features, targets and features distribution as our train set
+    #this way we can teach our model these parameters pre-FHE without giving it the actual data
+    x_min, x_max = np.min(X_train, axis=0), np.max(X_train, axis=0)
+    y_min, y_max = np.min(y_train), np.max(y_train)
+    batch_size = 8
+    x_compile_set = np.vstack([x_min, x_max] * (batch_size // 2))
+    y_compile_set = np.array([y_min, y_max] * (batch_size // 2))
+
+    #init model and show it the compile_set
+    model_path = "./model_dir"
     fhe_model = SGDClassifier(
         random_state=42,
         max_iter=50,
         fit_encrypted=True,
         parameters_range=(0.0, 1.0),
     )
+    fhe_model.fit(x_compile_set, y_compile_set, fhe="disable")
+
+    dev = FHEModelDev(path_dir=model_path, model=fhe_model)
+    dev.save(mode=DeploymentMode.TRAINING)
+
+    #client init
+    client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
+    serialized_evaluation_keys = client.get_serialized_evaluation_keys()
+    assert type(serialized_evaluation_keys) == bytes #only returns tuple if include_tfhers_key is set to True
+
+    #server init
+    server = FHEModelServer(path_dir=model_path)
+    server.load()
+
+    #pre-processing
+    encrypted_data = client.quantize_encrypt_serialize(np.array(X_train))
+    assert type(encrypted_data) == bytes
+
+    #training
     fhe_training_start = time.time()
-    fhe_model.fit(X_train, y_train, fhe="execute")
+    encrypted_result = server.run(encrypted_data, serialized_evaluation_keys)
     fhe_training_end = time.time()
+
+
+    model = client.deserialize_decrypt_dequantize(encrypted_result)
     with open(model_file_fhe, "w") as file:
         fhe_model.dump(file)
+
+    #post-processing
+    
 
     return TrainingExperimentResult(
         duration_in_sec_fhe=fhe_training_end - fhe_training_start,

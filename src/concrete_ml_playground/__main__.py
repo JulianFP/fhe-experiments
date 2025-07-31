@@ -1,13 +1,16 @@
 import click
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
+
+from concrete_ml_playground.interfaces import InferenceExperimentResult, TrainingExperimentResult
 from .experiment_collector import get_inference_experiments, get_training_experiments
 
 @click.command()
 @click.option("--run_all", is_flag=True, help="Run all training and inference experiments")
 @click.option("--run_all_inference", is_flag=True, help="Run only the inference experiments")
 @click.option("--run", type=str, required=False, help="Run only the specified experiment")
-def main(run_all: bool, run_all_inference: bool, run: str | None):
+@click.option("--execs", type=int, default=1, show_default=True, help="How often each experiment should run. Will calculate the mean value between all executions")
+def main(run_all: bool, run_all_inference: bool, run: str | None, execs: int):
     # Create the data for classification:
     X, y = make_classification(
         n_features=30,
@@ -43,17 +46,23 @@ def main(run_all: bool, run_all_inference: bool, run: str | None):
         raise Exception("Either --all, --all_inference or --run option is required")
 
     for exp_name,exp in scheduled_train_exp.items():
-        print(f"Running {exp_name} training experiment...")
-        result = exp(X_train, y_train)
-        print(f"Results of {exp_name} training experiment:")
-        print(result)
-        print(f"Training on encrypted data with FHE was {result.duration_in_sec_fhe / result.duration_in_sec_clear} times slower than normal training on clear data")
+        mean_result = TrainingExperimentResult(0.0, 0.0)
+        for i in range(execs):
+            print(f"Running {exp_name} training experiment, {i+1}th execution...")
+            mean_result += exp(X_train, y_train)
+        mean_result = mean_result / execs
+        print(f"Mean result of {execs} executions of {exp_name} training experiment:")
+        print(mean_result)
+        print(f"Training on encrypted data with FHE was {mean_result.duration_in_sec_fhe / mean_result.duration_in_sec_clear} times slower than normal training on clear data")
     for exp_name,exp in scheduled_inf_exp.items():
-        print(f"Running {exp_name} inference experiment...")
-        result = exp(X_train, X_test, y_train, y_test)
-        print(f"Results of {exp_name} inference experiment:")
-        print(result)
-        print(f"Inference on encrypted data with FHE was {result.duration_in_sec_fhe / result.duration_in_sec_clear} times slower than normal inference on clear data")
+        mean_result = InferenceExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        for i in range(execs):
+            print(f"Running {exp_name} inference experiment, {i+1}th execution...")
+            mean_result += exp(X_train, X_test, y_train, y_test)
+        mean_result = mean_result / execs
+        print(f"Mean result of {execs} executions of {exp_name} inference experiment:")
+        print(mean_result)
+        print(f"Inference on encrypted data with FHE was {mean_result.fhe_duration_processing / mean_result.clear_duration} times slower than normal inference on clear data")
 
 if __name__ == "__main__":
     main()

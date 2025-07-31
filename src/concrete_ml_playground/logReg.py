@@ -1,9 +1,11 @@
 import numpy as np
+import shutil
 import time
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
 from sklearn.metrics import accuracy_score
 
 from concrete.ml.sklearn import LogisticRegression
+from concrete.ml.deployment import FHEModelDev, FHEModelClient, FHEModelServer
 
 from .interfaces import InferenceExperimentResult
 
@@ -23,37 +25,49 @@ def logistical_regression(X_train: list, X_test: list, y_train: list, y_test: li
 
     # Compile the model
     cml_model = LogisticRegression.from_sklearn_model(model, X_train, n_bits=8)
-    fhe_circuit = cml_model.compile(X_train)
+    cml_model.compile(X_train)
+    model_path = "./model_dir"
+    dev = FHEModelDev(path_dir=model_path, model=cml_model)
+    dev.save()
 
-    # prepare input data for FHE
-    X_test_quantized = cml_model.quantize_input(np.array(X_test))
-    fhe_circuit.keygen(force=True)
-    X_test_encrypted = []
-    for q_input in X_test_quantized:
-        X_test_encrypted.append(fhe_circuit.encrypt([q_input]))
+    #client init
+    client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
+    serialized_evaluation_keys = client.get_serialized_evaluation_keys()
+    assert type(serialized_evaluation_keys) == bytes #only returns tuple if include_tfhers_key is set to True
 
-    # Perform the inference in FHE
+    #server init
+    server = FHEModelServer(path_dir=model_path)
+    server.load()
+
+    #pre-processing
+    encrypted_data_array = []
+    start_fhe_pre = time.time()
+    for X in X_test:
+        encrypted_data_array.append(client.quantize_encrypt_serialize(np.array([X])))
+    end_fhe_pre = time.time()
+
+    #server processes data
+    encrypted_result_array = []
+    start_fhe_proc = time.time()
+    for X_enc in encrypted_data_array:
+        encrypted_result_array.append(server.run(X_enc, serialized_evaluation_keys))
+    end_fhe_proc = time.time()
+
+    #post-processing
     y_pred_fhe = []
-    start_fhe = time.time()
-    for enc_input in X_test_encrypted:
-        y_pred_fhe.append(fhe_circuit.run(enc_input))
-    end_fhe = time.time()
+    start_fhe_post = time.time()
+    for Y_enc in encrypted_result_array:
+        y_pred_fhe.append(np.argmax(client.deserialize_decrypt_dequantize(Y_enc)))
+    end_fhe_post = time.time()
 
-    # post processing
-    y_pred_fhe_decrypted = []
-    for y in y_pred_fhe:
-        y_pred_fhe_decrypted.append(fhe_circuit.decrypt(y))
-    y_pred_fhe_dequantized = cml_model.dequantize_output(np.array(y_pred_fhe_decrypted))
-    y_pred_fhe_done = np.argmax(cml_model.post_processing(y_pred_fhe_dequantized), axis=1)
+    #cleanup model dir
+    shutil.rmtree(model_path)
 
     return InferenceExperimentResult(
-        accuracy_fhe=accuracy_score(y_test, y_pred_fhe_done),
+        accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
         accuracy_clear=accuracy_score(y_test, y_pred_clear),
-        duration_in_sec_fhe=end_fhe - start_fhe,
-        duration_in_sec_clear=end_clear - start_clear,
+        clear_duration=end_clear - start_clear,
+        fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
+        fhe_duration_processing=end_fhe_proc - start_fhe_proc,
+        fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
     )
-
-# Output:
-# 100 examples over 100 have an FHE inference equal to the clear inference.
-# Clear evaluation on test set took: 0.00019240379333496094 seconds
-# FHE evaluation on test set took: 0.9436783790588379 seconds
