@@ -15,9 +15,6 @@ from sklearn.metrics import accuracy_score
 
 from .interfaces import ExperimentResult
 
-model_file_fhe = Path("./sgd_classifier_fhe.model")
-model_file_clear = Path("./sgd_classifier_clear.model")
-
 
 def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> ExperimentResult:
     print("Training clear model...")
@@ -46,6 +43,8 @@ def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> Ex
 
     # init model and show it the compile_set
     model_path = "./model_dir"
+    if Path(model_path).is_dir():
+        shutil.rmtree(model_path)
     fhe_model = SGDClassifier(
         random_state=42,
         max_iter=50,

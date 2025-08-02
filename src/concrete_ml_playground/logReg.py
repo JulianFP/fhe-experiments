@@ -1,6 +1,7 @@
 import shutil
 import sys
 import time
+from pathlib import Path
 
 import numpy as np
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
@@ -31,6 +32,8 @@ def logistical_regression(
     cml_model = LogisticRegression.from_sklearn_model(model, X_train, n_bits=8)
     cml_model.compile(X_train)
     model_path = "./model_dir"
+    if Path(model_path).is_dir():
+        shutil.rmtree(model_path)
     dev = FHEModelDev(path_dir=model_path, model=cml_model)
     dev.save()
 
