@@ -1,4 +1,7 @@
+# The code in this experiment was heavily inspired by the following example code provided by Zama: https://github.com/zama-ai/concrete-ml/blob/release/1.9.x/docs/advanced_examples/LogisticRegressionTraining.ipynb
+
 import shutil
+import sys
 import time
 from pathlib import Path
 
@@ -124,6 +127,14 @@ def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> Ex
     for X in X_test:
         y_pred_fhe.append(model.predict([X]))
 
+    # get binary representation of test set for storage size comparison
+    X_train_bin = []
+    for X in X_train:
+        X_train_bin.append(X.tobytes())
+    y_train_bin = []
+    for y in y_train:
+        y_train_bin.append(y.tobytes())
+
     return ExperimentResult(
         accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
         accuracy_clear=accuracy_score(y_test, y_pred_clear),
@@ -131,6 +142,8 @@ def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> Ex
         fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
         fhe_duration_processing=end_fhe_proc - start_fhe_proc,
         fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
+        clear_size=sys.getsizeof(X_train_bin) + sys.getsizeof(y_train_bin),
+        fhe_size=sys.getsizeof(X_batches_enc) + sys.getsizeof(y_batches_enc),
     )
 
 
