@@ -9,7 +9,7 @@ from concrete.ml.sklearn import LogisticRegression
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
 from sklearn.metrics import accuracy_score
 
-from .interfaces import ExperimentResult
+from ..interfaces import ExperimentResult
 
 
 def logistical_regression(

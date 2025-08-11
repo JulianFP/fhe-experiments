@@ -1,6 +1,6 @@
+from .experiments.logReg import logistical_regression
+from .experiments.sgdClassifier_encrypted_training import sgd_training
 from .interfaces import ExpFunction
-from .logReg import logistical_regression
-from .sgdClassifier_encrypted_training import sgd_training
 
 
 def get_inference_experiments() -> dict[str, ExpFunction]:

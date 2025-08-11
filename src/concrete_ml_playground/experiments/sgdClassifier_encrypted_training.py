@@ -13,7 +13,7 @@ from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
 from sklearn.metrics import accuracy_score
 
-from .interfaces import ExperimentResult
+from ..interfaces import ExperimentResult
 
 
 def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> ExperimentResult:
