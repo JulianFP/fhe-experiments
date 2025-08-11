@@ -70,7 +70,7 @@ def main(
             mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
             for i in range(execs):
                 print(
-                    f"Running {exp_name} training experiment on {dset_name} dataset, {i+1}th execution..."
+                    f"Running {exp_name} training experiment on {dset_name} dataset, {i + 1}th execution..."
                 )
                 mean_result += exp_func(X_train, X_test, y_train, y_test)
             mean_result = mean_result / execs
@@ -83,7 +83,7 @@ def main(
             mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
             for i in range(execs):
                 print(
-                    f"Running {exp_name} inference experiment on {dset_name} dataset, {i+1}th execution..."
+                    f"Running {exp_name} inference experiment on {dset_name} dataset, {i + 1}th execution..."
                 )
                 mean_result += exp_func(X_train, X_test, y_train, y_test)
             mean_result = mean_result / execs

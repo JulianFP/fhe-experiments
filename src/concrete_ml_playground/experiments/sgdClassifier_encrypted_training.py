@@ -60,7 +60,7 @@ def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> Ex
     client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
     serialized_evaluation_keys = client.get_serialized_evaluation_keys()
     assert (
-        type(serialized_evaluation_keys) == bytes
+        type(serialized_evaluation_keys) is bytes
     )  # only returns tuple if include_tfhers_key is set to True
 
     # server init
