@@ -1,7 +1,10 @@
 # This file defines some common interfaces for all the experiments so that they can be called in __main__.py more easily
 
+import numpy as np
+
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Protocol
+from concrete.ml.common.utils import FheMode
 
 
 @dataclass
@@ -42,4 +45,19 @@ class ExperimentResult:
         )
 
 
-ExpFunction = Callable[[list, list, list, list], ExperimentResult]
+class ClearModel(Protocol):
+    def predict(self, X: np.ndarray) -> np.ndarray: ...
+
+
+class FheModel(Protocol):
+    def predict(self, X: np.ndarray, fhe: FheMode) -> np.ndarray: ...
+
+
+@dataclass
+class DecisionBoundaryPlotData:
+    clear_model: ClearModel
+    fhe_trained_model: ClearModel | None = None
+    fhe_model: FheModel | None = None
+
+
+ExpFunction = Callable[[list, list, list, list], tuple[ExperimentResult, DecisionBoundaryPlotData]]

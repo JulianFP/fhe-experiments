@@ -1,10 +1,10 @@
 import click
+import shutil
 from sklearn.model_selection import train_test_split
-
-from concrete_ml_playground.interfaces import ExperimentResult
 
 from .dataset_collector import get_dataset_loaders
 from .experiment_collector import get_inference_experiments, get_training_experiments
+from .draw_plots import draw_decision_boundary
 
 
 @click.command()
@@ -13,6 +13,7 @@ from .experiment_collector import get_inference_experiments, get_training_experi
 @click.option("--exp", type=str, required=False, help="Run only the specified experiment")
 @click.option("--all_dsets", is_flag=True, help="Run on all datasets")
 @click.option("--dset", type=str, required=False, help="Run only on the specified dataset")
+@click.option("--draw", is_flag=True, help="Draw plots after running the experiments")
 @click.option(
     "--execs",
     type=int,
@@ -27,6 +28,7 @@ def main(
     all_dsets: bool,
     dset: str | None,
     execs: int,
+    draw: bool,
 ):
     dataset_loaders = get_dataset_loaders()
     scheduled_dataset_loaders = {}
@@ -63,31 +65,51 @@ def main(
     else:
         raise Exception("Either --all_exps, --all_inference_exps or --exp option is required")
 
-    for dset_name, dset_loader in scheduled_dataset_loaders.items():
+    for dset_loader, dset_name in scheduled_dataset_loaders.values():
         X, y = dset_loader()
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
-        for exp_name, exp_func in scheduled_train_exp.items():
-            mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
-            for i in range(execs):
+        for exp_func, exp_name in scheduled_train_exp.values():
+            print(
+                f"Running '{exp_name}' training experiment on '{dset_name}' dataset [1 of {execs}]..."
+            )
+            mean_result, plot_data = exp_func(X_train, X_test, y_train, y_test)
+            shutil.rmtree("/tmp/fhe_keys_client", True)
+            for i in range(execs - 1):
                 print(
-                    f"Running {exp_name} training experiment on {dset_name} dataset, {i + 1}th execution..."
+                    f"Running '{exp_name}' training experiment on '{dset_name}' dataset [{i + 2} of {execs}]..."
                 )
-                mean_result += exp_func(X_train, X_test, y_train, y_test)
+                result, _ = exp_func(X_train, X_test, y_train, y_test)
+                shutil.rmtree("/tmp/fhe_keys_client", True)
+                mean_result += result
             mean_result = mean_result / execs
-            print(f"Mean result of {execs} executions of {exp_name} training experiment:")
+            if draw:
+                draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
+            print(
+                f"Mean result of {execs} executions of '{exp_name}' training experiment on '{dset_name}' dataset:"
+            )
             print(mean_result)
             print(
                 f"Training on encrypted data with FHE was {mean_result.fhe_duration_processing / mean_result.clear_duration} times slower than normal inference on clear data"
             )
-        for exp_name, exp_func in scheduled_inf_exp.items():
-            mean_result = ExperimentResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
-            for i in range(execs):
+        for exp_func, exp_name in scheduled_inf_exp.values():
+            print(
+                f"Running '{exp_name}' inference experiment on '{dset_name}' dataset [1 of {execs}]..."
+            )
+            mean_result, plot_data = exp_func(X_train, X_test, y_train, y_test)
+            shutil.rmtree("/tmp/fhe_keys_client", True)
+            for i in range(execs - 1):
                 print(
-                    f"Running {exp_name} inference experiment on {dset_name} dataset, {i + 1}th execution..."
+                    f"Running '{exp_name}' inference experiment on '{dset_name}' dataset [{i + 2} of {execs}]..."
                 )
-                mean_result += exp_func(X_train, X_test, y_train, y_test)
+                result, _ = exp_func(X_train, X_test, y_train, y_test)
+                shutil.rmtree("/tmp/fhe_keys_client", True)
+                mean_result += result
             mean_result = mean_result / execs
-            print(f"Mean result of {execs} executions of {exp_name} inference experiment:")
+            if draw:
+                draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
+            print(
+                f"Mean result of {execs} executions of '{exp_name}' inference experiment on '{dset_name}' dataset:"
+            )
             print(mean_result)
             print(
                 f"Inference on encrypted data with FHE was {mean_result.fhe_duration_processing / mean_result.clear_duration} times slower than normal inference on clear data"

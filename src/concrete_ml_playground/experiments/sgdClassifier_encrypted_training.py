@@ -13,10 +13,12 @@ from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
 from sklearn.metrics import accuracy_score
 
-from ..interfaces import ExperimentResult
+from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
 
-def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> ExperimentResult:
+def sgd_training(
+    X_train: list, X_test: list, y_train: list, y_test: list
+) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
     print("Training clear model...")
     model = SKlearnSGDClassifier(
         random_state=42,
@@ -134,15 +136,21 @@ def sgd_training(X_train: list, X_test: list, y_train: list, y_test: list) -> Ex
     for y in y_train:
         y_train_bin.append(y.tobytes())
 
-    return ExperimentResult(
-        accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
-        accuracy_clear=accuracy_score(y_test, y_pred_clear),
-        clear_duration=end_clear - start_clear,
-        fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
-        fhe_duration_processing=end_fhe_proc - start_fhe_proc,
-        fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
-        clear_size=sys.getsizeof(X_train_bin) + sys.getsizeof(y_train_bin),
-        fhe_size=sys.getsizeof(X_batches_enc) + sys.getsizeof(y_batches_enc),
+    return (
+        ExperimentResult(
+            accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
+            accuracy_clear=accuracy_score(y_test, y_pred_clear),
+            clear_duration=end_clear - start_clear,
+            fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
+            fhe_duration_processing=end_fhe_proc - start_fhe_proc,
+            fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
+            clear_size=sys.getsizeof(X_train_bin) + sys.getsizeof(y_train_bin),
+            fhe_size=sys.getsizeof(X_batches_enc) + sys.getsizeof(y_batches_enc),
+        ),
+        DecisionBoundaryPlotData(
+            clear_model=model,
+            fhe_model=fhe_model,
+        ),
     )
 
 

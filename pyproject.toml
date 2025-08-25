@@ -10,7 +10,8 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "concrete-ml (>=1.9.0,<2.0.0)",
     "click (>=8.2.1,<9.0.0)",
-    "datasets (>=4.0.0,<5.0.0)"
+    "datasets (>=4.0.0,<5.0.0)",
+    "matplotlib (>=3.10.5,<4.0.0)"
 ]
 
 [tool.poetry]

@@ -9,12 +9,12 @@ from concrete.ml.sklearn import LogisticRegression
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
 from sklearn.metrics import accuracy_score
 
-from ..interfaces import ExperimentResult
+from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
 
-def logistical_regression(
+def logistic_regression(
     X_train: list, X_test: list, y_train: list, y_test: list
-) -> ExperimentResult:
+) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
     # Instantiate the model:
     model = SKlearnLogisticRegression()
 
@@ -77,13 +77,19 @@ def logistical_regression(
     for X in X_test:
         X_test_bin.append(X.tobytes())
 
-    return ExperimentResult(
-        accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
-        accuracy_clear=accuracy_score(y_test, y_pred_clear),
-        clear_duration=end_clear - start_clear,
-        fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
-        fhe_duration_processing=end_fhe_proc - start_fhe_proc,
-        fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
-        clear_size=sys.getsizeof(X_test_bin),
-        fhe_size=sys.getsizeof(encrypted_data_array),
+    return (
+        ExperimentResult(
+            accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
+            accuracy_clear=accuracy_score(y_test, y_pred_clear),
+            clear_duration=end_clear - start_clear,
+            fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
+            fhe_duration_processing=end_fhe_proc - start_fhe_proc,
+            fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
+            clear_size=sys.getsizeof(X_test_bin),
+            fhe_size=sys.getsizeof(encrypted_data_array),
+        ),
+        DecisionBoundaryPlotData(
+            fhe_model=cml_model,
+            clear_model=model,
+        ),
     )
