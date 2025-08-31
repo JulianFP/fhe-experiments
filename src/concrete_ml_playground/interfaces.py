@@ -15,8 +15,6 @@ class ExperimentResult:
     fhe_duration_processing: float
     fhe_duration_postprocessing: float
     clear_duration: float
-    clear_size: int
-    fhe_size: int
 
     def __add__(self, o):
         return ExperimentResult(
@@ -28,8 +26,6 @@ class ExperimentResult:
             fhe_duration_postprocessing=self.fhe_duration_postprocessing
             + o.fhe_duration_postprocessing,
             clear_duration=self.clear_duration + o.clear_duration,
-            clear_size=self.clear_size + o.clear_size,
-            fhe_size=self.fhe_size + o.fhe_size,
         )
 
     def __truediv__(self, o):
@@ -40,8 +36,6 @@ class ExperimentResult:
             fhe_duration_processing=self.fhe_duration_processing / o,
             fhe_duration_postprocessing=self.fhe_duration_postprocessing / o,
             clear_duration=self.clear_duration / o,
-            clear_size=self.clear_size // o,
-            fhe_size=self.fhe_size // o,
         )
 
 

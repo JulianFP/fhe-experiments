@@ -1,5 +1,4 @@
 import shutil
-import sys
 import time
 from pathlib import Path
 
@@ -72,11 +71,6 @@ def logistic_regression(
     # cleanup model dir
     shutil.rmtree(model_path)
 
-    # get binary representation of test set for storage size comparison
-    X_test_bin = []
-    for X in X_test:
-        X_test_bin.append(X.tobytes())
-
     return (
         ExperimentResult(
             accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
@@ -85,8 +79,6 @@ def logistic_regression(
             fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
             fhe_duration_processing=end_fhe_proc - start_fhe_proc,
             fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
-            clear_size=sys.getsizeof(X_test_bin),
-            fhe_size=sys.getsizeof(encrypted_data_array),
         ),
         DecisionBoundaryPlotData(
             fhe_model=cml_model,
