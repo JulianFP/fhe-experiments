@@ -5,13 +5,13 @@ from .datasets.synthetic import load_synthetic_dataset
 
 def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
     return {
-        "synth_10000": (lambda: load_synthetic_dataset(50), "Synthetic, 10000 features"),
-        "synth_5000": (lambda: load_synthetic_dataset(50), "Synthetic, 5000 features"),
-        "synth_2500": (lambda: load_synthetic_dataset(50), "Synthetic, 2500 features"),
-        "synth_1000": (lambda: load_synthetic_dataset(50), "Synthetic, 1000 features"),
-        "synth_500": (lambda: load_synthetic_dataset(50), "Synthetic, 500 features"),
-        "synth_250": (lambda: load_synthetic_dataset(50), "Synthetic, 250 features"),
-        "synth_100": (lambda: load_synthetic_dataset(50), "Synthetic, 100 features"),
+        "synth_10000": (lambda: load_synthetic_dataset(10000), "Synthetic, 10000 features"),
+        "synth_5000": (lambda: load_synthetic_dataset(5000), "Synthetic, 5000 features"),
+        "synth_2500": (lambda: load_synthetic_dataset(2500), "Synthetic, 2500 features"),
+        "synth_1000": (lambda: load_synthetic_dataset(1000), "Synthetic, 1000 features"),
+        "synth_500": (lambda: load_synthetic_dataset(500), "Synthetic, 500 features"),
+        "synth_250": (lambda: load_synthetic_dataset(250), "Synthetic, 250 features"),
+        "synth_100": (lambda: load_synthetic_dataset(100), "Synthetic, 100 features"),
         "synth_50": (lambda: load_synthetic_dataset(50), "Synthetic, 50 features"),
         "spam_all": (load_sms_spam_dataset, "SMS Spam, all features"),
         "spam_5000": (lambda: load_sms_spam_dataset(500), "SMS Spam, 5000 features"),
