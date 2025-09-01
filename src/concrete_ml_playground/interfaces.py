@@ -1,14 +1,14 @@
 # This file defines some common interfaces for all the experiments so that they can be called in __main__.py more easily
 
+from dataclasses import dataclass
 import numpy as np
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 from typing import Callable, Protocol
 from concrete.ml.common.utils import FheMode
 
 
-@dataclass
-class ExperimentResult:
+class ExperimentResult(BaseModel):
     accuracy_fhe: float
     accuracy_clear: float
     fhe_duration_preprocessing: float
@@ -16,27 +16,18 @@ class ExperimentResult:
     fhe_duration_postprocessing: float
     clear_duration: float
 
-    def __add__(self, o):
-        return ExperimentResult(
-            accuracy_fhe=self.accuracy_fhe + o.accuracy_fhe,
-            accuracy_clear=self.accuracy_clear + o.accuracy_clear,
-            fhe_duration_preprocessing=self.fhe_duration_preprocessing
-            + o.fhe_duration_preprocessing,
-            fhe_duration_processing=self.fhe_duration_processing + o.fhe_duration_processing,
-            fhe_duration_postprocessing=self.fhe_duration_postprocessing
-            + o.fhe_duration_postprocessing,
-            clear_duration=self.clear_duration + o.clear_duration,
-        )
 
-    def __truediv__(self, o):
-        return ExperimentResult(
-            accuracy_fhe=self.accuracy_fhe / o,
-            accuracy_clear=self.accuracy_clear / o,
-            fhe_duration_preprocessing=self.fhe_duration_preprocessing / o,
-            fhe_duration_processing=self.fhe_duration_processing / o,
-            fhe_duration_postprocessing=self.fhe_duration_postprocessing / o,
-            clear_duration=self.clear_duration / o,
-        )
+class ExperimentResultFinal(ExperimentResult):
+    dset_name: str
+    dset_name_dict: str
+    exp_name: str
+    exp_name_dict: str
+    accuracy_fhe_stdev: float
+    accuracy_clear_stdev: float
+    fhe_duration_preprocessing_stdev: float
+    fhe_duration_processing_stdev: float
+    fhe_duration_postprocessing_stdev: float
+    clear_duration_stdev: float
 
 
 class ClearModel(Protocol):

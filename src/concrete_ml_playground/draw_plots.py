@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 
+from .dataset_collector import get_dataset_loaders
 from .interfaces import DecisionBoundaryPlotData
+from .csv_handler import read_csv
 
 
 def __get_clear_title(exp_name: str, dset_name: str):
@@ -30,20 +32,20 @@ def draw_decision_boundary_from_pickle_files(
         with open(fhe_pickle_path, "rb") as file:
             Z_fhe = pickle.load(file)
 
-        fig = plt.figure(figsize=(10, 7.5))
+        plt.figure(figsize=(10, 7.5))
         plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"results/{clear_title}.png"
-        fig.savefig(png_path)
+        plt.savefig(png_path)
         print(f"Saved decision boundary to {png_path}")
 
-        fig = plt.figure(figsize=(10, 7.5))
+        plt.figure(figsize=(10, 7.5))
         plt.title(fhe_title)
         plt.contourf(xx, yy, Z_fhe, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"results/{fhe_title}.png"
-        fig.savefig(png_path)
+        plt.savefig(png_path)
         print(f"Saved decision boundary to {png_path}")
 
 
@@ -102,3 +104,45 @@ def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
     draw_decision_boundary_from_pickle_files(
         exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
     )
+
+
+def draw_feature_dim_runtime_plot(csv_file: str, dset_prefix: str):
+    dataset_loaders = get_dataset_loaders()
+    results = read_csv(csv_file)
+    x = []
+    y_clear = []
+    y_clear_stdev = []
+    y_pre = []
+    y_pre_stdev = []
+    y_fhe = []
+    y_fhe_stdev = []
+    y_post = []
+    y_post_stdev = []
+    experiments = [d.exp_name for d in results]
+    for exp_name in experiments:
+        for result in results:
+            if result.exp_name == exp_name and result.dset_name_dict.startswith(dset_prefix):
+                X, _ = dataset_loaders[result.dset_name_dict][0]()
+                x.append(len(X[0]))
+                y_clear.append(result.clear_duration)
+                y_clear_stdev.append(result.clear_duration_stdev)
+                y_pre.append(result.fhe_duration_preprocessing)
+                y_pre_stdev.append(result.fhe_duration_preprocessing_stdev)
+                y_fhe.append(result.fhe_duration_processing)
+                y_fhe_stdev.append(result.fhe_duration_processing_stdev)
+                y_post.append(result.fhe_duration_postprocessing)
+                y_post_stdev.append(result.fhe_duration_postprocessing_stdev)
+
+        plt.figure(figsize=(10, 7.5))
+        plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
+        plt.xlabel("Dim of feature vectors")
+        plt.ylabel("Runtime (in seconds)")
+        plt.errorbar(x, y_clear, y_clear_stdev, fmt="bo-", label="clear")
+        plt.errorbar(x, y_pre, y_pre_stdev, fmt="yo-", label="FHE pre")
+        plt.errorbar(x, y_fhe, y_fhe_stdev, fmt="ro-", label="FHE")
+        plt.errorbar(x, y_post, y_post_stdev, fmt="mo-", label="FHE post")
+        plt.figlegend()
+
+        png_path = f"results/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
+        plt.savefig(png_path)
+        print(f"Saved feature-runtime plot to {png_path}")
