@@ -23,7 +23,6 @@ def evaluate_experiment_results(
         final_dict = {}
         for key in field_names:
             values = [d[key] for d in result_dicts]
-            print(values)
             final_dict[key] = statistics.fmean(values)
             final_dict[f"{key}_stdev"] = statistics.stdev(values)
 
