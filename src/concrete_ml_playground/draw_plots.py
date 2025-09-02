@@ -61,11 +61,13 @@ def apply_pca(X):
 def draw_decision_boundary(
     plot_data: DecisionBoundaryPlotData, exp_name: str, dset_name: str, X, y
 ):
+    print(
+        f"Running required computations for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
+    )
     pca, X_reduced, xx, yy = apply_pca(X)
 
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
-    os.makedirs("results", exist_ok=True)
     clear_pickle_path = f"results/{clear_title}.pickle"
     fhe_pickle_path = f"results/{fhe_title}.pickle"
 
@@ -96,6 +98,9 @@ def draw_decision_boundary(
 
 
 def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
+    print(
+        "Loading computation results from disk for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
+    )
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
     clear_pickle_path = f"results/{clear_title}.pickle"
@@ -106,9 +111,9 @@ def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
     )
 
 
-def draw_feature_dim_runtime_plot(csv_file: str, dset_prefix: str):
+def draw_feature_dim_runtime_plot(dset_prefix: str):
     dataset_loaders = get_dataset_loaders()
-    results = read_csv(csv_file)
+    results = read_csv()
     x = []
     y_clear = []
     y_clear_stdev = []
@@ -120,6 +125,9 @@ def draw_feature_dim_runtime_plot(csv_file: str, dset_prefix: str):
     y_post_stdev = []
     experiments = [d.exp_name for d in results]
     for exp_name in experiments:
+        print(
+            f"Drawing feature_dim_runtime plot for experiment '{exp_name}' and datasets with prefix '{dset_prefix}'..."
+        )
         for result in results:
             if result.exp_name == exp_name and result.dset_name_dict.startswith(dset_prefix):
                 X, _ = dataset_loaders[result.dset_name_dict][0]()

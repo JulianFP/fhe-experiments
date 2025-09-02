@@ -1,4 +1,5 @@
 import click
+import os
 import shutil
 from sklearn.model_selection import train_test_split
 
@@ -10,7 +11,7 @@ from .draw_plots import (
     draw_feature_dim_runtime_plot,
     redraw_decision_boundary,
 )
-from .csv_handler import write_result_to_csv
+from .csv_handler import init_csv, append_result_to_csv
 
 
 @click.command()
@@ -19,11 +20,18 @@ from .csv_handler import write_result_to_csv
 @click.option("--exp", type=str, required=False, help="Run only the specified experiment")
 @click.option("--all_dsets", is_flag=True, help="Run on all datasets")
 @click.option("--dset", type=str, required=False, help="Run only on the specified dataset")
-@click.option("--draw", is_flag=True, help="Draw plots after running the experiments")
+@click.option(
+    "--draw_all", is_flag=True, help="Draw all plots in addition to running the experiments"
+)
+@click.option(
+    "--draw_cheap",
+    is_flag=True,
+    help="Draw the computationally cheap plots (i.e. not decision boundaries) in addition to running the experiments",
+)
 @click.option(
     "--redraw",
     is_flag=True,
-    help="Redraw existing plots without running any experiments. Useful for stylistic changes in the plots",
+    help="Redraw all existing plots in the results dirwithout running any experiments or re-doing expensive computations. Useful for stylistic changes in the plots",
 )
 @click.option(
     "--execs",
@@ -39,7 +47,8 @@ def main(
     all_dsets: bool,
     dset: str | None,
     execs: int,
-    draw: bool,
+    draw_all: bool,
+    draw_cheap: bool,
     redraw: bool,
 ):
     dataset_loaders = get_dataset_loaders()
@@ -55,40 +64,43 @@ def main(
     else:
         raise Exception("Either --all_dsets or --dset option is required")
 
-    inference_experiments = get_inference_experiments()
-    training_experiments = get_training_experiments()
-    scheduled_inf_exp = {}
-    scheduled_train_exp = {}
+    scheduled_exps = {}
 
     if all_exps:
-        scheduled_train_exp = training_experiments
-        scheduled_inf_exp = inference_experiments
+        scheduled_exps = {**get_inference_experiments(), **get_training_experiments()}
     elif all_inference_exps:
-        scheduled_inf_exp = inference_experiments
+        scheduled_exps = get_inference_experiments()
     elif exp is not None:
-        train_exp = training_experiments.get(exp)
-        inf_exp = inference_experiments.get(exp)
+        train_exp = get_inference_experiments().get(exp)
+        inf_exp = get_training_experiments().get(exp)
         if train_exp is not None:
-            scheduled_train_exp[exp] = train_exp
+            scheduled_exps[exp] = train_exp
         elif inf_exp is not None:
-            scheduled_inf_exp[exp] = inf_exp
+            scheduled_exps[exp] = inf_exp
         else:
             raise Exception(f"No experiment with name {exp} exists!")
     else:
         raise Exception("Either --all_exps, --all_inference_exps or --exp option is required")
 
+    if redraw:
+        if not os.path.isdir("results"):
+            raise Exception(
+                "To use the --redraw argument you need to have an existing results directory!"
+            )
+    else:
+        init_csv()
+
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
         X, y = dset_loader()
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
-        train_exp_results = []
-        for exp_name_dict, (exp_func, exp_name) in scheduled_train_exp.items():
+        for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():
             if redraw:
                 redraw_decision_boundary(exp_name, dset_name, X_test, y_test)
             else:
                 results = []
                 for i in range(execs):
                     print(
-                        f"Running '{exp_name}' training experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
+                        f"Running '{exp_name}' experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
                     )
                     result, plot_data = exp_func(X_train, X_test, y_train, y_test)
                     shutil.rmtree("/tmp/fhe_keys_client", True)
@@ -96,53 +108,20 @@ def main(
                 final_result = evaluate_experiment_results(
                     results, dset_name, dset_name_dict, exp_name, exp_name_dict
                 )
-                if draw:
-                    draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
                 print(
-                    f"Mean result of {execs} executions of '{exp_name}' training experiment on '{dset_name}' dataset:"
+                    f"Mean result of {execs} executions of '{exp_name}' experiment on '{dset_name}' dataset:"
                 )
                 print(final_result)
                 print(
-                    f"Training on encrypted data with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal inference on clear data"
+                    f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
                 )
-                train_exp_results.append(final_result)
-        if len(train_exp_results) > 0:
-            write_result_to_csv("training_experiments", train_exp_results)
-            if draw or redraw:
-                draw_feature_dim_runtime_plot("training_experiments", "synth_")
-                draw_feature_dim_runtime_plot("training_experiments", "spam_")
+                append_result_to_csv(final_result)
+                if draw_all:
+                    draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
 
-        inf_exp_results = []
-        for exp_name_dict, (exp_func, exp_name) in scheduled_inf_exp.items():
-            if redraw:
-                redraw_decision_boundary(exp_name, dset_name, X_test, y_test)
-            else:
-                results = []
-                for i in range(execs):
-                    print(
-                        f"Running '{exp_name}' inference experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
-                    )
-                    result, plot_data = exp_func(X_train, X_test, y_train, y_test)
-                    shutil.rmtree("/tmp/fhe_keys_client", True)
-                    results.append(result)
-                final_result = evaluate_experiment_results(
-                    results, dset_name, dset_name_dict, exp_name, exp_name_dict
-                )
-                if draw:
-                    draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
-                print(
-                    f"Mean result of {execs} executions of '{exp_name}' inference experiment on '{dset_name}' dataset:"
-                )
-                print(final_result)
-                print(
-                    f"Inference on encrypted data with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal inference on clear data"
-                )
-                inf_exp_results.append(final_result)
-        if len(inf_exp_results) > 0:
-            write_result_to_csv("inference_experiments", inf_exp_results)
-            if draw or redraw:
-                draw_feature_dim_runtime_plot("inference_experiments", "synth_")
-                draw_feature_dim_runtime_plot("inference_experiments", "spam_")
+    if (all_exps or all_inference_exps) and (draw_all or draw_cheap or redraw):
+        draw_feature_dim_runtime_plot("synth_")
+        draw_feature_dim_runtime_plot("spam_")
 
 
 if __name__ == "__main__":
