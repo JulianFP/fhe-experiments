@@ -1,10 +1,12 @@
 from typing import Callable
 from .datasets.sms_spam import load_sms_spam_dataset
 from .datasets.synthetic import load_synthetic_dataset
+from .datasets.xor import load_xor_dataset
 
 
 def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
     return {
+        "xor": (load_xor_dataset, "XOR problem"),
         "synth_50": (lambda: load_synthetic_dataset(50), "Synthetic, 50 features"),
         "synth_100": (lambda: load_synthetic_dataset(100), "Synthetic, 100 features"),
         "synth_250": (lambda: load_synthetic_dataset(250), "Synthetic, 250 features"),
