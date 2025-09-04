@@ -27,6 +27,9 @@ def draw_decision_boundary_from_pickle_files(
     fhe_title = __get_fhe_title(exp_name, dset_name)
 
     if os.path.isfile(clear_pickle_path) and os.path.isfile(fhe_pickle_path):
+        print(
+            "Loading computation results from disk and drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
+        )
         with open(clear_pickle_path, "rb") as file:
             Z_clear = pickle.load(file)
         with open(fhe_pickle_path, "rb") as file:
@@ -98,9 +101,6 @@ def draw_decision_boundary(
 
 
 def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
-    print(
-        "Loading computation results from disk for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
-    )
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
     clear_pickle_path = f"results/{clear_title}.pickle"
@@ -114,20 +114,20 @@ def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
 def draw_feature_dim_runtime_plot(dset_prefix: str):
     dataset_loaders = get_dataset_loaders()
     results = read_csv()
-    x = []
-    y_clear = []
-    y_clear_stdev = []
-    y_pre = []
-    y_pre_stdev = []
-    y_fhe = []
-    y_fhe_stdev = []
-    y_post = []
-    y_post_stdev = []
-    experiments = [d.exp_name for d in results]
+    experiments = set([d.exp_name for d in results])
     for exp_name in experiments:
         print(
             f"Drawing feature_dim_runtime plot for experiment '{exp_name}' and datasets with prefix '{dset_prefix}'..."
         )
+        x = []
+        y_clear = []
+        y_clear_stdev = []
+        y_pre = []
+        y_pre_stdev = []
+        y_fhe = []
+        y_fhe_stdev = []
+        y_post = []
+        y_post_stdev = []
         for result in results:
             if result.exp_name == exp_name and result.dset_name_dict.startswith(dset_prefix):
                 X, _ = dataset_loaders[result.dset_name_dict][0]()
