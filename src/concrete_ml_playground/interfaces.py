@@ -11,6 +11,8 @@ from concrete.ml.common.utils import FheMode
 class ExperimentResult(BaseModel):
     accuracy_fhe: float
     accuracy_clear: float
+    f1_score_fhe: float
+    f1_score_clear: float
     fhe_duration_preprocessing: float
     fhe_duration_processing: float
     fhe_duration_postprocessing: float
@@ -24,6 +26,8 @@ class ExperimentResultFinal(ExperimentResult):
     exp_name_dict: str
     accuracy_fhe_stdev: float
     accuracy_clear_stdev: float
+    f1_score_fhe_stdev: float
+    f1_score_clear_stdev: float
     fhe_duration_preprocessing_stdev: float
     fhe_duration_processing_stdev: float
     fhe_duration_postprocessing_stdev: float

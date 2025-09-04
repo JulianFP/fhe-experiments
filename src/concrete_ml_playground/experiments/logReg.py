@@ -6,7 +6,7 @@ import numpy as np
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
 from concrete.ml.sklearn import LogisticRegression
 from sklearn.linear_model import LogisticRegression as SKlearnLogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 
 from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
@@ -75,6 +75,8 @@ def logistic_regression(
         ExperimentResult(
             accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
             accuracy_clear=accuracy_score(y_test, y_pred_clear),
+            f1_score_fhe=f1_score(y_test, y_pred_fhe),
+            f1_score_clear=f1_score(y_test, y_pred_clear),
             clear_duration=end_clear - start_clear,
             fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
             fhe_duration_processing=end_fhe_proc - start_fhe_proc,

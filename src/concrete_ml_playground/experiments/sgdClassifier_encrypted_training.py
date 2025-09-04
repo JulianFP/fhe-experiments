@@ -10,7 +10,7 @@ from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
 from concrete.ml.deployment.fhe_client_server import DeploymentMode
 from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score
 
 from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
@@ -131,6 +131,8 @@ def sgd_training(
         ExperimentResult(
             accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
             accuracy_clear=accuracy_score(y_test, y_pred_clear),
+            f1_score_fhe=f1_score(y_test, y_pred_fhe),
+            f1_score_clear=f1_score(y_test, y_pred_clear),
             clear_duration=end_clear - start_clear,
             fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
             fhe_duration_processing=end_fhe_proc - start_fhe_proc,
