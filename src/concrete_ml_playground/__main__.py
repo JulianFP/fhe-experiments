@@ -17,9 +17,13 @@ from .csv_handler import init_csv, append_result_to_csv
 @click.command()
 @click.option("--all_exps", is_flag=True, help="Run all training and inference experiments")
 @click.option("--all_inference_exps", is_flag=True, help="Run only the inference experiments")
-@click.option("--exp", type=str, required=False, help="Run only the specified experiment")
+@click.option(
+    "--exp", type=str, required=False, multiple=True, help="Run only the specified experiment"
+)
 @click.option("--all_dsets", is_flag=True, help="Run on all datasets")
-@click.option("--dset", type=str, required=False, help="Run only on the specified dataset")
+@click.option(
+    "--dset", type=str, required=False, multiple=True, help="Run only on the specified dataset"
+)
 @click.option(
     "--draw_all", is_flag=True, help="Draw all plots in addition to running the experiments"
 )
@@ -43,9 +47,9 @@ from .csv_handler import init_csv, append_result_to_csv
 def main(
     all_exps: bool,
     all_inference_exps: bool,
-    exp: str | None,
+    exp: list[str],
     all_dsets: bool,
-    dset: str | None,
+    dset: list[str],
     execs: int,
     draw_all: bool,
     draw_cheap: bool,
@@ -55,30 +59,34 @@ def main(
     scheduled_dataset_loaders = {}
     if all_dsets:
         scheduled_dataset_loaders = dataset_loaders
-    elif dset is not None:
-        dset_loader = dataset_loaders.get(dset)
-        if dset_loader is not None:
-            scheduled_dataset_loaders[dset] = dset_loader
-        else:
-            raise Exception(f"No dataset with name {dset} exists!")
+    elif len(dset) > 0:
+        for ds in dset:
+            dset_loader = dataset_loaders.get(ds)
+            if dset_loader is not None:
+                scheduled_dataset_loaders[ds] = dset_loader
+            else:
+                raise Exception(f"No dataset with name '{ds}' exists!")
     else:
         raise Exception("Either --all_dsets or --dset option is required")
 
     scheduled_exps = {}
 
+    inf_exp_loaders = get_inference_experiments()
+    train_exp_loaders = get_training_experiments()
     if all_exps:
-        scheduled_exps = {**get_inference_experiments(), **get_training_experiments()}
+        scheduled_exps = {**inf_exp_loaders, **train_exp_loaders}
     elif all_inference_exps:
-        scheduled_exps = get_inference_experiments()
-    elif exp is not None:
-        train_exp = get_inference_experiments().get(exp)
-        inf_exp = get_training_experiments().get(exp)
-        if train_exp is not None:
-            scheduled_exps[exp] = train_exp
-        elif inf_exp is not None:
-            scheduled_exps[exp] = inf_exp
-        else:
-            raise Exception(f"No experiment with name {exp} exists!")
+        scheduled_exps = inf_exp_loaders
+    elif len(exp) > 0:
+        for ex in exp:
+            train_exp = train_exp_loaders.get(ex)
+            inf_exp = inf_exp_loaders.get(ex)
+            if train_exp is not None:
+                scheduled_exps[ex] = train_exp
+            elif inf_exp is not None:
+                scheduled_exps[ex] = inf_exp
+            else:
+                raise Exception(f"No experiment with name '{ex}' exists!")
     else:
         raise Exception("Either --all_exps, --all_inference_exps or --exp option is required")
 
