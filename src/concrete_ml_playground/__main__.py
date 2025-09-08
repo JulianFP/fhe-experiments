@@ -65,7 +65,10 @@ def main(
             if dset_loader is not None:
                 scheduled_dataset_loaders[ds] = dset_loader
             else:
-                raise Exception(f"No dataset with name '{ds}' exists!")
+                possible_values = list(dataset_loaders.keys())
+                raise Exception(
+                    f"No dataset with name '{ds}' exists. --dset can only have the following values: {possible_values}."
+                )
     else:
         raise Exception("Either --all_dsets or --dset option is required")
 
@@ -86,7 +89,10 @@ def main(
             elif inf_exp is not None:
                 scheduled_exps[ex] = inf_exp
             else:
-                raise Exception(f"No experiment with name '{ex}' exists!")
+                possible_values = list(inf_exp_loaders.keys()) + list(train_exp_loaders.keys())
+                raise Exception(
+                    f"No experiment with name '{ex}' exists. --exp can only have the following values: {possible_values}."
+                )
     else:
         raise Exception("Either --all_exps, --all_inference_exps or --exp option is required")
 

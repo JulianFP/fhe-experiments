@@ -30,8 +30,7 @@ pkgs.mkShell {
   buildInputs =
     with pkgs;
     [
-      python312
-      (poetry.override { python3 = python312; })
+      uv
     ]
     ++ pre-commit-check.enabledPackages;
   shellHook = ''
@@ -40,8 +39,7 @@ pkgs.mkShell {
         git update-index --skip-worktree "$localOverwriteFile"
         rm "$localOverwriteFile"
     fi
-    export LD_LIBRARY_PATH=$NIX_LD_LIBRARY_PATH
-    eval $(poetry env activate)
+    source .venv/bin/activate
   ''
   + pre-commit-check.shellHook;
 }
