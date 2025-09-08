@@ -3,6 +3,7 @@ import os
 import shutil
 from sklearn.model_selection import train_test_split
 
+from . import logger
 from .dataset_collector import get_dataset_loaders
 from .experiment_collector import get_inference_experiments, get_training_experiments
 from .statistics_handler import evaluate_experiment_results
@@ -113,7 +114,7 @@ def main(
             else:
                 results = []
                 for i in range(execs):
-                    print(
+                    logger.info(
                         f"Running '{exp_name}' experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
                     )
                     result, plot_data = exp_func(X_train, X_test, y_train, y_test)
@@ -122,11 +123,10 @@ def main(
                 final_result = evaluate_experiment_results(
                     results, dset_name, dset_name_dict, exp_name, exp_name_dict
                 )
-                print(
-                    f"Mean result of {execs} executions of '{exp_name}' experiment on '{dset_name}' dataset:"
+                logger.info(
+                    f"Mean result of {execs} executions of '{exp_name}' experiment on '{dset_name}' dataset: {final_result}"
                 )
-                print(final_result)
-                print(
+                logger.info(
                     f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
                 )
                 append_result_to_csv(final_result)

@@ -1,6 +1,7 @@
 import csv
 import os
 
+from . import logger
 from .interfaces import ExperimentResultFinal
 
 file_name = "results/experiment_data.csv"
@@ -27,7 +28,7 @@ def init_csv():
             fieldnames=arranged_field_names,
         )
         result_writer.writeheader()
-    print("Successfully initiated result csv file")
+    logger.info("Successfully initiated result csv file")
 
 
 def append_result_to_csv(exp_result: ExperimentResultFinal):
@@ -37,7 +38,7 @@ def append_result_to_csv(exp_result: ExperimentResultFinal):
             fieldnames=arranged_field_names,
         )
         result_writer.writerow(exp_result.model_dump())
-    print("Successfully appended experiment result to csv")
+    logger.info("Successfully appended experiment result to csv")
 
 
 def read_csv() -> list[ExperimentResultFinal]:

@@ -12,13 +12,14 @@ from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
 from sklearn.metrics import accuracy_score, f1_score
 
+from .. import logger
 from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
 
 def sgd_training(
     X_train: list, X_test: list, y_train: list, y_test: list
 ) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
-    print("Training clear model...")
+    logger.info("Training clear model...")
     model = SKlearnSGDClassifier(
         random_state=42,
         max_iter=50,
@@ -28,12 +29,12 @@ def sgd_training(
     model.fit(X_train, y_train)
     end_clear = time.time()
 
-    print("Evaluating clear-trained model...")
+    logger.info("Evaluating clear-trained model...")
     y_pred_clear = []
     for X in X_test:
         y_pred_clear.append(model.predict([X]))
 
-    print("Training FHE model...")
+    logger.info("Training FHE model...")
     # generate an example dataset that has the same number of features, targets and features distribution as our train set
     # this way we can teach our model these parameters pre-FHE without giving it the actual data
     x_min, x_max = np.min(X_train, axis=0), np.max(X_train, axis=0)
@@ -116,7 +117,7 @@ def sgd_training(
     # cleanup model dir
     shutil.rmtree(model_path)
 
-    print("Evaluating fhe-trained model...")
+    logger.info("Evaluating fhe-trained model...")
     fhe_model = SKlearnSGDClassifier(
         random_state=42,
         max_iter=50,

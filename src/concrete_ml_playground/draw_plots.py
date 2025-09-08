@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 
+from . import logger
 from .dataset_collector import get_dataset_loaders
 from .interfaces import DecisionBoundaryPlotData
 from .csv_handler import read_csv
@@ -27,7 +28,7 @@ def draw_decision_boundary_from_pickle_files(
     fhe_title = __get_fhe_title(exp_name, dset_name)
 
     if os.path.isfile(clear_pickle_path) and os.path.isfile(fhe_pickle_path):
-        print(
+        logger.info(
             "Loading computation results from disk and drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
         )
         with open(clear_pickle_path, "rb") as file:
@@ -41,7 +42,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"results/{clear_title}.png"
         plt.savefig(png_path)
-        print(f"Saved decision boundary to {png_path}")
+        logger.info(f"Saved decision boundary to {png_path}")
 
         plt.figure(figsize=(10, 7.5))
         plt.title(fhe_title)
@@ -49,7 +50,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"results/{fhe_title}.png"
         plt.savefig(png_path)
-        print(f"Saved decision boundary to {png_path}")
+        logger.info(f"Saved decision boundary to {png_path}")
 
 
 def apply_pca(X):
@@ -64,7 +65,7 @@ def apply_pca(X):
 def draw_decision_boundary(
     plot_data: DecisionBoundaryPlotData, exp_name: str, dset_name: str, X, y
 ):
-    print(
+    logger.info(
         f"Running required computations for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
     )
     pca, X_reduced, xx, yy = apply_pca(X)
@@ -116,7 +117,7 @@ def draw_feature_dim_runtime_plot(dset_prefix: str):
     results = read_csv()
     experiments = set([d.exp_name for d in results])
     for exp_name in experiments:
-        print(
+        logger.info(
             f"Drawing feature_dim_runtime plot for experiment '{exp_name}' and datasets with prefix '{dset_prefix}'..."
         )
         x = []
@@ -153,4 +154,4 @@ def draw_feature_dim_runtime_plot(dset_prefix: str):
 
         png_path = f"results/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
         plt.savefig(png_path)
-        print(f"Saved feature-runtime plot to {png_path}")
+        logger.info(f"Saved feature-runtime plot to {png_path}")
