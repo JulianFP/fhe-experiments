@@ -2,6 +2,8 @@ import click
 import os
 import shutil
 
+from datetime import datetime
+
 from . import logger
 from .dataset_collector import get_dataset_loaders
 from .experiment_collector import get_inference_experiments, get_training_experiments
@@ -18,11 +20,11 @@ from .csv_handler import init_csv, append_result_to_csv
 @click.option("--all_exps", is_flag=True, help="Run all training and inference experiments")
 @click.option("--all_inference_exps", is_flag=True, help="Run only the inference experiments")
 @click.option(
-    "--exp", type=str, required=False, multiple=True, help="Run only the specified experiment"
+    "--exp", type=str, required=False, multiple=True, help="Run only the specified experiment(s)"
 )
 @click.option("--all_dsets", is_flag=True, help="Run on all datasets")
 @click.option(
-    "--dset", type=str, required=False, multiple=True, help="Run only on the specified dataset"
+    "--dset", type=str, required=False, multiple=True, help="Run only on the specified dataset(s)"
 )
 @click.option(
     "--draw_all", is_flag=True, help="Draw all plots in addition to running the experiments"
@@ -34,15 +36,18 @@ from .csv_handler import init_csv, append_result_to_csv
 )
 @click.option(
     "--redraw",
-    is_flag=True,
-    help="Redraw all existing plots in the results dirwithout running any experiments or re-doing expensive computations. Useful for stylistic changes in the plots",
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, readable=True, writable=True, resolve_path=True
+    ),
+    required=False,
+    help="Redraw all graphs in the supplied results directory without running any experiments or re-doing expensive computations. Useful for stylistic changes in existing plots",
 )
 @click.option(
     "--execs",
     type=int,
     default=1,
     show_default=True,
-    help="How often each experiment should run. Will calculate the mean value between all executions",
+    help="How often each experiment should run. Will calculate the mean value and standard deviation between all executions",
 )
 def main(
     all_exps: bool,
@@ -53,7 +58,7 @@ def main(
     execs: int,
     draw_all: bool,
     draw_cheap: bool,
-    redraw: bool,
+    redraw: click.Path | None,
 ):
     dataset_loaders = get_dataset_loaders()
     scheduled_dataset_loaders = {}
@@ -96,19 +101,22 @@ def main(
     else:
         raise Exception("Either --all_exps, --all_inference_exps or --exp option is required")
 
-    if redraw:
-        if not os.path.isdir("results"):
-            raise Exception(
-                "To use the --redraw argument you need to have an existing results directory!"
-            )
+    if redraw is None:
+        timestamp = datetime.now().isoformat()
+        results_dir = f"results_{timestamp}"
+        if os.path.exists(results_dir):
+            raise Exception(f"The directory '{results_dir}' already exists!")
+        os.makedirs(results_dir)
+        logger.info(f"Successfully created results directory '{results_dir}'")
+        init_csv(results_dir)
     else:
-        init_csv()
+        results_dir = str(redraw)
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
         X_train, X_test, y_train, y_test = dset_loader()
         for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():
-            if redraw:
-                redraw_decision_boundary(exp_name, dset_name, X_test, y_test)
+            if redraw is not None:
+                redraw_decision_boundary(results_dir, exp_name, dset_name, X_test, y_test)
             else:
                 results = []
                 for i in range(execs):
@@ -127,13 +135,15 @@ def main(
                 logger.info(
                     f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
                 )
-                append_result_to_csv(final_result)
+                append_result_to_csv(results_dir, final_result)
                 if draw_all:
-                    draw_decision_boundary(plot_data, exp_name, dset_name, X_test, y_test)
+                    draw_decision_boundary(
+                        results_dir, plot_data, exp_name, dset_name, X_test, y_test
+                    )
 
     if (all_exps or all_inference_exps) and (draw_all or draw_cheap or redraw):
-        draw_feature_dim_runtime_plot("synth_")
-        draw_feature_dim_runtime_plot("spam_")
+        draw_feature_dim_runtime_plot(results_dir, "synth_")
+        draw_feature_dim_runtime_plot(results_dir, "spam_")
 
 
 if __name__ == "__main__":

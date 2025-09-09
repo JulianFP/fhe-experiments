@@ -13,6 +13,7 @@ from .dataset_collector import get_dataset_loaders
 from .interfaces import DecisionBoundaryPlotData
 from .csv_handler import read_csv
 
+
 figsize = (10, 7.5)
 
 
@@ -25,7 +26,15 @@ def __get_fhe_title(exp_name: str, dset_name: str):
 
 
 def draw_decision_boundary_from_pickle_files(
-    exp_name: str, dset_name: str, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
+    results_dir: str,
+    exp_name: str,
+    dset_name: str,
+    X_reduced,
+    y,
+    xx,
+    yy,
+    clear_pickle_path,
+    fhe_pickle_path,
 ):
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
@@ -43,7 +52,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
-        png_path = f"results/{clear_title}.png"
+        png_path = f"{results_dir}/{clear_title}.png"
         plt.savefig(png_path)
         logger.info(f"Saved decision boundary to {png_path}")
 
@@ -51,7 +60,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.title(fhe_title)
         plt.contourf(xx, yy, Z_fhe, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
-        png_path = f"results/{fhe_title}.png"
+        png_path = f"{results_dir}/{fhe_title}.png"
         plt.savefig(png_path)
         logger.info(f"Saved decision boundary to {png_path}")
 
@@ -87,7 +96,7 @@ def apply_pca_if_necessary(X):
 
 
 def draw_decision_boundary(
-    plot_data: DecisionBoundaryPlotData, exp_name: str, dset_name: str, X, y
+    results_dir: str, plot_data: DecisionBoundaryPlotData, exp_name: str, dset_name: str, X, y
 ):
     logger.info(
         f"Running required computations for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
@@ -96,8 +105,8 @@ def draw_decision_boundary(
 
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
-    clear_pickle_path = f"results/{clear_title}.pickle"
-    fhe_pickle_path = f"results/{fhe_title}.pickle"
+    clear_pickle_path = f"{results_dir}/{clear_title}.pickle"
+    fhe_pickle_path = f"{results_dir}/{fhe_title}.pickle"
 
     if pca is not None:
         inp = pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()])
@@ -123,24 +132,24 @@ def draw_decision_boundary(
         pickle.dump(Z_fhe, file)
 
     draw_decision_boundary_from_pickle_files(
-        exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
+        results_dir, exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
     )
 
 
-def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
+def redraw_decision_boundary(results_dir: str, exp_name: str, dset_name: str, X, y):
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
-    clear_pickle_path = f"results/{clear_title}.pickle"
-    fhe_pickle_path = f"results/{fhe_title}.pickle"
+    clear_pickle_path = f"{results_dir}/{clear_title}.pickle"
+    fhe_pickle_path = f"{results_dir}/{fhe_title}.pickle"
     _, X_reduced, xx, yy = apply_pca_if_necessary(X)
     draw_decision_boundary_from_pickle_files(
-        exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
+        results_dir, exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
     )
 
 
-def draw_feature_dim_runtime_plot(dset_prefix: str):
+def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
     dataset_loaders = get_dataset_loaders()
-    results = read_csv()
+    results = read_csv(results_dir)
     experiments = set([d.exp_name for d in results])
     for exp_name in experiments:
         logger.info(
@@ -178,6 +187,6 @@ def draw_feature_dim_runtime_plot(dset_prefix: str):
         plt.errorbar(x, y_post, y_post_stdev, fmt="mo-", label="FHE post")
         plt.figlegend()
 
-        png_path = f"results/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
+        png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
         plt.savefig(png_path)
         logger.info(f"Saved feature-runtime plot to {png_path}")

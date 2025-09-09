@@ -1,10 +1,6 @@
 import csv
-import os
-
 from . import logger
 from .interfaces import ExperimentResultFinal
-
-file_name = "results/experiment_data.csv"
 
 # this ensures that dset_name and exp_name are at the beginning
 field_names = ["dset_name", "dset_name_dict", "exp_name", "exp_name_dict"]
@@ -15,24 +11,22 @@ field_names_dict.sort()
 arranged_field_names = field_names + field_names_dict
 
 
-def init_csv():
-    if os.path.exists("results"):
-        raise Exception(
-            "The 'results' directory already exists. Please move it away to run a new experiment!"
-        )
+def get_file_name(results_dir: str) -> str:
+    return f"{results_dir}/experiment_data.csv"
 
-    os.makedirs("results")
-    with open(file_name, "w", newline="") as csv_file:
+
+def init_csv(results_dir: str):
+    with open(get_file_name(results_dir), "w", newline="") as csv_file:
         result_writer = csv.DictWriter(
             csv_file,
             fieldnames=arranged_field_names,
         )
         result_writer.writeheader()
-    logger.info("Successfully initiated result csv file")
+    logger.info("Successfully initiated experiment_data.csv file")
 
 
-def append_result_to_csv(exp_result: ExperimentResultFinal):
-    with open(file_name, "a", newline="") as csv_file:
+def append_result_to_csv(results_dir: str, exp_result: ExperimentResultFinal):
+    with open(get_file_name(results_dir), "a", newline="") as csv_file:
         result_writer = csv.DictWriter(
             csv_file,
             fieldnames=arranged_field_names,
@@ -41,8 +35,8 @@ def append_result_to_csv(exp_result: ExperimentResultFinal):
     logger.info("Successfully appended experiment result to csv")
 
 
-def read_csv() -> list[ExperimentResultFinal]:
-    with open(file_name, "r", newline="") as csv_file:
+def read_csv(results_dir: str) -> list[ExperimentResultFinal]:
+    with open(get_file_name(results_dir), "r", newline="") as csv_file:
         result_reader = csv.DictReader(
             csv_file,
         )
