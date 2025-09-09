@@ -105,5 +105,6 @@ def experiment(
         DecisionBoundaryPlotData(
             fhe_model=cml_model,
             clear_model=model,
+            data_preparation_step=data_transformation_pipeline.transform,
         ),
     )

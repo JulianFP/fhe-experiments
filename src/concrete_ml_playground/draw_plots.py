@@ -1,5 +1,6 @@
 import os
 import pickle
+import math
 import numpy as np
 
 from concrete.ml.common.utils import FheMode
@@ -11,6 +12,8 @@ from . import logger
 from .dataset_collector import get_dataset_loaders
 from .interfaces import DecisionBoundaryPlotData
 from .csv_handler import read_csv
+
+figsize = (10, 7.5)
 
 
 def __get_clear_title(exp_name: str, dset_name: str):
@@ -36,7 +39,7 @@ def draw_decision_boundary_from_pickle_files(
         with open(fhe_pickle_path, "rb") as file:
             Z_fhe = pickle.load(file)
 
-        plt.figure(figsize=(10, 7.5))
+        plt.figure(figsize=figsize)
         plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
@@ -44,7 +47,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.savefig(png_path)
         logger.info(f"Saved decision boundary to {png_path}")
 
-        plt.figure(figsize=(10, 7.5))
+        plt.figure(figsize=figsize)
         plt.title(fhe_title)
         plt.contourf(xx, yy, Z_fhe, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
@@ -58,9 +61,15 @@ def get_meshgrid(X_reduced):
     x2_min, x2_max = X_reduced[:, 1].min(), X_reduced[:, 1].max()
     x1_padding = 0.05 * (x1_max - x1_min)
     x2_padding = 0.05 * (x2_max - x2_min)
+    figsize_aspect_ratio = figsize[0] / figsize[1]
+    width_samples = 500
     return np.meshgrid(
-        np.linspace(x1_min - x1_padding, x1_max + x1_padding, 500),
-        np.linspace(x2_min - x2_padding, x2_max + x2_padding, 500),
+        np.linspace(x1_min - x1_padding, x1_max + x1_padding, width_samples),
+        np.linspace(
+            x2_min - x2_padding,
+            x2_max + x2_padding,
+            math.ceil(width_samples / figsize_aspect_ratio),
+        ),
     )
 
 
@@ -94,6 +103,9 @@ def draw_decision_boundary(
         inp = pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()])
     else:
         inp = np.c_[xx.ravel(), yy.ravel()]
+
+    if plot_data.data_preparation_step is not None:
+        inp = plot_data.data_preparation_step(inp)
 
     Z_clear = plot_data.clear_model.predict(inp).reshape(xx.shape)
     with open(clear_pickle_path, "wb") as file:
@@ -156,7 +168,7 @@ def draw_feature_dim_runtime_plot(dset_prefix: str):
                 y_post.append(result.fhe_duration_postprocessing)
                 y_post_stdev.append(result.fhe_duration_postprocessing_stdev)
 
-        plt.figure(figsize=(10, 7.5))
+        plt.figure(figsize=figsize)
         plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
         plt.xlabel("Dim of feature vectors")
         plt.ylabel("Runtime (in seconds)")

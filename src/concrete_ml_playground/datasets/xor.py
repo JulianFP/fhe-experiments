@@ -15,8 +15,8 @@ def load_xor_split_dataset():
     X_test, y_test = X[p2], y[p2]
 
     # add some noise so that train and test set are not identical and to make them floats
-    noise1 = rng.uniform(-0.2, 0.2, (len(X), 2))
-    noise2 = rng.uniform(-0.2, 0.2, (len(X), 2))
+    noise1 = rng.uniform(-0.24, 0.24, (len(X), 2))
+    noise2 = rng.uniform(-0.24, 0.24, (len(X), 2))
     X_train = np.add(X_train, noise1)
     X_test = np.add(X_test, noise2)
 

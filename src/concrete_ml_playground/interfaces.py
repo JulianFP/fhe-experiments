@@ -47,6 +47,7 @@ class DecisionBoundaryPlotData:
     clear_model: ClearModel
     fhe_trained_model: ClearModel | None = None
     fhe_model: FheModel | None = None
+    data_preparation_step: Callable | None = None
 
 
 ExpFunction = Callable[[list, list, list, list], tuple[ExperimentResult, DecisionBoundaryPlotData]]
