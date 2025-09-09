@@ -53,13 +53,28 @@ def draw_decision_boundary_from_pickle_files(
         logger.info(f"Saved decision boundary to {png_path}")
 
 
-def apply_pca(X):
-    pca = PCA(n_components=2)
-    X_reduced = pca.fit_transform(X)
-    x1_min, x1_max = X_reduced[:, 0].min() - 0.5, X_reduced[:, 0].max() + 0.5
-    x2_min, x2_max = X_reduced[:, 1].min() - 0.5, X_reduced[:, 1].max() + 0.5
-    xx, yy = np.meshgrid(np.linspace(x1_min, x1_max, 500), np.linspace(x2_min, x2_max, 500))
-    return pca, X_reduced, xx, yy
+def get_meshgrid(X_reduced):
+    x1_min, x1_max = X_reduced[:, 0].min(), X_reduced[:, 0].max()
+    x2_min, x2_max = X_reduced[:, 1].min(), X_reduced[:, 1].max()
+    x1_padding = 0.05 * (x1_max - x1_min)
+    x2_padding = 0.05 * (x2_max - x2_min)
+    return np.meshgrid(
+        np.linspace(x1_min - x1_padding, x1_max + x1_padding, 500),
+        np.linspace(x2_min - x2_padding, x2_max + x2_padding, 500),
+    )
+
+
+def apply_pca_if_necessary(X):
+    if len(X[0]) > 2:
+        logger.info("Features have more than 2 dimensions. Applying PCA...")
+        pca = PCA(n_components=2)
+        X_reduced = pca.fit_transform(X)
+        xx, yy = get_meshgrid(X_reduced)
+        return pca, X_reduced, xx, yy
+    else:
+        logger.info(f"Features have {len(X[0])} dimensions. Not applying PCA")
+        xx, yy = get_meshgrid(X)
+        return None, X, xx, yy
 
 
 def draw_decision_boundary(
@@ -68,27 +83,26 @@ def draw_decision_boundary(
     logger.info(
         f"Running required computations for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
     )
-    pca, X_reduced, xx, yy = apply_pca(X)
+    pca, X_reduced, xx, yy = apply_pca_if_necessary(X)
 
     clear_title = __get_clear_title(exp_name, dset_name)
     fhe_title = __get_fhe_title(exp_name, dset_name)
     clear_pickle_path = f"results/{clear_title}.pickle"
     fhe_pickle_path = f"results/{fhe_title}.pickle"
 
-    Z_clear = plot_data.clear_model.predict(
-        pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()])
-    ).reshape(xx.shape)
+    if pca is not None:
+        inp = pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()])
+    else:
+        inp = np.c_[xx.ravel(), yy.ravel()]
+
+    Z_clear = plot_data.clear_model.predict(inp).reshape(xx.shape)
     with open(clear_pickle_path, "wb") as file:
         pickle.dump(Z_clear, file)
 
     if plot_data.fhe_trained_model is not None:
-        Z_fhe = plot_data.fhe_trained_model.predict(
-            pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()])
-        ).reshape(xx.shape)
+        Z_fhe = plot_data.fhe_trained_model.predict(inp).reshape(xx.shape)
     elif plot_data.fhe_model is not None:
-        Z_fhe = plot_data.fhe_model.predict(
-            pca.inverse_transform(np.c_[xx.ravel(), yy.ravel()]), fhe=FheMode.SIMULATE
-        ).reshape(xx.shape)
+        Z_fhe = plot_data.fhe_model.predict(inp, fhe=FheMode.SIMULATE).reshape(xx.shape)
     else:
         raise Exception(
             "DecisionBoundaryPlotData needs to either have an fhe_trained_model or an fhe_model!"
@@ -106,7 +120,7 @@ def redraw_decision_boundary(exp_name: str, dset_name: str, X, y):
     fhe_title = __get_fhe_title(exp_name, dset_name)
     clear_pickle_path = f"results/{clear_title}.pickle"
     fhe_pickle_path = f"results/{fhe_title}.pickle"
-    _, X_reduced, xx, yy = apply_pca(X)
+    _, X_reduced, xx, yy = apply_pca_if_necessary(X)
     draw_decision_boundary_from_pickle_files(
         exp_name, dset_name, X_reduced, y, xx, yy, clear_pickle_path, fhe_pickle_path
     )
@@ -131,7 +145,7 @@ def draw_feature_dim_runtime_plot(dset_prefix: str):
         y_post_stdev = []
         for result in results:
             if result.exp_name == exp_name and result.dset_name_dict.startswith(dset_prefix):
-                X, _ = dataset_loaders[result.dset_name_dict][0]()
+                X, _, _, _ = dataset_loaders[result.dset_name_dict][0]()
                 x.append(len(X[0]))
                 y_clear.append(result.clear_duration)
                 y_clear_stdev.append(result.clear_duration_stdev)

@@ -1,7 +1,6 @@
 import click
 import os
 import shutil
-from sklearn.model_selection import train_test_split
 
 from . import logger
 from .dataset_collector import get_dataset_loaders
@@ -106,8 +105,7 @@ def main(
         init_csv()
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
-        X, y = dset_loader()
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
+        X_train, X_test, y_train, y_test = dset_loader()
         for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():
             if redraw:
                 redraw_decision_boundary(exp_name, dset_name, X_test, y_test)
