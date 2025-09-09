@@ -8,17 +8,12 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    project-W-frontend = {
-      url = "github:julianfp/project-W-frontend";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
     inputs@{
       nixpkgs,
       systems,
-      project-W-frontend,
       ...
     }:
     let
