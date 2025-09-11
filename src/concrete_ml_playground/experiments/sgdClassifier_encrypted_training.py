@@ -1,10 +1,7 @@
 # The code in this experiment was heavily inspired by the following example code provided by Zama: https://github.com/zama-ai/concrete-ml/blob/release/1.9.x/docs/advanced_examples/LogisticRegressionTraining.ipynb
-
-import shutil
 import time
-from pathlib import Path
-
 import numpy as np
+
 from concrete import fhe
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
 from concrete.ml.deployment.fhe_client_server import DeploymentMode
@@ -17,7 +14,7 @@ from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
 
 def sgd_training(
-    X_train: list, X_test: list, y_train: list, y_test: list
+    tmp_dir: str, X_train: list, X_test: list, y_train: list, y_test: list
 ) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
     logger.info("Training clear model...")
     model = SKlearnSGDClassifier(
@@ -44,9 +41,7 @@ def sgd_training(
     y_compile_set = np.array([y_min, y_max] * (batch_size // 2))
 
     # init model and show it the compile_set
-    model_path = "./model_dir"
-    if Path(model_path).is_dir():
-        shutil.rmtree(model_path)
+    model_path = f"{tmp_dir}/model_dir"
     fhe_model = SGDClassifier(
         random_state=42,
         max_iter=50,
@@ -59,7 +54,7 @@ def sgd_training(
     dev.save(mode=DeploymentMode.TRAINING)
 
     # client init
-    client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
+    client = FHEModelClient(path_dir=model_path, key_dir=f"{tmp_dir}/fhe_keys_client")
     serialized_evaluation_keys = client.get_serialized_evaluation_keys()
     assert (
         type(serialized_evaluation_keys) is bytes
@@ -113,9 +108,6 @@ def sgd_training(
     start_fhe_post = time.time()
     weights, bias = client.deserialize_decrypt_dequantize(fitted_weights_enc, fitted_bias_enc)
     end_fhe_post = time.time()
-
-    # cleanup model dir
-    shutil.rmtree(model_path)
 
     logger.info("Evaluating fhe-trained model...")
     fhe_model = SKlearnSGDClassifier(

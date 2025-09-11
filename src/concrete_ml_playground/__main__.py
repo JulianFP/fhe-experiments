@@ -1,6 +1,6 @@
 import click
+import tempfile
 import os
-import shutil
 
 from datetime import datetime
 
@@ -123,8 +123,8 @@ def main(
                     logger.info(
                         f"Running '{exp_name}' experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
                     )
-                    result, plot_data = exp_func(X_train, X_test, y_train, y_test)
-                    shutil.rmtree("/tmp/fhe_keys_client", True)
+                    with tempfile.TemporaryDirectory() as tmpdirname:
+                        result, plot_data = exp_func(tmpdirname, X_train, X_test, y_train, y_test)
                     results.append(result)
                 final_result = evaluate_experiment_results(
                     results, dset_name, dset_name_dict, exp_name, exp_name_dict

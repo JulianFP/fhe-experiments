@@ -50,4 +50,6 @@ class DecisionBoundaryPlotData:
     data_preparation_step: Callable | None = None
 
 
-ExpFunction = Callable[[list, list, list, list], tuple[ExperimentResult, DecisionBoundaryPlotData]]
+ExpFunction = Callable[
+    [str, list, list, list, list], tuple[ExperimentResult, DecisionBoundaryPlotData]
+]

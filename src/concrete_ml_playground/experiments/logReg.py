@@ -1,6 +1,4 @@
-import shutil
 import time
-from pathlib import Path
 
 import numpy as np
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
@@ -12,7 +10,7 @@ from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
 
 
 def experiment(
-    X_train: list, X_test: list, y_train: list, y_test: list
+    tmp_dir: str, X_train: list, X_test: list, y_train: list, y_test: list
 ) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
     # Instantiate the model:
     model = SKlearnLogisticRegression()
@@ -30,14 +28,12 @@ def experiment(
     # Compile the model
     cml_model = LogisticRegression.from_sklearn_model(model, X_train, n_bits=8)
     cml_model.compile(X_train)
-    model_path = "./model_dir"
-    if Path(model_path).is_dir():
-        shutil.rmtree(model_path)
+    model_path = f"{tmp_dir}/model_dir"
     dev = FHEModelDev(path_dir=model_path, model=cml_model)
     dev.save()
 
     # client init
-    client = FHEModelClient(path_dir=model_path, key_dir="/tmp/fhe_keys_client")
+    client = FHEModelClient(path_dir=model_path, key_dir=f"{tmp_dir}/fhe_keys_client")
     serialized_evaluation_keys = client.get_serialized_evaluation_keys()
     assert (
         type(serialized_evaluation_keys) is bytes
@@ -67,9 +63,6 @@ def experiment(
     for Y_enc in encrypted_result_array:
         y_pred_fhe.append(np.argmax(client.deserialize_decrypt_dequantize(Y_enc)))
     end_fhe_post = time.time()
-
-    # cleanup model dir
-    shutil.rmtree(model_path)
 
     return (
         ExperimentResult(
