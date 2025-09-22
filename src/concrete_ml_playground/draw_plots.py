@@ -73,11 +73,12 @@ def get_meshgrid(X_reduced):
     figsize_aspect_ratio = figsize[0] / figsize[1]
     width_samples = 500
     return np.meshgrid(
-        np.linspace(x1_min - x1_padding, x1_max + x1_padding, width_samples),
+        np.linspace(x1_min - x1_padding, x1_max + x1_padding, width_samples, dtype=np.float32),
         np.linspace(
             x2_min - x2_padding,
             x2_max + x2_padding,
             math.ceil(width_samples / figsize_aspect_ratio),
+            dtype=np.float32,
         ),
     )
 
