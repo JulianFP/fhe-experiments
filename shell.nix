@@ -19,9 +19,10 @@ let
       ruff.enable = true;
       ruff-format.enable = true;
       nixfmt-rfc-style.enable = true;
-      cspell = {
+      codespell = {
         enable = true;
-        args = [ "-w" ];
+        name = "codespell";
+        entry = "${pkgs.codespell}/bin/codespell -w --ignore-words-list=FitH --skip=thesis/zusammenfassung.tex";
       };
     };
   };
