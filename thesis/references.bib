@@ -1,53 +1,180 @@
-% This file was created with JabRef 2.9.2.
-% Encoding: ISO8859_1
 
-@BOOK{Agg07,
-  title = {Data Streams: Models and Algorithms},
-  publisher = {Springer Berlin Heidelberg},
-  year = {2007},
-  author = {Charu C. Aggarwal}
+@inproceedings{brakerski_1_2018,
+	title = {1 Homomorphic Encryption : Good , Bad or Ugly ?},
+	url = {https://www.semanticscholar.org/paper/1-Homomorphic-Encryption-%3A-Good-%2C-Bad-or-Ugly-Brakerski/e247ae732c50b6c04b2aa413c4caa0ca77ed4751},
+	shorttitle = {1 Homomorphic Encryption},
+	abstract = {A homomorphic encryption scheme is one that allows computing on encrypted data without decrypting it first. In fully homomorphic encryption it is possible to apply any efficiently computable function to encrypted data. We provide a survey on the origins, definitions, properties, constructions and uses of fully homomorphic encryption. 1 Homomorphic Encryption: Good, Bad or Ugly? In the seminal {RSA} cryptosystem [{RSA}78], the public key consists of a product of two primes N = p · q as well as an integer e, and the message space is the set of elements in {ZN} . Encrypting a message m involved simply raising it to the power e and taking the result modulo N , i.e. c = me (mod N). For the purpose of the current discussion we ignore the decryption process. It is not hard to see that the product of two ciphertexts c1 and c2 encrypting messages m1 and m2 allows to compute the value c1 · c2 (mod N) = (m1m2) (mod N), i.e. to compute an encryption of m1 · m2 without knowledge of the secret private key. Rabin’s cryptosystem [Rab79] exhibited similar behavior, where a product of ciphertexts corresponded to an encryption of their respective plaintexts. This behavior can be expressed in formal terms by saying that the ciphertext space and the plaintext space are homomorphic (multiplicative) groups. The decryption process defines the homomorphism by mapping a ciphertext to its image plaintext. Rivest, Adleman and Dertouzos [{RAD}78] realized the potential advantage of this property. In a time where complex computations required “buying computing cycles” from a mainframe computer maintained by an external company, one would be exposed to the danger of their private information being revealed to the vendor of computing power. However, if the computation only involves group operations on the input data, then homomorphism will allow the vendor to perform the computation on the ciphertext, rather than the plaintext, so that sensitive data is not revealed on one hand, and the heavy computational load is outsourced to the vendor on the other. Remarkably, 40 years down the line, outsourcing computation gained popularity once again with the introduction of cloud computing. Indeed, privacy in the era of the cloud is one of the most fascinating topics in modern cryptographic research. Naturally, one would like to extend homomorphism beyond group operations, and indeed [{RAD}78] put forth the question whether there exist encryption schemes that are homomorphic also with respect to ring (or field) operations, which would allow to perform arbitrary computation on the input data. ∗Weizmann Institute of Science, zvika.brakerski@weizmann.ac.il. Supported by the Israel Science Foundation (Grant No. 468/14), Binational Science Foundation (Grants No. 2016726, 2014276), and by the European Union Horizon 2020 Research and Innovation Program via {ERC} Project {REACT} (Grant 756482) and via Project {PROMETHEUS} (Grant 780701).},
+	author = {Brakerski, Zvika},
+	urldate = {2025-08-11},
+	date = {2018},
+	file = {PDF:/home/julian/Zotero/storage/3S882DQC/Brakerski - 2018 - 1 Homomorphic Encryption  Good , Bad or Ugly .pdf:application/pdf},
 }
 
-@ARTICLE{Agg05,
-  author = {Charu C. Aggarwal},
-  title = {On change diagnosis in evolving data streams},
-  journal = {IEEE Transactions on Knowledge and Data Engineering},
-  year = {2005},
-  volume = {17},
-  pages = {587--600},
-  number = {5},
-  month = {May}
+@inproceedings{gentry_fully_2009,
+	title = {A fully homomorphic encryption scheme},
+	url = {https://www.semanticscholar.org/paper/A-fully-homomorphic-encryption-scheme-Gentry/5496636b7474ef68f79248de4a63dd879db55334},
+	abstract = {We propose the first fully homomorphic encryption scheme, solving an old open problem. Such a scheme allows one to compute arbitrary functions over encrypted data without the decryption key—i.e., given encryptions E(m1), ..., E( mt) of m1, ..., m t, one can efficiently compute a compact ciphertext that encrypts f(m1, ..., m t) for any efficiently computable function f.
+Fully homomorphic encryption has numerous applications. For example, it enables encrypted search engine queries—i.e., a search engine can give you a succinct encrypted answer to your (boolean) query without even knowing what your query was. It also enables searching on encrypted data; you can store your encrypted data on a remote server, and later have the server retrieve only files that (when decrypted) satisfy some boolean constraint, even though the server cannot decrypt the files on its own. More broadly, it improves the efficiency of secure multiparty computation.
+In our solution, we begin by designing a somewhat homomorphic "boostrappable" encryption scheme that works when the function f is the scheme's own decryption function. We then show how, through recursive self-embedding, bootstrappable encryption gives fully homomorphic encryption.},
+	author = {Gentry, Craig},
+	urldate = {2025-08-11},
+	date = {2009},
+	file = {PDF:/home/julian/Zotero/storage/XL78ABJ8/Gentry - 2009 - A fully homomorphic encryption scheme.pdf:application/pdf},
 }
 
-@INPROCEEDINGS{AggHanWan03,
-  author = {Charu C. Aggarwal AND Jiawei Han AND Jianyong Wang AND Philip S.
-	Yu},
-  title = {A Framework for Clustering Evolving Data Streams},
-  booktitle = {29th International Conference on Very Large Data Bases (VLDB)},
-  year = {2003},
-  volume = {3},
-  pages = {81--92}
+@incollection{dolev_programmable_2021,
+	location = {Cham},
+	title = {Programmable Bootstrapping Enables Efficient Homomorphic Inference of Deep Neural Networks},
+	volume = {12716},
+	isbn = {978-3-030-78085-2 978-3-030-78086-9},
+	url = {https://link.springer.com/10.1007/978-3-030-78086-9_1},
+	abstract = {In many cases, machine learning and privacy are perceived to be at odds. Privacy concerns are especially relevant when the involved data are sensitive. This paper deals with the privacy-preserving inference of deep neural networks.},
+	pages = {1--19},
+	booktitle = {Cyber Security Cryptography and Machine Learning},
+	publisher = {Springer International Publishing},
+	author = {Chillotti, Ilaria and Joye, Marc and Paillier, Pascal},
+	editor = {Dolev, Shlomi and Margalit, Oded and Pinkas, Benny and Schwarzmann, Alexander},
+	urldate = {2025-08-11},
+	date = {2021},
+	langid = {english},
+	doi = {10.1007/978-3-030-78086-9_1},
+	note = {Series Title: Lecture Notes in Computer Science},
+	file = {PDF:/home/julian/Zotero/storage/IHZLVLCN/Chillotti et al. - 2021 - Programmable Bootstrapping Enables Efficient Homomorphic Inference of Deep Neural Networks.pdf:application/pdf},
 }
 
-@BOOK{Newman2010,
-  title = {Networks: an introduction},
-  publisher = {Oxford University Press},
-  year = {2010},
-  author = {Newman, Mark}
+@inproceedings{ducas_fhew_2015,
+	location = {Berlin, Heidelberg},
+	title = {{FHEW}: Bootstrapping Homomorphic Encryption in Less Than a Second},
+	isbn = {978-3-662-46800-5},
+	doi = {10.1007/978-3-662-46800-5_24},
+	shorttitle = {{FHEW}},
+	abstract = {The main bottleneck affecting the efficiency of all known fully homomorphic encryption ({FHE}) schemes is Gentry’s bootstrapping procedure, which is required to refresh noisy ciphertexts and keep computing on encrypted data. Bootstrapping in the latest implementation of {FHE}, the {HElib} library of Halevi and Shoup (Crypto 2014), requires about six minutes. We present a new method to homomorphically compute simple bit operations, and refresh (bootstrap) the resulting output, which runs on a personal computer in just about half a second. We present a detailed technical analysis of the scheme (based on the worst-case hardness of standard lattice problems) and report on the performance of our prototype implementation.},
+	pages = {617--640},
+	booktitle = {Advances in Cryptology -- {EUROCRYPT} 2015},
+	publisher = {Springer},
+	author = {Ducas, Léo and Micciancio, Daniele},
+	editor = {Oswald, Elisabeth and Fischlin, Marc},
+	date = {2015},
+	langid = {english},
+	keywords = {Encryption Scheme, Homomorphic Encryption, Message Space, {NAND} Gate, Ring Element},
+	file = {Full Text PDF:/home/julian/Zotero/storage/3RR3BWAJ/Ducas and Micciancio - 2015 - FHEW Bootstrapping Homomorphic Encryption in Less Than a Second.pdf:application/pdf},
 }
 
-@INPROCEEDINGS{Spitz2016a,
-  author = {Andreas Spitz and Michael Gertz},
-  title = {Terms over {LOAD:} Leveraging Named Entities for Cross-Document Extraction
-	and Summarization of Events},
-  booktitle = {Proceedings of the 39th International {ACM} {SIGIR} conference on
-	Research and Development in Information Retrieval, {SIGIR} 2016,
-	Pisa, Italy, July 17-21, 2016},
-  year = {2016},
-  pages = {503--512},
-  bibsource = {dblp computer science bibliography, http://dblp.org},
-  biburl = {http://dblp.uni-trier.de/rec/bib/conf/sigir/SpitzG16},
-  doi = {10.1145/2911451.2911529},
-  timestamp = {Thu, 14 Jul 2016 19:46:27 +0200},
-  url = {http://doi.acm.org/10.1145/2911451.2911529}
+@article{chillotti_tfhe_2020,
+	title = {{TFHE}: Fast Fully Homomorphic Encryption Over the Torus},
+	volume = {33},
+	issn = {1432-1378},
+	url = {https://doi.org/10.1007/s00145-019-09319-x},
+	doi = {10.1007/s00145-019-09319-x},
+	shorttitle = {{TFHE}},
+	abstract = {This work describes a fast fully homomorphic encryption scheme over the torus ({TFHE}) that revisits, generalizes and improves the fully homomorphic encryption ({FHE}) based on {GSW} and its ring variants. The simplest {FHE} schemes consist in bootstrapped binary gates. In this gate bootstrapping mode, we show that the scheme {FHEW} of Ducas and Micciancio (Eurocrypt, 2015) can be expressed only in terms of external product between a {GSW} and an {LWE} ciphertext. As a consequence of this result and of other optimizations, we decrease the running time of their bootstrapping from 690 to 13 ms single core, using 16 {MB} bootstrapping key instead of 1 {GB}, and preserving the security parameter. In leveled homomorphic mode, we propose two methods to manipulate packed data, in order to decrease the ciphertext expansion and to optimize the evaluation of lookup tables and arbitrary functions in \$\$\{{\textbackslash}mathrm \{{RingGSW}\}\}\$\$-based homomorphic schemes. We also extend the automata logic, introduced in Gama et al. (Eurocrypt, 2016), to the efficient leveled evaluation of weighted automata, and present a new homomorphic counter called \$\${\textbackslash}mathrm \{{TBSR}\}\$\$, that supports all the elementary operations that occur in a multiplication. These improvements speed up the evaluation of most arithmetic functions in a packed leveled mode, with a noise overhead that remains additive. We finally present a new circuit bootstrapping that converts \$\${\textbackslash}mathsf \{{LWE}\}\$\$ ciphertexts into low-noise \$\$\{{\textbackslash}mathrm \{{RingGSW}\}\}\$\$ ciphertexts in just 137 ms, which makes the leveled mode of {TFHE} composable and which is fast enough to speed up arithmetic functions, compared to the gate bootstrapping approach. Finally, we provide an alternative practical analysis of {LWE} based schemes, which directly relates the security parameter to the error rate of {LWE} and the entropy of the {LWE} secret key, and we propose concrete parameter sets and timing comparison for all our constructions.},
+	pages = {34--91},
+	number = {1},
+	journaltitle = {Journal of Cryptology},
+	shortjournal = {J Cryptol},
+	author = {Chillotti, Ilaria and Gama, Nicolas and Georgieva, Mariya and Izabachène, Malika},
+	urldate = {2025-08-14},
+	date = {2020-01-01},
+	langid = {english},
+	keywords = {Boolean circuit, Bootstrapping, Deterministic automata, Fully homomorphic encryption, {GSW}, Lattices, {LWE}},
+	file = {Full Text PDF:/home/julian/Zotero/storage/NQ9MAHYS/Chillotti et al. - 2020 - TFHE Fast Fully Homomorphic Encryption Over the Torus.pdf:application/pdf},
+}
+
+@online{noauthor_exploring_nodate,
+	title = {Exploring Fully Homomorphic Encryption},
+	url = {https://vitalik.eth.limo/general/2020/07/20/homomorphic.html},
+	urldate = {2025-08-14},
+	file = {Exploring Fully Homomorphic Encryption:/home/julian/Zotero/storage/GRI32AEJ/homomorphic.html:text/html},
+}
+
+@article{boneh_homomorphic_nodate,
+	title = {Homomorphic Encryption for Large Integers from Nested Residue Number Systems},
+	abstract = {Existing fully homomorphic encryption ({FHE}) schemes primarily support a plaintext space defined over a relatively small prime. However, in some important applications of {FHE} one needs arithmetic over a large prescribed prime. In this paper we construct a new {FHE} system that is specifically designed for this purpose. Our system composes three layers of residue systems to enable much better performance than was previously possible. Our experiments show that for arithmetic modulo a 256-bit integer, when compared to the {TFHE}-rs implementation of 256-bit arithmetic, our new system achieves a factor of two thousand better multiplication throughput and a factor of twenty better latency. Moreover, for a 2048-bit prime modulus we achieve far better performance than was previously possible.},
+	author = {Boneh, Dan and Kim, Jaehyung},
+	langid = {english},
+	file = {PDF:/home/julian/Zotero/storage/55SD8IXN/Boneh and Kim - Homomorphic Encryption for Large Integers from Nested Residue Number Systems.pdf:application/pdf},
+}
+
+@misc{frery_privacy-preserving_2023,
+	title = {Privacy-Preserving Tree-Based Inference with {TFHE}},
+	url = {http://arxiv.org/abs/2303.01254},
+	doi = {10.48550/arXiv.2303.01254},
+	abstract = {Privacy enhancing technologies ({PETs}) have been proposed as a way to protect the privacy of data while still allowing for data analysis. In this work, we focus on Fully Homomorphic Encryption ({FHE}), a powerful tool that allows for arbitrary computations to be performed on encrypted data. {FHE} has received lots of attention in the past few years and has reached realistic execution times and correctness. More precisely, we explain in this paper how we apply {FHE} to tree-based models and get state-of-the-art solutions over encrypted tabular data. We show that our method is applicable to a wide range of tree-based models, including decision trees, random forests, and gradient boosted trees, and has been implemented within the Concrete-{ML} library, which is open-source at https://github.com/zama-ai/concrete-ml. With a selected set of use-cases, we demonstrate that our {FHE} version is very close to the unprotected version in terms of accuracy.},
+	number = {{arXiv}:2303.01254},
+	publisher = {{arXiv}},
+	author = {Frery, Jordan and Stoian, Andrei and Bredehoft, Roman and Montero, Luis and Kherfallah, Celia and Chevallier-Mames, Benoit and Meyre, Arthur},
+	urldate = {2025-09-04},
+	date = {2023-08-07},
+	eprinttype = {arxiv},
+	eprint = {2303.01254 [cs]},
+	keywords = {Computer Science - Artificial Intelligence, Computer Science - Cryptography and Security, Computer Science - Machine Learning},
+	file = {Preprint PDF:/home/julian/Zotero/storage/PTXP8VPG/Frery et al. - 2023 - Privacy-Preserving Tree-Based Inference with TFHE.pdf:application/pdf;Snapshot:/home/julian/Zotero/storage/6VCDIFJH/2303.html:text/html},
+}
+
+@online{noauthor_tfhe_nodate,
+	title = {{TFHE} Deep Dive - Part I - Ciphertext types},
+	url = {https://www.zama.ai/post/tfhe-deep-dive-part-1},
+	abstract = {This blog post is part of a series of posts dedicated to the Fully Homomorphic Encryption scheme called {TFHE} by Ilaria Chillotti.},
+	urldate = {2025-09-11},
+	langid = {english},
+	file = {Snapshot:/home/julian/Zotero/storage/ID7TQRCE/tfhe-deep-dive-part-1.html:text/html},
+}
+
+@online{noauthor_003_nodate,
+	title = {003 {TFHE} Deep Dive w/ Ilaria Chillotti - {YouTube}},
+	url = {https://www.youtube.com/watch?v=npoHSR6-oRw},
+	urldate = {2025-09-16},
+	file = {003 TFHE Deep Dive w/ Ilaria Chillotti - YouTube:/home/julian/Zotero/storage/M3K8BB55/watch.html:text/html},
+}
+
+@online{noauthor_fully_nodate,
+	title = {Fully Homomorphic Encryption},
+	url = {https://fhe.org/resources/},
+	abstract = {We are a community of researchers and developers interested in advancing homomorphic encryption and other secure computation techniques.},
+	titleaddon = {Fully Homomorphic Encryption},
+	urldate = {2025-09-24},
+	langid = {american},
+	file = {Snapshot:/home/julian/Zotero/storage/H2S2RVXD/resources.html:text/html},
+}
+
+@online{astral_uv_nodate,
+	title = {uv},
+	url = {https://docs.astral.sh/uv/},
+	author = {{Astral}},
+	urldate = {2025-09-29},
+	file = {uv:/home/julian/Zotero/storage/MMRK8INT/uv.html:text/html},
+}
+
+@software{partanen_julianfpfhe-experiments_2025,
+	title = {{JulianFP}/fhe-experiments},
+	rights = {{MIT}},
+	url = {https://github.com/JulianFP/fhe-experiments},
+	author = {Partanen, Julian},
+	urldate = {2025-09-29},
+	date = {2025-09-24},
+	note = {original-date: 2025-07-20T15:45:20Z},
+}
+
+@online{noauthor_matplotlib_nodate,
+	title = {Matplotlib — Visualization with Python},
+	url = {https://matplotlib.org/},
+	urldate = {2025-09-29},
+	file = {Matplotlib — Visualization with Python:/home/julian/Zotero/storage/V2H7N79F/matplotlib.org.html:text/html},
+}
+
+@online{pallets_welcome_nodate,
+	title = {Welcome to Click — Click Documentation (8.3.x)},
+	url = {https://click.palletsprojects.com/en/stable/},
+	author = {{Pallets}},
+	urldate = {2025-09-29},
+	file = {Welcome to Click — Click Documentation (8.3.x):/home/julian/Zotero/storage/7SI46LTY/stable.html:text/html},
+}
+
+@inproceedings{almeida_contributions_2011,
+	title = {Contributions to the Study of {SMS} Spam Filtering: New Collection and Results},
+	doi = {10.1145/2034691.2034742},
+	booktitle = {Proceedings of the 2011 {ACM} Symposium on Document Engineering ({DOCENG}'11)},
+	author = {Almeida, Tiago A. and Hidalgo, Jose Maria Gomez and Yamakami, Akebo},
+	date = {2011},
+	file = {PDF:/home/julian/Zotero/storage/2KKTHT78/Almeida et al. - 2011 - Contributions to the Study of SMS Spam Filtering New Collection and Results.pdf:application/pdf},
 }

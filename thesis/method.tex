@@ -1,0 +1,99 @@
+\chapter{Method}
+
+In this chapter we will describe the experiment setup used to measure various trade-offs of homomorphic encryption in different machine learning scenarios. We will describe the technologies and general methodology as well as all the different datasets and model architectures used.
+
+\section{Technological Overview}
+
+The source code of all experiments described in this thesis is open-source and available on GitHub \cite{partanen_julianfpfhe-experiments_2025}. The repository includes a README file with some basic instructions in how to run the experiments. This means that the reader may generate every data point or graph in this thesis themselves. The absolute numbers will differ because of hardware and software environment differences, but the relative numbers as well as general findings should thus be reproducible by anyone .
+
+The experiments were implemented in Python, the de-facto standard language in the field of machine learning. We have added astral's \emph{uv} \cite{astral_uv_nodate} as a project and dependency management tool to make running the script with all necessary dependencies easier and to pinpoint all dependencies to a specific version to increase reproducibility.
+
+We defined a common interface for all experiments as well as datasets to ease their implementation, reduce code duplication, and to ensure to only change desired attributes between different experiments to increase comparability.
+
+For generating result data we used Python's statistics and csv modules as well as \emph{matplotlib} \cite{noauthor_matplotlib_nodate} to generate all graphics. The graph generation runs independently from the experiment execution which allows redrawing graphs of existing experiment results to for example change the styling of graphs after the fact.
+
+The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add an easy-to-use CLI to be able to adjust parameters like execution repetitions, which experiment-dataset combinations should be executed, or which graphs should be generated.
+
+\section{Datasets}
+
+We used a variation of datasets across different classification problems commonly solved with a machine learning approach. Some of these datasets are synthetic for maximum control over their characteristics to specifically measure a models behavior under certain conditions, while others are real-world datasets that we used to measure how well the models perform solving a variety of real-world problems, mimicking a production deployment of a homomorphic machine learning setup as much as possible.
+
+All datasets use single-precision floating point numbers to store feature vectors to make them compatible with all concrete-ml models since some of these models don't support double-precision for their training data. We made this choice to increase comparability both between FHE and non-FHE executions as well as across different model architectures and since the accuracy trade-off should be almost non-existing.
+
+\subsection{XOR problem}
+
+We handcrafted this tiny dataset for code testing with faster iterations as well as quick experiment runs, however it proofed to also be a good metric for how a model handles non-linearity in a dataset, and if a model is able to fit to problem with a very small training set.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.65\textwidth]{figures/'XOR problem' dataset.png}
+    \end{center}
+    \caption{A plot of the feature space of the 'XOR problem' dataset, including both train and test sets}
+    \label{fig:xor_problem_plot}
+\end{figure}
+
+The dataset's feature vectors are 2-dimensional. The label is 1 if and only if one of the features is closer to 0.75 than to 0.25 while the other is closer to 0.25 than to 0.75. Conversely if both features are approximately the same then the label is 0.
+
+As the name suggests this mimics the boolean XOR operator, with some differences: The inputs are 0.25 and 0.75 instead of 0 and 1 to keep them between 0 and 1 even with noise applied. Since some models require more than just 4 samples we also repeated each of them 10 times for both the training and test set resulting in a total of 40 samples each. To make these repeated samples unique and to add meaningful differences between the training and test set we added some noise to all samples in the form of a random number drawn from an unique distribution between $\pm 0.24$.
+
+The result can be seen in \ref{fig:xor_problem_plot}: A feature space with 4 feature clusters, arranged in a way that makes it impossible for a linear model to separate with an accuracy higher than 75\%. This makes this dataset great in ensuring that more complex non-linear model actually come with an accuracy improvement.
+
+\subsection{Synthetic}
+
+This dataset is a generated at random using scikit-learn's \emph{make\_classification} function. It includes 250 samples, of which 150 are used for training, and 100 for testing. Both classes have only one cluster, making it linearly separable and thus even very simple models should have no problem achieving high accuracy scores on this dataset.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'Synthetic, 50 features' dataset - with PCA applied.png}
+        \caption{50-dim}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'Synthetic, 500 features' dataset - with PCA applied.png}
+        \caption{500-dim}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'Synthetic, 5000 features' dataset - with PCA applied.png}
+        \caption{5000-dim}
+    \end{subfigure}
+    \caption{Plots of the feature space of three variations of the 'Synthetic' dataset, PCA-reduced.}
+    \label{fig:synthetic_plot}
+\end{figure}
+
+The amount of features in this dataset is variable which allows us to specifically isolate the impact of feature size on model runtime and performance. We start with 50-dimensional features, and gradually increase the dimensionality up to 5000, resulting in a total of 7 different variations of this dataset. For each variation, only 10\% of the features are actually informative of the sample's label, while the other 90\% are just generated at random independently from the true labels. This mainly tests a models resistance to overfitting.
+
+The result can be seen in \ref{fig:synthetic_plot}. Please note that in contrast to the 2-dimensional 'XOR problem' dataset we had to map these high dimensional features to 2 dimensions in order to plot them. For this we used scikit-learn's principal component analysis (PCA) implementation. Please note that by doing this, the visual representation of the dataset isn't accurate, for example in the plots it doesn't appear to be separable even though in reality it is. The high amount of uninformative dimensions contributes to this effect.
+
+\subsection{SMS Spam}
+
+This is our first real-world dataset and represents in this thesis the use case of document classification. We use the SMS Spam dataset developed by Tiago A. Almeida, José María Gómez and Akebo Yamakami \cite{almeida_contributions_2011} which consists of SMS messages that are labeled as either ham (label 0) or spam (label 1).
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'SMS Spam, 50 features' dataset - with PCA applied.png}
+        \caption{50-dim}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'SMS Spam, 2500 features' dataset - with PCA applied.png}
+        \caption{2500-dim}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{figures/'SMS Spam, all features' dataset - with PCA applied.png}
+        \caption{All features}
+    \end{subfigure}
+    \caption{Plots of the feature space of three variations of the 'SMS Spam' dataset, PCA-reduced.}
+    \label{fig:sms_spam_plot}
+\end{figure}
+
+To extract feature vectors from the documents we use scikit-learn's TF-IDF Vectorizer while filtering english stop words. Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 5000, as well as one variation which includes all 8444 features. Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x.
+
+Like with the 'Synthetic' dataset we also performed a 60/40 train/test set split which resulted in a dataset size of 3344 and 2230 samples for the training and testing sets respectively.
+
+The result can be seen in \ref{fig:sms_spam_plot}. The same limitation regarding PCA as mentioned for the 'Synthetic' dataset applies here as well.

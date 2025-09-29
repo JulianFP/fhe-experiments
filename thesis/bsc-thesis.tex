@@ -7,10 +7,11 @@
      a4paper,      % paper format
      BCOR=10mm,     % binding correction
      DIV=14,        % stripe size for margin calculation
-%     liststotoc,   % table listing in toc
-%     bibtotoc,     % bibliography in toc
+     liststotoc,   % table listing in toc
+     bibtotoc,     % bibliography in toc
 %     idxtotoc,     % index in toc
-%     parskip       % paragraph skip instead of paragraph indent
+     parskip=half,       % paragraph skip instead of paragraph indent
+     openright
      ]{scrreprt}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -18,6 +19,7 @@
 % PACKAGES:
 
 % Input and font encoding
+\usepackage{lmodern}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 % Index-generation
@@ -36,6 +38,13 @@
 % Fuer anderthalbzeiligen Textsatz
 \usepackage{setspace}
 
+% for subfigures (i.e. multiple images side-by-side)
+\usepackage{subcaption}
+
+%I switched to BibLatex
+\usepackage[backend=biber]{biblatex}
+\addbibresource{references.bib}
+
 % hyperrefs in the documents
 \usepackage[bookmarks=true,colorlinks,pdfpagelabels,pdfstartview = FitH,bookmarksopen = true,bookmarksnumbered = true,linkcolor = black,plainpages = false,hypertexnames = false,citecolor = black,urlcolor=black]{hyperref}
 %\usepackage{hyperref}
@@ -47,8 +56,8 @@
 % Pagestyle:
 \pagestyle{headings}
 
-% Choose language
-\newcommand{\setlang}[1]{\selectlanguage{#1}\nonfrenchspacing}
+%caption spacing
+\setlength{\abovecaptionskip}{3pt}
 
 
 \begin{document}
@@ -110,11 +119,6 @@ Submission Date: & December 02, 2025
 \cleardoublepage
 \pagenumbering{arabic}
 
-% List of figures (Abbildungsverzeichnis):
-%\listoffigures
-% List of tables (Tabellenverzeichnis):
-%\listoftables
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Here, the actual content of your thesis begins
 % You can either put all the text here or use individual files to store the chapters of your thesis.
@@ -122,10 +126,16 @@ Submission Date: & December 02, 2025
 
 \include{introduction}
 \include{background}
-\include{goals_and_setup}
-\include{evaluation}
+\include{method}
+\include{results}
 \include{conclusion_and_outlook}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% List of figures (Abbildungsverzeichnis):
+\listoffigures
+
+% List of tables (Tabellenverzeichnis):
+%\listoftables
 
 % References (Literaturverzeichnis):
 % a) Style (with abbreviations: use alpha):
@@ -133,8 +143,11 @@ Submission Date: & December 02, 2025
 % https://de.wikibooks.org/wiki/LaTeX-W%C3%B6rterbuch:_bibliographystyle
 % for the different formats and styles
 
-\bibliographystyle{apalike}
+%\bibliographystyle{plainnat}
 % b) The File:
-\bibliography{references}
+%\bibliography{references}
+
+%I switched to BibLatex
+\printbibliography
 
 \end{document}
