@@ -9,6 +9,7 @@ from .dataset_collector import get_dataset_loaders
 from .experiment_collector import get_inference_experiments, get_training_experiments
 from .statistics_handler import evaluate_experiment_results
 from .draw_plots import (
+    draw_dataset,
     draw_decision_boundary,
     draw_feature_dim_runtime_plot,
     redraw_decision_boundary,
@@ -114,6 +115,8 @@ def main(
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
         X_train, X_test, y_train, y_test = dset_loader()
+        if draw_all or draw_cheap or redraw:
+            draw_dataset(results_dir, dset_name, X_train, X_test, y_train, y_test)
         for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():
             if redraw is not None:
                 redraw_decision_boundary(results_dir, exp_name, dset_name, X_test, y_test)

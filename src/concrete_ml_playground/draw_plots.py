@@ -14,6 +14,7 @@ from .interfaces import DecisionBoundaryPlotData
 from .csv_handler import read_csv
 
 
+plt.rcParams.update({"font.size": 16})
 figsize = (10, 7.5)
 
 
@@ -53,7 +54,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.contourf(xx, yy, Z_clear, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"{results_dir}/{clear_title}.png"
-        plt.savefig(png_path)
+        plt.savefig(png_path, bbox_inches="tight")
         logger.info(f"Saved decision boundary to {png_path}")
 
         plt.figure(figsize=figsize)
@@ -61,7 +62,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.contourf(xx, yy, Z_fhe, alpha=0.8, cmap="bwr")
         plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
         png_path = f"{results_dir}/{fhe_title}.png"
-        plt.savefig(png_path)
+        plt.savefig(png_path, bbox_inches="tight")
         logger.info(f"Saved decision boundary to {png_path}")
 
 
@@ -148,6 +149,41 @@ def redraw_decision_boundary(results_dir: str, exp_name: str, dset_name: str, X,
     )
 
 
+def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_test):
+    logger.info(f"Drawing dataset {dset_name}...")
+    pca, X_reduced, _, _ = apply_pca_if_necessary(np.concatenate((X_train, X_test), axis=0))
+    X_train_reduced, X_test_reduced = X_reduced[: len(X_train)], X_reduced[len(X_train) :]
+
+    title = f"'{dset_name}' dataset"
+    if pca is not None:
+        title += " - with PCA applied"
+
+    plt.figure(figsize=figsize)
+    plt.title(title)
+    colors = {0: "tab:blue", 1: "tab:red"}
+    for label in [0, 1]:
+        plt.scatter(
+            X_train_reduced[y_train == label, 0],
+            X_train_reduced[y_train == label, 1],
+            c=colors[label],
+            edgecolor="k",
+            marker="^",
+            label=f"train set - label '{label}'",
+        )
+        plt.scatter(
+            X_test_reduced[y_test == label, 0],
+            X_test_reduced[y_test == label, 1],
+            c=colors[label],
+            edgecolor="k",
+            marker="o",
+            label=f"test set - label '{label}'",
+        )
+    plt.figlegend()
+    png_path = f"{results_dir}/{title}.png"
+    plt.savefig(png_path, bbox_inches="tight")
+    logger.info(f"Saved dataset plot to {png_path}")
+
+
 def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
     dataset_loaders = get_dataset_loaders()
     results = read_csv(results_dir)
@@ -189,5 +225,5 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
         plt.figlegend()
 
         png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
-        plt.savefig(png_path)
+        plt.savefig(png_path, bbox_inches="tight")
         logger.info(f"Saved feature-runtime plot to {png_path}")
