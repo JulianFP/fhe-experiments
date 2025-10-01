@@ -1,13 +1,19 @@
 \chapter{Background}
-\label{chap:foundation}
 
-background
+The topic of this thesis falls into an overlap between the fields of cryptography and machine learning, and as such we will first introduce some concepts from both fields in this chapter. We will not assume anything more than surface-level knowledge in any of the two fields from the reader.
 
-\section{first background chapter}
-\label{sec:networks}
+\section{Cryptography Concepts and FHE}
 
-\section{second}
-\label{sec:ie}
+\subsection{Basic Notation and Phrases}
 
-\section{Related work}
-\label{sec:related}
+Throughout this work we will use some of the following notations and phrases that are also commonly encountered in other cryptography-related works. We will introduce these concepts informally aiming for a basic understanding of them while linking to formal definitions.
+
+First we need to introduce the concept of randomness in the context of computational theory. For this we will use the definitions of Anjeev Arora's and Boaz Barak's "Computational Complexity: A Modern Approach" \cite{arora_computational_2009}. Many algorithms in Cryptography rely inherently on randomness and thus cannot be modeled by a standard deterministic Turing Machine (TM) with polynomial programs. Instead we need to model their computation using the Probabilistic Turing Machine (PTM) which is an extension of the TM. In contrast to the TM which only has one transition function $\delta$, the PTM has two transition functions $\delta_0$ and $\delta_1$ and chooses at each step at random which one to apply, with probability half to apply $\delta_0$ and half to apply $\delta_1$.
+
+Similarly how $\mathbf{P}$ is the class of decision problems that are solvable in polynomial time by a TM, $\mathbf{BPP}$ is the class of decision problems that are solvable in polynomial time by a PTM. Note that since the TM is a special case of the PTM (the one where $\delta_0 = \delta_1$), and since it is possible to simulate all branches of a PTM with a TM in time $2^{poly(n)}$ it holds that $\mathbf{P} \subseteq \mathbf{BPP} \subseteq \mathbf{EXP}$ (see chapter 7.1 in \cite{arora_computational_2009}).
+
+An alternative definition of a PTM would be to add a second tape to a TM which includes bits that are results of fair coin tosses, i.e. each symbol on the second tape is chosen mutually independent and uniformly at random from the set $\{ 0, 1 \}$, and then the tape is fed to a TM in addition to the regular input tape. From this viewpoint comes a phrasing of referring to the randomness in cryptographic algorithms like encrypt or key generation functions as 'coins'. These independent random coin-flips can be viewed as an implicit input to any such algorithm, and are in practice most commonly obtained by pseudo-random number generators.
+
+Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$. This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \text{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the PTM-equivalent of the 'Encrypt' algorithm chosen uniformly at random. The \$ denotes the random coins used as input. Note that some literature may also use $R$ instead of \$.
+
+\section{Machine Learning Concepts and Model Types}

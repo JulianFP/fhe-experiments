@@ -41,6 +41,8 @@
 % for subfigures (i.e. multiple images side-by-side)
 \usepackage{subcaption}
 
+\usepackage{amsmath} %for stuff over arrows
+
 %I switched to BibLatex
 \usepackage[backend=biber]{biblatex}
 \addbibresource{references.bib}
@@ -104,14 +106,9 @@ Submission Date: & December 02, 2025
 
 \end{titlepage}
 
-\chapter*{Abstract}
-\input{abstract}
-\newpage
-
 % Add a brief summary of your topic and contributions (Zusammenfassung) in German *and* in English:
-\chapter*{Zusammenfassung}
-\input{zusammenfassung}
-\newpage
+\include{abstract}
+\include{zusammenfassung}
 
 % MAIN PART:
 % Table of contents (Inhaltsverzeichnis)

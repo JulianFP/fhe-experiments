@@ -6,7 +6,7 @@ In this chapter we will describe the experiment setup used to measure various tr
 
 The source code of all experiments described in this thesis is open-source and available on GitHub \cite{partanen_julianfpfhe-experiments_2025}. The repository includes a README file with some basic instructions in how to run the experiments. This means that the reader may generate every data point or graph in this thesis themselves. The absolute numbers will differ because of hardware and software environment differences, but the relative numbers as well as general findings should thus be reproducible by anyone .
 
-The experiments were implemented in Python, the de-facto standard language in the field of machine learning. We have added astral's \emph{uv} \cite{astral_uv_nodate} as a project and dependency management tool to make running the script with all necessary dependencies easier and to pinpoint all dependencies to a specific version to increase reproducibility.
+The experiments were implemented in Python, the de facto standard language in the field of machine learning. We have added astral's \emph{uv} \cite{astral_uv_nodate} as a project and dependency management tool to make running the script with all necessary dependencies easier and to pinpoint all dependencies to a specific version to increase reproducibility.
 
 We defined a common interface for all experiments as well as datasets to ease their implementation, reduce code duplication, and to ensure to only change desired attributes between different experiments to increase comparability.
 
@@ -59,7 +59,7 @@ This dataset is a generated at random using scikit-learn's \emph{make\_classific
         \includegraphics[width=0.95\textwidth]{figures/'Synthetic, 5000 features' dataset - with PCA applied.png}
         \caption{5000-dim}
     \end{subfigure}
-    \caption{Plots of the feature space of three variations of the 'Synthetic' dataset, PCA-reduced.}
+    \caption{Plots showing the feature space of three of our seven variations of the 'Synthetic' dataset, PCA-reduced.}
     \label{fig:synthetic_plot}
 \end{figure}
 
@@ -69,7 +69,7 @@ The result can be seen in \ref{fig:synthetic_plot}. Please note that in contrast
 
 \subsection{SMS Spam}
 
-This is our first real-world dataset and represents in this thesis the use case of document classification. We use the SMS Spam dataset developed by Tiago A. Almeida, José María Gómez and Akebo Yamakami \cite{almeida_contributions_2011} which consists of SMS messages that are labeled as either ham (label 0) or spam (label 1).
+This is our first real-world dataset and we will use it to represent the use-case of document classification during our experiments. The SMS Spam dataset was developed by Tiago A. Almeida, José María Gómez and Akebo Yamakami \cite{almeida_contributions_2011} and consists of text messages that are labeled as either ham (label '0') or spam (label '1').
 
 \begin{figure}[h]
     \centering
@@ -88,11 +88,11 @@ This is our first real-world dataset and represents in this thesis the use case 
         \includegraphics[width=0.95\textwidth]{figures/'SMS Spam, all features' dataset - with PCA applied.png}
         \caption{All features}
     \end{subfigure}
-    \caption{Plots of the feature space of three variations of the 'SMS Spam' dataset, PCA-reduced.}
+    \caption{Plots showing the feature space of three of our eight variations of the 'SMS Spam' dataset, PCA-reduced.}
     \label{fig:sms_spam_plot}
 \end{figure}
 
-To extract feature vectors from the documents we use scikit-learn's TF-IDF Vectorizer while filtering english stop words. Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 5000, as well as one variation which includes all 8444 features. Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x.
+To extract feature vectors from the documents we use scikit-learn's TF-IDF Vectorizer while filtering English stop words. Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 5000, as well as one variation which includes all 8444 features. Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x.
 
 Like with the 'Synthetic' dataset we also performed a 60/40 train/test set split which resulted in a dataset size of 3344 and 2230 samples for the training and testing sets respectively.
 
