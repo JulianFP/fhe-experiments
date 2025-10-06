@@ -10,13 +10,16 @@
 	file = {PDF:/home/julian/Zotero/storage/3S882DQC/Brakerski - 2018 - 1 Homomorphic Encryption  Good , Bad or Ugly .pdf:application/pdf},
 }
 
-@inproceedings{gentry_fully_2009,
+@thesis{gentry_fully_2009,
 	title = {A fully homomorphic encryption scheme},
-	url = {https://www.semanticscholar.org/paper/A-fully-homomorphic-encryption-scheme-Gentry/5496636b7474ef68f79248de4a63dd879db55334},
+	url = {http://crypto.stanford.edu/craig/craig-thesis.pdf},
 	abstract = {We propose the first fully homomorphic encryption scheme, solving an old open problem. Such a scheme allows one to compute arbitrary functions over encrypted data without the decryption key—i.e., given encryptions E(m1), ..., E( mt) of m1, ..., m t, one can efficiently compute a compact ciphertext that encrypts f(m1, ..., m t) for any efficiently computable function f.
 Fully homomorphic encryption has numerous applications. For example, it enables encrypted search engine queries—i.e., a search engine can give you a succinct encrypted answer to your (boolean) query without even knowing what your query was. It also enables searching on encrypted data; you can store your encrypted data on a remote server, and later have the server retrieve only files that (when decrypted) satisfy some boolean constraint, even though the server cannot decrypt the files on its own. More broadly, it improves the efficiency of secure multiparty computation.
 In our solution, we begin by designing a somewhat homomorphic "boostrappable" encryption scheme that works when the function f is the scheme's own decryption function. We then show how, through recursive self-embedding, bootstrappable encryption gives fully homomorphic encryption.},
-	author = {Gentry, Craig},
+	pagetotal = {199},
+	institution = {Stanford University},
+	type = {phdthesis},
+	author = {Gentry, Craig and Boneh, Dan},
 	urldate = {2025-08-11},
 	date = {2009},
 	keywords = {⛔ No {DOI} found},
@@ -216,4 +219,19 @@ In our solution, we begin by designing a somewhat homomorphic "boostrappable" en
 	langid = {english},
 	keywords = {⛔ No {DOI} found},
 	file = {PDF:/home/julian/Zotero/storage/LSC5BYMB/Bellare and Rogaway - Introduction to Modern Cryptography.pdf:application/pdf},
+}
+
+@inproceedings{van_dijk_fully_2010,
+	location = {Berlin, Heidelberg},
+	title = {Fully Homomorphic Encryption over the Integers},
+	isbn = {978-3-642-13190-5},
+	doi = {10.1007/978-3-642-13190-5_2},
+	abstract = {We construct a simple fully homomorphic encryption scheme, using only elementary modular arithmetic. We use Gentry's technique to construct a fully homomorphic scheme from a “bootstrappable” somewhat homomorphic scheme. However, instead of using ideal lattices over a polynomial ring, our bootstrappable encryption scheme merely uses addition and multiplication over the integers. The main appeal of our scheme is the conceptual simplicity.},
+	pages = {24--43},
+	booktitle = {Advances in Cryptology – {EUROCRYPT} 2010},
+	publisher = {Springer Berlin Heidelberg},
+	author = {van Dijk, Marten and Gentry, Craig and Halevi, Shai and Vaikuntanathan, Vinod},
+	editor = {Gilbert, Henri},
+	date = {2010},
+	file = {PDF:/home/julian/Zotero/storage/I84WKAQJ/Van Dijk et al. - 2010 - Fully Homomorphic Encryption over the Integers.pdf:application/pdf},
 }
