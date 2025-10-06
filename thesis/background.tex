@@ -16,7 +16,7 @@ An alternative definition of a PTM would be to add a second tape to a TM which i
 
 Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$. This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \text{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the PTM-equivalent of the 'Encrypt' algorithm chosen uniformly at random. The \$ denotes the random coins used as input. Note that some literature may also use $R$ instead of \$.
 
-\subsection{A First Somewhat Homomorphic Encryption Scheme}
+\subsection{A Simple Somewhat Homomorphic Encryption Scheme}
 
 We will begin by introducing a simple version of an encryption scheme described by Dijk, Gentry, Halevi and Vaikuntanathan in 'Fully Homomorphic Encryption over the Integers' \cite{van_dijk_fully_2010} as an easy to understand example to explain some fundamentals of FHE on before moving on to more complicated and current schemes.
 
@@ -34,49 +34,95 @@ Here $q$ and $r$ are also some integers $\neq p$, sampled at random from some in
 The ciphertext $c$ can then be decrypted by doing the following:
 
 \begin{equation}
-    m \leftarrow \left( c \mod p \right) \mod 2
+    m \leftarrow \left( c \Mod{p} \right) \Mod{2}
 \end{equation}
 
-This encryption scheme is correct because by calculating $\mod p$ we get rid of the $p \cdot q$ term in \ref{eq:dijk_encryption} while $\mod 2$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2. Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order in obfuscate the message. $p$ is odd, but $q$ can either be odd or even making the result unpredictable.
+This encryption scheme is correct because by calculating $\Mod{p}$ we get rid of the $p \cdot q$ term in \ref{eq:dijk_encryption} while $\Mod{2}$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2. Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order in obfuscate the message. $p$ is odd, but $q$ can either be odd or even making the result unpredictable.
 
-\emph{Remark} This is also the reason why $p$ must be odd, if $p$ where even then $pq$ would always be even as well, making the resulting ciphertext even if $m$ is 0, and odd if $m$ is 1, and thus providing no security at all.
+\begin{remark}
+    This is also the reason why $p$ must be odd, if $p$ where even then $pq$ would always be even as well, making the resulting ciphertext even if $m$ is 0, and odd if $m$ is 1, and thus providing no security at all.
+\end{remark}
 
 To see why this encryption is secure we first reduce the encryption to the following problem: Given polynomially-many samples (in the security parameter $\lambda$)
-\begin{align}
-    x_1 &= p q_1 + r_1 \\
-    x_2 &= p q_2 + r_2 \\
-    ... &\\
-    x_n &= p q_n + r_n
-\end{align}
+\begin{equation}
+    \begin{aligned}
+        x_1 &= p q_1 + r_1 \\
+        x_2 &= p q_2 + r_2 \\
+        ... &\\
+        x_n &= p q_n + r_n
+    \end{aligned}
+\end{equation}
 for a randomly chosen odd integer $p$, find $p$. So in other words the challenger would generate the parameters and then provide the adversary only with $x_1$ to $x_n$, who then would have to find $p$. Compared to our encryption in \ref{eq:dijk_encryption}, the $x_i$ would be many different ciphertexts, and the $r_i$ would be results of $2r + m$.
 
 While this looks very similar to the well-known Greatest Common Divisor (GCD) problem, the key difference here is the random noise $r_i$ which makes the results only approximates of common divisors of $p$. Because of that this variation is called \emph{Approximate} GCD problem (AGCD). While the GCD problem can be efficiently solved using Euclid's algorithm, AGCD with correctly chosen parameters is hard to solve. While we leave the proof of that to \cite{van_dijk_fully_2010}, intuitively this is the case because when applying Euclid's algorithm the noise values $r_i$ amplify each other rendering the result meaningless.
 
 Finally we will cover the most interesting attribute of this encryption scheme: As long as $r$ stays sufficiently smaller than $p$, multiple ciphertexts obtained from \ref{eq:dijk_encryption} are homomorphic in both addition and multiplication which can easily be shown:
 
-\begin{align}
-    c_1 + c_2 &= pq + 2 r_1 + m_1 + pq + 2 r_2 + m_2 \\
-              &=2 pq + 2 \left( r_1 + r_2 \right) + m_1 + m_2
+\begin{equation}
+    \begin{aligned}
+        c_1 + c_2 &= pq_1 + 2 r_1 + m_1 + pq_2 + 2 r_2 + m_2 \\
+                &=p \left( q_1 + q_2 \right) + 2 \left( r_1 + r_2 \right) + m_1 + m_2
+    \end{aligned}
     \label{eq:dijk_hom_add}
-\end{align}
+\end{equation}
 
-Decryption would first remove the first term with the $\mod p$ operation, and then remove the second term with the $\mod 2$, only leaving $m_1 + m_2$.
+Decryption would first remove the first term with the $\Mod{p}$ operation, and then remove the second term with the $\Mod{2}$, only leaving $m_1 + m_2$.
 
-\begin{align}
-    c_1 \cdot c_2 &= \left(pq + 2r_1 + m_1 \right) \left( pq + 2r_2 + m_2 \right) \\
-                  &= p^2 q^2 + 2 r_2 pq + pqm_2 + 2r_1pq + 4r_1r_2 + 2r_1m_2 + pqm_1 + 2r_1m_1 + m_1m_2\\
-                  &= p\left(pq^2 + 2r_2q + qm_2 + 2r_1q + qm_1\right) + 2\left( 2r_1 r_2 + r_1m_2 + r_1 m_1 \right) + m_1 m_2
+\begin{equation}
+    \begin{aligned}
+        c_1 \cdot c_2 &= \left(pq_1 + 2r_1 + m_1 \right) \left( pq_2 + 2r_2 + m_2 \right) \\
+                    &= p^2 q_1 q_2 + 2 r_2 pq_1 + pq_1m_2 + 2r_1pq_2 + 4r_1r_2 + 2r_1m_2 + pq_2m_1 + 2r_1m_1 + m_1m_2\\
+                    &= p\left(pq_1q_2 + 2r_2q_2 + q_1m_2 + 2r_1q_2 + q_2m_1\right) + 2\left( 2r_1 r_2 + r_1m_2 + r_1 m_1 \right) + m_1 m_2
+    \end{aligned}
     \label{eq:dijk_hom_mult}
-\end{align}
+\end{equation}
 
-Once again decryption would remove the first term with the $\mod p$ operation, and then the second term with the $\mod 2$ operation, only leaving $m_1 m_2$.
+Once again decryption would remove the first term with the $\Mod{p}$ operation, and then the second term with the $\Mod{2}$ operation, only leaving $m_1 m_2$.
 
-Please note that because of the $\mod 2$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway. So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
+Please note that because of the $\Mod{2}$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway. So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
 
 We can also see some deficits of this simple homomorphic encryption scheme: The noise $r$ grows linearly during addition (see the $r_1 + r_2$ term in \ref{eq:dijk_hom_add}), and quadratically during multiplication ($r_1r_2$ in \ref{eq:dijk_hom_mult}). Since these homomorphic evaluations only stay correct while the noise is sufficiently smaller than $p$ as already stated, we can only homomorphically evaluate a limited amount of additions and multiplications before decryption would output an incorrect result. This is why Gentry called these kind of schemes \emph{somewhat} homomorphic encryption scheme in \cite{gentry_fully_2009}, while also providing us with an general algorithm to turn somewhat homomorphic schemes into fully homomorphic ones which we will look at next.
 
-Another deficiency of this scheme is that the ciphertext grows in size during homomorphic evaluation, e.g. after multiplication the 'key-part' of the ciphertext grew quadratically (the $q^2 p^2$ term in \ref{eq:dijk_hom_mult}). In other words this scheme doesn't compactly evaluate circuits, as defined by Gantry in definition 2.1.2 and 2.1.3 \cite{gentry_fully_2009}. Compact Homomorphic Encryption requires the decryption complexity to not by dependent on the circuit depth which in turn requires the ciphertexts and keys (which are the inputs of the decryption algorithm) to not grow with the depth of the circuit.
+A second deficiency of this scheme is that the ciphertext grows in size during homomorphic evaluation, e.g. after multiplication the 'key-part' of the ciphertext grew quadratically (the $p^2 q_1 q_2$ term in \ref{eq:dijk_hom_mult}). In other words this scheme doesn't compactly evaluate circuits, as defined by Gentry in definition 2.1.2 and 2.1.3 \cite{gentry_fully_2009}. Compact Homomorphic Encryption requires the decryption complexity to not by dependent on the circuit depth which in turn requires the ciphertexts and keys (which are the inputs of the decryption algorithm) to not grow with the depth of the circuit.
+
+Finally this scheme in the current form also lacks circuit privacy, another attribute introduced by Gentry in \cite{gentry_fully_2009}. A regular encryption scheme guarantees that if Bob encrypts a plaintext and sends it to Alice, Alice is not able to infer anything about the contents of the plaintext from the ciphertext. With homomorphic encryption an additional desired attribute is that, if Alice is performing some operations on Bob's ciphertext, i.e. applying a circuit to it, and then sends the resulting ciphertext back to Bob, that Bob is then not able to infer anything about the nature of Alice's circuit. He should only be able to decrypt the result of Alice's algorithm, not learn anything about it. This is called (Statistical) Circuit Private Homomorphic Encryption, since it essentially mandates that the probability distribution of a resulting ciphertext should be the same regardless whether we applied a circuit C homomorphically to it or if we applied the circuit C to the plaintext first and only then encrypted the result. While our scheme currently doesn't fulfill this attribute, Gentry also points out that most schemes can become circuit private by adding encryptions of '0' to the result many times, randomizing the ciphertext. Also many schemes only fulfill a relaxed version of circuit privacy where the resulting ciphertext is allowed to reflect the depth of the circuit that got applied to it, but no details of it's exact nature. \cite{gentry_fully_2009}
+
+\begin{remark}
+    While we constructed this scheme as a symmetric encryption scheme, in homomorphic encryption any symmetric scheme can be converted into an asymmetric scheme by setting the public key to many encryptions of 0, e.g. in our scheme integers $x_i = q_i p + 2r_i$. Anybody can then create a valid ciphertext for their bit m by adding one of the $x_i$s to it. For randomization purposes the encrypter should even add multiple $x_i$s to the bit. \cite{van_dijk_fully_2010}
+\end{remark}
 
 While this simple scheme is not representative of modern FHE schemes, it helps to understand the goals as well as struggles of FHE in general. Most encryption schemes introduce some sort of noise parameter that is strictly required for the security of the scheme, but also introduces limitations regarding accuracy and/or depth of homomorphic evaluation. Balancing security with these drawbacks as well as handling noise in ciphertexts remain current challenges even with state-of-the-art FHE schemes.
+
+\subsection{Bootstrapping}
+
+Our previous scheme was only somewhat homomorphic, because it could only evaluate circuits up to a certain depth before the noise got too large for correct decryption. Because of limitations like this, every homomorphic encryption scheme up until 2009 was not able to evaluate arbitrary computation of arbitrary depth to a ciphertext. Then Gentry introduced a new quite ingenious technique called \emph{Bootstrapping} in his PhD thesis which enabled him to build the first Fully Homomorphic Encryption scheme \cite{gentry_fully_2009}.
+
+The basic principle behind the bootstrapping approach is to build a somewhat homomorphic encryption scheme that is able to homomorphically evaluate it's own decryption circuit. It turns out that this decreases the noise of the given ciphertext. The general strategy becomes to apply computations on the given ciphertext while keeping track of it's noise. Ones the noise reaches a certain threshold, we apply bootstrapping to get a new equivalent ciphertext with lower noise on which we can then continue our computations until the noise reaches our threshold again and so on. This means that as long as we can build a somewhat homomorphic encryption scheme that can evaluate computations of the required depth to evaluate it's own decryption circuit plus some additional operations, i.e. if the scheme is bootstrappable, we get a fully homomorphic encryption scheme that can evaluate any circuit on a given ciphertext.
+
+We will now look at bootstrapping in more detail and explain on a high level why it works: We already know that with an homomorphic encryption scheme we can evaluate a function $f$ on some ciphertext $c \xleftarrow{\$} \text{Encrypt}_{sk_1}(m)$ and get the encryption of the result of the function f $\text{Encrypt}_{sk_1}(f(m))$, with $sk_1$ being a secret key. For bootstrapping, we now introduce a second secret key $sk_2$, and define our function as $f(x) = \text{Decrypt}_x(c)$. Please note that our function is the decryption algorithm, and that the input of $f$ is not the ciphertext that should be decypted, but the key that should be used to decrypt our ciphertext. To apply this function homomorphically, we have to provide the input to f, namely the secret key $sk_1$, in an encrypted form, i.e. encrypt the first secret key with a second one. We will call this encryption of $sk_1$ our bootstrapping key, or $bk$:
+
+\begin{equation}
+    bk \xleftarrow{\$} \text{Encrypt}_{sk_2}(sk_1)
+\end{equation}
+
+We can now compute our $f$ homomorphically on this bootstrapping key:
+
+\begin{equation}
+    \begin{aligned}
+        f(bk) \quad (\text{hom. eval. under } sk_2) &\rightarrow \text{Encrypt}_{sk_2}(f(sk_1))\\
+                                       &=\text{Encrypt}_{sk_2}\left( \text{Decrypt}_{sk_1}(c) \right)\\
+                                       &=\text{Encrypt}_{sk_2}(m)
+    \end{aligned}
+\end{equation}
+
+As you can see, the result is an encryption of the original message under the second secret key $sk_2$. So by applying the decryption circuit of a ciphertext encrypted under $sk_1$ homomorphically with the encrypted $sk_1$ as input we received a different ciphertext $c_{new}$ that is encrypted under a different secret key $sk_2$. We effectively switched our ciphertext from one key to another, without decrypting it first or learning anything about the plaintext. Most importantly, if our $c$ had a high level of noise, the resulting $c_{new}$ has a much lower level of noise enabling further homomorphic evaluation on it. \cite{gentry_fully_2009} \cite{dolev_programmable_2021}
+
+Please note that we used two different secret keys $sk_1$ and $sk_2$ in this explanation which would require switching the ciphertext between encryptions of both secret keys and also requiring two bootstrapping keys $bk_1 \xleftarrow{\$} \text{Encrypt}_{sk_2}(sk_1)$ and $bk_2 \xleftarrow{\$} \text{Encrypt}_{sk_1}(sk_2)$ for repeated executions of the bootstrapping algorithm. In practice however it is possible to just set $sk_1 = sk_2$ and thus only requiring one bootstrapping key $bk \xleftarrow{\$} \text{Encrypt}_{sk}(sk)$, i.e. the secret key encrypted with itself. This is called circular security and severely hardens the scheme's security analysis. Depending on the underlying scheme however it is deemed to be an acceptable practice.
+
+With the bootstrapping algorithm at disposal, constructing an FHE scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme. To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme. For FHE, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact. Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times. Because of this even modern bootstrappable FHE schemes feature very cheap decryption, especially compared to traditional encryption schemes like RSA \cite{gentry_fully_2009}.
+
+\subsection{The Path to Modern FHE schemes}
+
+\subsection{TFHE: FHE Over the Torus}
 
 \section{Machine Learning Concepts and Model Types}
