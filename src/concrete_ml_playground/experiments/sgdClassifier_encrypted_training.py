@@ -7,24 +7,23 @@ from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
 from concrete.ml.deployment.fhe_client_server import DeploymentMode
 from concrete.ml.sklearn import SGDClassifier
 from sklearn.linear_model import SGDClassifier as SKlearnSGDClassifier
-from sklearn.metrics import accuracy_score, f1_score
 
 from .. import logger
-from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
+from ..interfaces import ExperimentOutput
 
 
-def sgd_training(
-    tmp_dir: str, X_train: list, X_test: list, y_train: list, y_test: list
-) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
+def sgd_training(tmp_dir: str, X_train: list, X_test: list, y_train: list) -> ExperimentOutput:
+    timings = []
+
     logger.info("Training clear model...")
     model = SKlearnSGDClassifier(
         random_state=42,
         max_iter=50,
     )
 
-    start_clear = time.time()
+    timings.append(time.time())
     model.fit(X_train, y_train)
-    end_clear = time.time()
+    timings.append(time.time())
 
     logger.info("Evaluating clear-trained model...")
     y_pred_clear = []
@@ -66,7 +65,7 @@ def sgd_training(
 
     # pre-processing
     X_batches_enc, y_batches_enc = [], []
-    start_fhe_pre = time.time()
+    timings.append(time.time())
     X_train_np = np.array(X_train)
     y_train_np = np.array(y_train)
     weights = np.zeros((1, X_train_np.shape[1], 1))
@@ -87,10 +86,10 @@ def sgd_training(
         X_batches_enc.append(X_batch_enc)
         y_batches_enc.append(y_batch_enc)
     _, _, weights_enc, bias_enc = client.quantize_encrypt_serialize(None, None, weights, bias)
-    end_fhe_pre = time.time()
+    timings.append(time.time())
 
     # training
-    start_fhe_proc = time.time()
+    timings.append(time.time())
     weights_enc = fhe.Value.deserialize(weights_enc)
     bias_enc = fhe.Value.deserialize(bias_enc)
     evaluation_keys = fhe.EvaluationKeys.deserialize(serialized_evaluation_keys)
@@ -102,12 +101,12 @@ def sgd_training(
         )
     fitted_weights_enc = weights_enc.serialize()
     fitted_bias_enc = bias_enc.serialize()
-    end_fhe_proc = time.time()
+    timings.append(time.time())
 
     # post-processing
-    start_fhe_post = time.time()
+    timings.append(time.time())
     weights, bias = client.deserialize_decrypt_dequantize(fitted_weights_enc, fitted_bias_enc)
-    end_fhe_post = time.time()
+    timings.append(time.time())
 
     logger.info("Evaluating fhe-trained model...")
     fhe_model = SKlearnSGDClassifier(
@@ -120,32 +119,10 @@ def sgd_training(
     for X in X_test:
         y_pred_fhe.append(model.predict([X]))
 
-    return (
-        ExperimentResult(
-            accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
-            accuracy_clear=accuracy_score(y_test, y_pred_clear),
-            f1_score_fhe=f1_score(y_test, y_pred_fhe),
-            f1_score_clear=f1_score(y_test, y_pred_clear),
-            clear_duration=end_clear - start_clear,
-            fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
-            fhe_duration_processing=end_fhe_proc - start_fhe_proc,
-            fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
-        ),
-        DecisionBoundaryPlotData(
-            clear_model=model,
-            fhe_trained_model=fhe_model,
-        ),
+    return ExperimentOutput(
+        timings=timings,
+        y_pred_clear=y_pred_clear,
+        y_pred_fhe=y_pred_fhe,
+        clear_model=model,
+        fhe_trained_model=fhe_model,
     )
-
-
-# Output:
-# Creating training & test set...
-# Training clear model...
-# Training on clear data took: 0.0006995201110839844 seconds
-# Evaluating clear model...
-# Inference on clear test set took: 9.083747863769531e-05 seconds
-# Training FHE model...
-# Training on FHE encrypted data took: 1575.61953663826 seconds
-# Evaluating FHE model...
-# Inference on FHE encrypted test set took: 0.00011277198791503906 seconds
-# 100 examples over 100 have an FHE inference equal to the clear inference.

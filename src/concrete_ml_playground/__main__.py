@@ -4,10 +4,15 @@ import os
 
 from datetime import datetime
 
+from concrete_ml_playground.interfaces import ExperimentOutput
+
 from . import logger
 from .dataset_collector import get_dataset_loaders
 from .experiment_collector import get_inference_experiments, get_training_experiments
-from .statistics_handler import evaluate_experiment_results
+from .statistics_handler import (
+    experiment_output_processor,
+    evaluate_experiment_results,
+)
 from .draw_plots import (
     draw_dataset,
     draw_decision_boundary,
@@ -122,12 +127,14 @@ def main(
                 redraw_decision_boundary(results_dir, exp_name, dset_name, X_test, y_test)
             else:
                 results = []
+                exp_out: ExperimentOutput
                 for i in range(execs):
                     logger.info(
                         f"Running '{exp_name}' experiment on '{dset_name}' dataset [{i + 1} of {execs}]..."
                     )
                     with tempfile.TemporaryDirectory() as tmpdirname:
-                        result, plot_data = exp_func(tmpdirname, X_train, X_test, y_train, y_test)
+                        exp_out = exp_func(tmpdirname, X_train, X_test, y_train)
+                        result = experiment_output_processor(y_test, exp_out)
                     results.append(result)
                 final_result = evaluate_experiment_results(
                     results, dset_name, dset_name_dict, exp_name, exp_name_dict
@@ -141,7 +148,7 @@ def main(
                 append_result_to_csv(results_dir, final_result)
                 if draw_all:
                     draw_decision_boundary(
-                        results_dir, plot_data, exp_name, dset_name, X_test, y_test
+                        results_dir, exp_out, exp_name, dset_name, X_test, y_test
                     )
 
     if (all_exps or all_inference_exps) and (draw_all or draw_cheap or redraw):

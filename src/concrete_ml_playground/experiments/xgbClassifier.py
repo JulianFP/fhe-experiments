@@ -8,14 +8,13 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from concrete.ml.sklearn.xgb import XGBClassifier
 from xgboost import XGBClassifier as XGBBoostXGBClassifier
-from sklearn.metrics import accuracy_score, f1_score
 
-from ..interfaces import DecisionBoundaryPlotData, ExperimentResult
+from ..interfaces import ExperimentOutput
 
 
-def experiment(
-    tmp_dir: str, X_train: list, X_test: list, y_train: list, y_test: list
-) -> tuple[ExperimentResult, DecisionBoundaryPlotData]:
+def experiment(tmp_dir: str, X_train: list, X_test: list, y_train: list) -> ExperimentOutput:
+    timings = []
+
     # Instantiate the model:
     model = XGBBoostXGBClassifier()
 
@@ -40,10 +39,10 @@ def experiment(
 
     # Evaluate the model on the test set in clear:
     y_pred_clear = []
-    start_clear = time.time()
+    timings.append(time.time())
     for X in X_test_transformed:
         y_pred_clear.append(model.predict([X]))
-    end_clear = time.time()
+    timings.append(time.time())
 
     # Compile the model
     cml_model = XGBClassifier.from_sklearn_model(model, X_train_transformed, n_bits=8)
@@ -65,39 +64,30 @@ def experiment(
 
     # pre-processing
     encrypted_data_array = []
-    start_fhe_pre = time.time()
+    timings.append(time.time())
     for X in X_test_transformed:
         encrypted_data_array.append(client.quantize_encrypt_serialize(np.array([X])))
-    end_fhe_pre = time.time()
+    timings.append(time.time())
 
     # server processes data
     encrypted_result_array = []
-    start_fhe_proc = time.time()
+    timings.append(time.time())
     for X_enc in encrypted_data_array:
         encrypted_result_array.append(server.run(X_enc, serialized_evaluation_keys))
-    end_fhe_proc = time.time()
+    timings.append(time.time())
 
     # post-processing
     y_pred_fhe = []
-    start_fhe_post = time.time()
+    timings.append(time.time())
     for Y_enc in encrypted_result_array:
         y_pred_fhe.append(np.argmax(client.deserialize_decrypt_dequantize(Y_enc)))
-    end_fhe_post = time.time()
+    timings.append(time.time())
 
-    return (
-        ExperimentResult(
-            accuracy_fhe=accuracy_score(y_test, y_pred_fhe),
-            accuracy_clear=accuracy_score(y_test, y_pred_clear),
-            f1_score_fhe=f1_score(y_test, y_pred_fhe),
-            f1_score_clear=f1_score(y_test, y_pred_clear),
-            clear_duration=end_clear - start_clear,
-            fhe_duration_preprocessing=end_fhe_pre - start_fhe_pre,
-            fhe_duration_processing=end_fhe_proc - start_fhe_proc,
-            fhe_duration_postprocessing=end_fhe_post - start_fhe_post,
-        ),
-        DecisionBoundaryPlotData(
-            fhe_model=cml_model,
-            clear_model=model,
-            data_preparation_step=data_transformation_pipeline.transform,
-        ),
+    return ExperimentOutput(
+        timings=timings,
+        y_pred_clear=y_pred_clear,
+        y_pred_fhe=y_pred_fhe,
+        fhe_model=cml_model,
+        clear_model=model,
+        data_preparation_step=data_transformation_pipeline.transform,
     )

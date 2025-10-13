@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import numpy as np
+import numpy.typing as npt
 
 from pydantic import BaseModel
 from typing import Callable, Protocol
@@ -43,13 +44,14 @@ class FheModel(Protocol):
 
 
 @dataclass
-class DecisionBoundaryPlotData:
+class ExperimentOutput:
+    y_pred_clear: npt.NDArray | list[float]
+    y_pred_fhe: npt.NDArray | list[float]
+    timings: list[float]
     clear_model: ClearModel
     fhe_trained_model: ClearModel | None = None
     fhe_model: FheModel | None = None
     data_preparation_step: Callable | None = None
 
 
-ExpFunction = Callable[
-    [str, list, list, list, list], tuple[ExperimentResult, DecisionBoundaryPlotData]
-]
+ExpFunction = Callable[[str, list, list, list], ExperimentOutput]

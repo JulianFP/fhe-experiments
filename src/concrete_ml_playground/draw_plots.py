@@ -10,12 +10,13 @@ from sklearn.decomposition import PCA
 
 from . import logger
 from .dataset_collector import get_dataset_loaders
-from .interfaces import DecisionBoundaryPlotData
+from .interfaces import ExperimentOutput
 from .csv_handler import read_csv
 
 
 plt.rcParams.update({"font.size": 16})
 figsize = (10, 7.5)
+label_cmap = "brg"
 
 
 def __get_clear_title(exp_name: str, dset_name: str):
@@ -48,21 +49,39 @@ def draw_decision_boundary_from_pickle_files(
             Z_clear = pickle.load(file)
         with open(fhe_pickle_path, "rb") as file:
             Z_fhe = pickle.load(file)
+        labels = np.unique(y)
+        cmap = plt.cm.get_cmap(label_cmap, labels.size)
 
         plt.figure(figsize=figsize)
         plt.title(clear_title)
-        plt.contourf(xx, yy, Z_clear, alpha=0.8, cmap="bwr")
-        plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
+        plt.contourf(xx, yy, Z_clear, alpha=0.5, cmap=cmap)
+        for label in labels:
+            plt.scatter(
+                X_reduced[y == label, 0],
+                X_reduced[y == label, 1],
+                c=cmap(label),
+                edgecolor="k",
+                label=f"test set - label '{label}'",
+            )
+        plt.figlegend()
         png_path = f"{results_dir}/{clear_title}.png"
-        plt.savefig(png_path, bbox_inches="tight")
+        plt.savefig(png_path)
         logger.info(f"Saved decision boundary to {png_path}")
 
         plt.figure(figsize=figsize)
         plt.title(fhe_title)
-        plt.contourf(xx, yy, Z_fhe, alpha=0.8, cmap="bwr")
-        plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, cmap="bwr", edgecolor="k")
+        plt.contourf(xx, yy, Z_fhe, alpha=0.5, cmap=cmap)
+        for label in labels:
+            plt.scatter(
+                X_reduced[y == label, 0],
+                X_reduced[y == label, 1],
+                c=cmap(label),
+                edgecolor="k",
+                label=f"test set - label '{label}'",
+            )
+        plt.figlegend()
         png_path = f"{results_dir}/{fhe_title}.png"
-        plt.savefig(png_path, bbox_inches="tight")
+        plt.savefig(png_path)
         logger.info(f"Saved decision boundary to {png_path}")
 
 
@@ -98,7 +117,7 @@ def apply_pca_if_necessary(X):
 
 
 def draw_decision_boundary(
-    results_dir: str, plot_data: DecisionBoundaryPlotData, exp_name: str, dset_name: str, X, y
+    results_dir: str, plot_data: ExperimentOutput, exp_name: str, dset_name: str, X, y
 ):
     logger.info(
         f"Running required computations for drawing the decision boundary for experiment '{exp_name}' on dataset '{dset_name}'..."
@@ -160,12 +179,13 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
 
     plt.figure(figsize=figsize)
     plt.title(title)
-    colors = {0: "tab:blue", 1: "tab:red"}
-    for label in [0, 1]:
+    labels = np.unique(y_test)
+    cmap = plt.cm.get_cmap(label_cmap, labels.size)
+    for label in labels:
         plt.scatter(
             X_train_reduced[y_train == label, 0],
             X_train_reduced[y_train == label, 1],
-            c=colors[label],
+            c=cmap(label),
             edgecolor="k",
             marker="^",
             label=f"train set - label '{label}'",
@@ -173,14 +193,14 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
         plt.scatter(
             X_test_reduced[y_test == label, 0],
             X_test_reduced[y_test == label, 1],
-            c=colors[label],
+            c=cmap(label),
             edgecolor="k",
             marker="o",
             label=f"test set - label '{label}'",
         )
     plt.figlegend()
     png_path = f"{results_dir}/{title}.png"
-    plt.savefig(png_path, bbox_inches="tight")
+    plt.savefig(png_path)
     logger.info(f"Saved dataset plot to {png_path}")
 
 
@@ -225,5 +245,5 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
         plt.figlegend()
 
         png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
-        plt.savefig(png_path, bbox_inches="tight")
+        plt.savefig(png_path)
         logger.info(f"Saved feature-runtime plot to {png_path}")
