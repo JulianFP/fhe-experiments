@@ -5,6 +5,8 @@ from .datasets.sms_spam import load_sms_spam_dataset
 from .datasets.synthetic import load_synthetic_dataset
 from .datasets.xor import load_xor_split_dataset
 from .datasets.iris import load_iris_dataset
+from .datasets.breast_cancer import load_breast_cancer_dataset
+from .datasets.digits import load_digits_dataset
 
 
 def split_dataset_callable(X, y):
@@ -46,4 +48,6 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
         "spam_5000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 5000),
         "spam_all": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam"),
         "iris": (split_dataset_callable(*load_iris_dataset()), "Iris"),
+        "cancer": (split_dataset_callable(*load_breast_cancer_dataset()), "Breast Cancer"),
+        "digits": (split_dataset_callable(*load_digits_dataset()), "Digits"),
     }
