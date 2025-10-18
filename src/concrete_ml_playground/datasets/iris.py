@@ -1,8 +1,9 @@
 import numpy as np
-import numpy.typing as npt
 from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
 
 
-def load_iris_dataset() -> tuple[npt.NDArray, npt.NDArray]:
+def load_iris_dataset():
     X, y = load_iris(return_X_y=True)
-    return np.array(X).astype(np.float32), np.array(y)
+    X, y = np.array(X).astype(np.float32), np.array(y)
+    return train_test_split(X, y, test_size=0.2, random_state=42)

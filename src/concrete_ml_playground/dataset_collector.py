@@ -1,5 +1,4 @@
 from typing import Callable
-from sklearn.model_selection import train_test_split
 
 from .datasets.sms_spam import load_sms_spam_dataset
 from .datasets.synthetic import load_synthetic_dataset
@@ -7,13 +6,7 @@ from .datasets.xor import load_xor_split_dataset
 from .datasets.iris import load_iris_dataset
 from .datasets.breast_cancer import load_breast_cancer_dataset
 from .datasets.digits import load_digits_dataset
-
-
-def split_dataset_callable(X, y):
-    def split_dataset():
-        return train_test_split(X, y, test_size=0.4, random_state=42)
-
-    return split_dataset
+from .datasets.clean_conll import load_clean_conll_dataset
 
 
 def get_dataset_loader_entry(
@@ -24,9 +17,7 @@ def get_dataset_loader_entry(
     else:
         feature_size_name = str(feature_size)
 
-    return split_dataset_callable(
-        *ds_loader(feature_size)
-    ), f"{base_name}, {feature_size_name} features"
+    return lambda: ds_loader(feature_size), f"{base_name}, {feature_size_name} features"
 
 
 def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
@@ -47,7 +38,8 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
         "spam_2500": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 2500),
         "spam_5000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 5000),
         "spam_all": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam"),
-        "iris": (split_dataset_callable(*load_iris_dataset()), "Iris"),
-        "cancer": (split_dataset_callable(*load_breast_cancer_dataset()), "Breast Cancer"),
-        "digits": (split_dataset_callable(*load_digits_dataset()), "Digits"),
+        "iris": (load_iris_dataset, "Iris"),
+        "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
+        "digits": (load_digits_dataset, "Digits"),
+        "ner": (load_clean_conll_dataset, "NER (CleanCoNLL)"),
     }

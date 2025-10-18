@@ -1,8 +1,9 @@
 import numpy as np
-import numpy.typing as npt
 from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
 
 
-def load_breast_cancer_dataset() -> tuple[npt.NDArray, npt.NDArray]:
+def load_breast_cancer_dataset():
     X, y = load_breast_cancer(return_X_y=True)
-    return np.array(X).astype(np.float32), np.array(y)
+    X, y = np.array(X).astype(np.float32), np.array(y)
+    return train_test_split(X, y, test_size=0.2, random_state=42)

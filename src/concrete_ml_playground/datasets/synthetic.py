@@ -1,6 +1,7 @@
 import numpy as np
 
 from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
 
 
 def load_synthetic_dataset(features: int):
@@ -12,4 +13,5 @@ def load_synthetic_dataset(features: int):
         n_clusters_per_class=1,
         n_samples=250,
     )
-    return np.array(X).astype(np.float32), y
+    X = np.array(X).astype(np.float32)
+    return train_test_split(X, y, test_size=0.2, random_state=42)
