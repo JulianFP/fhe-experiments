@@ -32,6 +32,7 @@ pkgs.mkShell {
     with pkgs;
     [
       uv
+      cacert
     ]
     ++ pre-commit-check.enabledPackages;
   shellHook = ''
@@ -40,6 +41,7 @@ pkgs.mkShell {
         git update-index --skip-worktree "$localOverwriteFile"
         rm "$localOverwriteFile"
     fi
+    export SSL_CERT_FILE=$NIX_SSL_CERT_FILE
     source .venv/bin/activate
   ''
   + pre-commit-check.shellHook;
