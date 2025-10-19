@@ -49,7 +49,7 @@ class NERModel(nn.Module):
         return self.mlp(x)
 
 
-def experiment(vocab: Vocabulary, X_train, X_test, y_train, y_test):
+def experiment(vocab: Vocabulary, X_train, X_test, X_test_token, y_train, y_test, y_test_str):
     X_train_ten, y_train_ten = torch.from_numpy(X_train).long(), torch.from_numpy(y_train).long()
 
     def collate_fn_with_mask(batch, unk_idx, pad_idx, unk_prob):
@@ -108,10 +108,16 @@ def experiment(vocab: Vocabulary, X_train, X_test, y_train, y_test):
     pred_y = []
     model.eval()
     with torch.no_grad():
-        for X in X_test:
+        for X, X_token, y, y_str in zip(X_test, X_test_token, y_test, y_test_str):
             X = torch.from_numpy(X).long().unsqueeze(0)
             logits = model(X)
             pred_class = int(torch.argmax(logits, dim=1).item())
+            if pred_class == y:
+                logger.info(f"✅ Sentence: {X_token}, label: {y}/'{y_str}'")
+            else:
+                logger.info(
+                    f"❌ Sentence: {X_token}, predicted label: {pred_class}/'{vocab.label_idx_to_string(pred_class)}', correct label: {y}/'{y_str}'"
+                )
             pred_y.append(pred_class)
     vocab.analyze_label_set("predicted labels", pred_y)
 
