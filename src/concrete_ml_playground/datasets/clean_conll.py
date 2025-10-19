@@ -29,7 +29,7 @@ class Vocabulary:
     LABEL_LIST = ["O", "LOC", "ORG", "PER", "MISC"]
 
     def __init__(self, sentences) -> None:
-        word_counts = Counter(word for sent in sentences for word in sent)
+        word_counts = Counter(word.lower() for sent in sentences for word in sent)
         self.vocab = {
             self.UNKNOWN_TOKEN: 0,
             self.PADDING_TOKEN: 1,
@@ -38,7 +38,7 @@ class Vocabulary:
         logger.info(f"Generated vocabulary of size {len(self.vocab)}")
 
     def token_to_idx(self, token: str):
-        idx = self.vocab.get(token)
+        idx = self.vocab.get(token.lower())
         if idx is None:
             idx = 0
         return idx
@@ -108,16 +108,33 @@ class Vocabulary:
 
         return X, y
 
-    def convert_token_samples_to_idx_samples(
-        self, samples: list[list[str]], label_lists: list[str]
-    ):
+    def convert_token_samples_to_features(self, samples: list[list[str]], label_lists: list[str]):
         X = []
         y = []
         for sample in samples:
-            new_sample = []
+            token_idxs = []
+            capitalizations = []
+            word_lengths = []
             for word in sample:
-                new_sample.append(self.token_to_idx(word))
-            X.append(new_sample)
+                # capitalization
+                capit = 0  # default: no character is a capital letter
+                if re.match("^[A-Z][A-Z-_.]+$", word):
+                    # whole word (longer than 1 letter) consists of capitalized letters (or '-', '_', '.')
+                    capit = 3
+                elif re.match("^[A-Z]", word):
+                    # first character is a capital letter
+                    capit = 2
+                elif re.match("[A-Z]", word):
+                    # any character is a capital letter
+                    capit = 1
+                capitalizations.append(capit)
+
+                # word length (normalized to max length of 20)
+                word_lengths.append(min(len(word), 20))
+
+                # token idx
+                token_idxs.append(self.token_to_idx(word))
+            X.append([token_idxs, capitalizations, word_lengths])
         for label in label_lists:
             y.append(self.DS_LABEL_MAP[label])
 
@@ -166,14 +183,14 @@ def load_clean_conll_dataset():
     X_train_token, y_train_str = vocab.convert_dataset_to_padded_window_samples(
         train_sentences, train_label_lists
     )
-    X_train, y_train = vocab.convert_token_samples_to_idx_samples(X_train_token, y_train_str)
+    X_train, y_train = vocab.convert_token_samples_to_features(X_train_token, y_train_str)
     vocab.analyze_label_set("CleanCoNLL - train set", y_train)
 
     test_sentences, test_label_lists = parse_conll_file(test_file)
     X_test_token, y_test_str = vocab.convert_dataset_to_padded_window_samples(
         test_sentences, test_label_lists
     )
-    X_test, y_test = vocab.convert_token_samples_to_idx_samples(X_test_token, y_test_str)
+    X_test, y_test = vocab.convert_token_samples_to_features(X_test_token, y_test_str)
 
     # without this step the test dataset would have almost 50,000 samples which would take ages to run homomorphically
     assert len(X_test) == len(X_test_token) == len(y_test) == len(y_test_str)
