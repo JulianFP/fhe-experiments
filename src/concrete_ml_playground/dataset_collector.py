@@ -6,7 +6,7 @@ from .datasets.xor import load_xor_split_dataset
 from .datasets.iris import load_iris_dataset
 from .datasets.breast_cancer import load_breast_cancer_dataset
 from .datasets.digits import load_digits_dataset
-from .datasets.clean_conll import load_clean_conll_dataset
+from .datasets.clean_conll import load_clean_conll_dataset, NERDatasetInfo
 
 
 def get_dataset_loader_entry(
@@ -41,5 +41,10 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
         "iris": (load_iris_dataset, "Iris"),
         "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
         "digits": (load_digits_dataset, "Digits"),
-        "ner": (load_clean_conll_dataset, "NER (CleanCoNLL)"),
+    }
+
+
+def get_ner_dataset_loaders() -> dict[str, tuple[Callable[[], NERDatasetInfo], str]]:
+    return {
+        "ner": (load_clean_conll_dataset, "CleanCoNLL (NER)"),
     }

@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from typing import Callable, Protocol
 from concrete.ml.common.utils import FheMode
 
+from .datasets.clean_conll import NERDatasetInfo
+
 
 class ExperimentResult(BaseModel):
     accuracy_fhe: float
@@ -48,10 +50,11 @@ class ExperimentOutput:
     y_pred_clear: npt.NDArray | list[float]
     y_pred_fhe: npt.NDArray | list[float]
     timings: list[float]
-    clear_model: ClearModel
+    clear_model: ClearModel | None = None
     fhe_trained_model: ClearModel | None = None
     fhe_model: FheModel | None = None
     data_preparation_step: Callable | None = None
 
 
 ExpFunction = Callable[[str, list, list, list], ExperimentOutput]
+NerExpFunction = Callable[[str, NERDatasetInfo], ExperimentOutput]

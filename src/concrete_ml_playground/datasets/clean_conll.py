@@ -3,6 +3,8 @@ import subprocess
 import random
 import re
 import numpy as np
+import numpy.typing as npt
+from dataclasses import dataclass
 from collections import Counter
 from .. import logger
 
@@ -141,6 +143,17 @@ class Vocabulary:
         return np.array(X, dtype=np.uint32), np.array(y, dtype=np.uint8)
 
 
+@dataclass
+class NERDatasetInfo:
+    vocab: Vocabulary
+    X_train: npt.NDArray
+    X_test: npt.NDArray
+    X_test_token: list[list[str]]
+    y_train: npt.NDArray
+    y_test: npt.NDArray
+    y_test_str: list[str]
+
+
 def parse_conll_file(file_path) -> tuple[list[list[str]], list[list[str]]]:
     sentences: list[list[str]] = []
     label_lists: list[list[str]] = []
@@ -199,4 +212,12 @@ def load_clean_conll_dataset():
     )
     vocab.analyze_label_set("CleanCoNLL - test set", y_test)
 
-    return vocab, X_train, np.array(X_test), X_test_token, y_train, np.array(y_test), y_test_str
+    return NERDatasetInfo(
+        vocab=vocab,
+        X_train=X_train,
+        X_test=np.array(X_test),
+        X_test_token=list(X_test_token),
+        y_train=y_train,
+        y_test=np.array(y_test),
+        y_test_str=list(y_test_str),
+    )

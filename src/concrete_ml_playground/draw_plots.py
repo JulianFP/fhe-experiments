@@ -137,7 +137,12 @@ def draw_decision_boundary(
     if plot_data.data_preparation_step is not None:
         inp = plot_data.data_preparation_step(inp)
 
-    Z_clear = plot_data.clear_model.predict(inp).reshape(xx.shape)
+    if plot_data.clear_model is not None:
+        Z_clear = plot_data.clear_model.predict(inp).reshape(xx.shape)
+    else:
+        raise Exception(
+            "ExperimentOutput needs to have a clear_model to plot a decision boundary out of it!"
+        )
     with open(clear_pickle_path, "wb") as file:
         pickle.dump(Z_clear, file)
 
@@ -147,7 +152,7 @@ def draw_decision_boundary(
         Z_fhe = plot_data.fhe_model.predict(inp, fhe=FheMode.SIMULATE).reshape(xx.shape)
     else:
         raise Exception(
-            "DecisionBoundaryPlotData needs to either have an fhe_trained_model or an fhe_model!"
+            "ExperimentOutput needs to either have an fhe_trained_model or an fhe_model to plot a decision boundary out of it!"
         )
     with open(fhe_pickle_path, "wb") as file:
         pickle.dump(Z_fhe, file)
