@@ -1,6 +1,8 @@
 import torch
 from torch import nn
-from concrete.ml.torch.compile import compile_torch_model
+import brevitas.nn as qnn
+from brevitas.quant import Int8ActPerTensorFloat, Int8WeightPerTensorFloat
+from concrete.ml.torch.compile import compile_brevitas_qat_model
 from ..interfaces import ExperimentOutput
 from ..datasets.clean_conll import NERDatasetInfo
 from .. import logger
@@ -24,6 +26,14 @@ class NERModel(nn.Module):
         hidden_dims,
         num_labels,
         dropout_rate,
+        qlinear_args={
+            "weight_bit_width": 3,
+            "weight_quant": Int8WeightPerTensorFloat,
+            "bias": True,
+            "bias_quant": None,
+            "narrow_range": True,
+        },
+        qidentity_args={"bit_width": 3, "act_quant": Int8ActPerTensorFloat},
     ) -> None:
         """
         vocab_size: size of the vocabulary
@@ -43,9 +53,9 @@ class NERModel(nn.Module):
         layers = []
         prev_dim = input_dim
         for h_dim in hidden_dims:
-            layers.append(nn.Linear(prev_dim, h_dim))
-            layers.append(nn.ReLU())
-            layers.append(nn.Dropout(dropout_rate))
+            layers.append(qnn.QuantLinear(prev_dim, h_dim, **qlinear_args))
+            layers.append(qnn.QuantReLU(bit_width=qidentity_args["bit_width"]))
+            layers.append(qnn.QuantDropout(dropout_rate))
             prev_dim = h_dim
         layers.append(nn.Linear(prev_dim, num_labels))  # Output layer
 
@@ -89,7 +99,7 @@ def experiment(tmp_dir: str, dset: NERDatasetInfo) -> ExperimentOutput:
     # compile the model
     logger.info("Compiling into concrete-ml model...")
     batch = generate_batch_data(dset, window_size, max_word_length, capit_classes)
-    fhe_model = compile_torch_model(
+    fhe_model = compile_brevitas_qat_model(
         model, batch, n_bits=6, rounding_threshold_bits={"n_bits": 6, "method": "approximate"}
     )
 

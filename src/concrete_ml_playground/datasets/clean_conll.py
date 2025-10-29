@@ -111,6 +111,9 @@ class Vocabulary:
         return X, y
 
     def convert_token_samples_to_features(self, samples: list[list[str]], label_lists: list[str]):
+        max_word_length = 20
+        word_length_offset = len(self.vocab) - 1  # since the min word length is 1
+        capit_offset = word_length_offset + max_word_length
         X = []
         y = []
         for sample in samples:
@@ -119,20 +122,20 @@ class Vocabulary:
             word_lengths = []
             for word in sample:
                 # capitalization
-                capit = 0  # default: no character is a capital letter
+                capit = capit_offset  # default: no character is a capital letter
                 if re.match("^[A-Z][A-Z-_.]+$", word):
                     # whole word (longer than 1 letter) consists of capitalized letters (or '-', '_', '.')
-                    capit = 3
+                    capit = capit_offset + 3
                 elif re.match("^[A-Z]", word):
                     # first character is a capital letter
-                    capit = 2
+                    capit = capit_offset + 2
                 elif re.match("[A-Z]", word):
                     # any character is a capital letter
-                    capit = 1
+                    capit = capit_offset + 1
                 capitalizations.append(capit)
 
-                # word length (normalized to max length of 20)
-                word_lengths.append(min(len(word), 20))
+                # word length (normalized to max length of max_word_length)
+                word_lengths.append(word_length_offset + min(len(word), max_word_length))
 
                 # token idx
                 token_idxs.append(self.token_to_idx(word))

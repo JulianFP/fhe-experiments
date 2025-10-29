@@ -47,8 +47,8 @@ class FheModel(Protocol):
 
 @dataclass
 class ExperimentOutput:
-    y_pred_clear: npt.NDArray | list[float]
-    y_pred_fhe: npt.NDArray | list[float]
+    y_pred_clear: npt.NDArray | list[int]
+    y_pred_fhe: npt.NDArray | list[int]
     timings: list[float]
     clear_model: ClearModel | None = None
     fhe_trained_model: ClearModel | None = None

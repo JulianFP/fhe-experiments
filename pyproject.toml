@@ -20,6 +20,7 @@ dependencies = [
     "datasets>=4.0.0",
     "matplotlib>=3.10.6",
     "pydantic>=2.11.7",
+    "pytest>=8.4.2",
 ]
 
 [project.scripts]
@@ -27,6 +28,9 @@ concrete_ml_playground = "concrete_ml_playground.__main__:main"
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+concrete-ml = { git = "https://github.com/zama-ai/concrete-ml", branch = "main" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
