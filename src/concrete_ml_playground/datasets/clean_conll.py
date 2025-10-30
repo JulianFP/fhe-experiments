@@ -211,7 +211,7 @@ def load_clean_conll_dataset():
     # without this step the test dataset would have almost 50,000 samples which would take ages to run homomorphically
     assert len(X_test) == len(X_test_token) == len(y_test) == len(y_test_str)
     X_test, X_test_token, y_test, y_test_str = zip(
-        *random.choices(list(zip(X_test, X_test_token, y_test, y_test_str)), k=1000)
+        *random.choices(list(zip(X_test, X_test_token, y_test, y_test_str)), k=100)
     )
     vocab.analyze_label_set("CleanCoNLL - test set", y_test)
 

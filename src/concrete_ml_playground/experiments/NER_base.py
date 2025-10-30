@@ -75,7 +75,7 @@ def convert_NER_dataset_into_pytorch_dataloaders(
 
 
 def train_ner_pytorch_model(dataloader: DataLoader, model: nn.Module):
-    epochs = 1
+    epochs = 5
     optimizer = optim.Adam(model.parameters(), lr=0.01)
     criterion = nn.CrossEntropyLoss()
     logger.info(f"Training NER Model ({epochs} epochs)...")
