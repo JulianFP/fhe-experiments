@@ -23,7 +23,7 @@ from .draw_plots import (
     draw_feature_dim_runtime_plot,
     redraw_decision_boundary,
 )
-from .csv_handler import init_csv, append_result_to_csv
+from .csv_handler import init_csv, append_result_to_csv, read_csv
 
 
 @click.command()
@@ -55,6 +55,14 @@ from .csv_handler import init_csv, append_result_to_csv
     help="Redraw all graphs in the supplied results directory without running any experiments or re-doing expensive computations. Useful for stylistic changes in existing plots",
 )
 @click.option(
+    "--resume",
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, readable=True, writable=True, resolve_path=True
+    ),
+    required=False,
+    help="Resume interrupted experiment run by only executing experiment/dataset combinations that are not in the csv of the supplied result directory already",
+)
+@click.option(
     "--execs",
     type=int,
     default=1,
@@ -73,6 +81,7 @@ def main(
     draw_all: bool,
     draw_cheap: bool,
     redraw: click.Path | None,
+    resume: click.Path | None,
 ):
     # NER experiments are separate from the rest because they can only run on NER datasets
     dataset_loaders = get_dataset_loaders()
@@ -144,7 +153,11 @@ def main(
             "Either --all_exps, --all_inference_exps, --all_training_exps, all_ner_exps, or --exp option is required"
         )
 
-    if redraw is None:
+    if redraw is not None:
+        results_dir = str(redraw)
+    elif resume is not None:
+        results_dir = str(resume)
+    else:
         timestamp = datetime.now().isoformat()
         results_dir = f"results_{timestamp}"
         if os.path.exists(results_dir):
@@ -152,8 +165,11 @@ def main(
         os.makedirs(results_dir)
         logger.info(f"Successfully created results directory '{results_dir}'")
         init_csv(results_dir)
+
+    if resume is not None:
+        done_exps = read_csv(str(resume))
     else:
-        results_dir = str(redraw)
+        done_exps = []
 
     for ner_dset_name_dict, (
         ner_dset_loader,
@@ -161,35 +177,56 @@ def main(
     ) in scheduled_ner_dataset_loaders.items():
         dset_info = ner_dset_loader()
         for ner_exp_name_dict, (ner_exp_func, ner_exp_name) in scheduled_ner_exps.items():
-            results = []
-            exp_out: ExperimentOutput
-            for i in range(execs):
-                logger.info(
-                    f"Running '{ner_exp_name}' experiment on '{ner_dset_name}' dataset [{i + 1} of {execs}]..."
+            skip = False
+            for done_exp in done_exps:
+                if (
+                    ner_exp_name_dict == done_exp.exp_name_dict
+                    and ner_dset_name_dict == done_exp.dset_name_dict
+                ):
+                    skip = True
+                    break
+            if not skip:
+                results = []
+                exp_out: ExperimentOutput
+                for i in range(execs):
+                    logger.info(
+                        f"Running '{ner_exp_name}' experiment on '{ner_dset_name}' dataset [{i + 1} of {execs}]..."
+                    )
+                    with tempfile.TemporaryDirectory() as tmpdirname:
+                        exp_out = ner_exp_func(tmpdirname, dset_info)
+                        result = experiment_output_processor(dset_info.y_test, exp_out)
+                    results.append(result)
+                final_result = evaluate_experiment_results(
+                    results, ner_dset_name, ner_dset_name_dict, ner_exp_name, ner_exp_name_dict
                 )
-                with tempfile.TemporaryDirectory() as tmpdirname:
-                    exp_out = ner_exp_func(tmpdirname, dset_info)
-                    result = experiment_output_processor(dset_info.y_test, exp_out)
-                results.append(result)
-            final_result = evaluate_experiment_results(
-                results, ner_dset_name, ner_dset_name_dict, ner_exp_name, ner_exp_name_dict
-            )
-            logger.info(
-                f"Mean result of {execs} executions of '{ner_exp_name}' experiment on '{ner_dset_name}' dataset: {final_result}"
-            )
-            logger.info(
-                f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
-            )
-            append_result_to_csv(results_dir, final_result)
+                logger.info(
+                    f"Mean result of {execs} executions of '{ner_exp_name}' experiment on '{ner_dset_name}' dataset: {final_result}"
+                )
+                logger.info(
+                    f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
+                )
+                append_result_to_csv(results_dir, final_result)
+            else:
+                logger.info(
+                    f"Found existing '{ner_exp_name}' experiment on '{ner_dset_name}' dataset in results, skipping..."
+                )
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
         X_train, X_test, y_train, y_test = dset_loader()
         if draw_all or draw_cheap or redraw:
             draw_dataset(results_dir, dset_name, X_train, X_test, y_train, y_test)
         for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():
+            skip = False
+            for done_exp in done_exps:
+                if (
+                    exp_name_dict == done_exp.exp_name_dict
+                    and dset_name_dict == done_exp.dset_name_dict
+                ):
+                    skip = True
+                    break
             if redraw is not None:
                 redraw_decision_boundary(results_dir, exp_name, dset_name, X_test, y_test)
-            else:
+            elif not skip:
                 results = []
                 exp_out: ExperimentOutput
                 for i in range(execs):
@@ -214,6 +251,10 @@ def main(
                     draw_decision_boundary(
                         results_dir, exp_out, exp_name, dset_name, X_test, y_test
                     )
+            else:
+                logger.info(
+                    f"Found existing '{exp_name}' experiment on '{dset_name}' dataset in results, skipping..."
+                )
 
     if (all_exps or all_inference_exps) and (draw_all or draw_cheap or redraw):
         draw_feature_dim_runtime_plot(results_dir, "synth_")
