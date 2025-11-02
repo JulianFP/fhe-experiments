@@ -21,6 +21,7 @@ def get_dataset_loader_entry(
 
 
 def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
+    # commented out datasets produced problems with some models due to too large feature sizes
     return {
         "xor": (load_xor_split_dataset, "XOR problem"),
         "synth_50": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 50),
@@ -29,15 +30,15 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
         "synth_500": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 500),
         "synth_1000": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 1000),
         "synth_2500": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 2500),
-        "synth_5000": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 5000),
+        # "synth_5000": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 5000),
         "spam_50": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 50),
         "spam_100": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 100),
         "spam_250": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 250),
         "spam_500": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 500),
         "spam_1000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 1000),
         "spam_2500": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 2500),
-        "spam_5000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 5000),
-        "spam_all": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam"),
+        # "spam_5000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 5000),
+        # "spam_all": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam"),
         "iris": (load_iris_dataset, "Iris"),
         "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
         "digits": (load_digits_dataset, "Digits"),

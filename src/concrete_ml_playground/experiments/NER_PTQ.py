@@ -90,7 +90,7 @@ def experiment(tmp_dir: str, dset: NERDatasetInfo) -> ExperimentOutput:
     logger.info("Compiling into concrete-ml model...")
     batch = generate_batch_data(dset, window_size, max_word_length, capit_classes)
     fhe_model = compile_torch_model(
-        model, batch, n_bits=6, rounding_threshold_bits={"n_bits": 6, "method": "approximate"}
+        model, batch, n_bits=5, rounding_threshold_bits={"n_bits": 5, "method": "approximate"}
     )
 
     # evaluate fhe
