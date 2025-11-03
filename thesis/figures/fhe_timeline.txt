@@ -1,0 +1,27 @@
+flowchart LR
+    classDef default stroke-width:3px,stroke:black,fill:#fff,font-size:16px,font-weight:bold;
+    classDef branchLabel fill:none,stroke:none,font-size:20px,font-style:italic;
+    subgraph leveled [Leveled schemes]
+        BGV("2011<br>BGV")==>BFV("2012<br>BFV") === S4:::hidden === S5:::hidden==>CKKS("2016<br>CKKS") ==> S10:::hidden
+    end
+    subgraph main_trunk [ ]
+        PH("1978<br>Privacy Homomorphisms")==>HE("1999<br>partial HE")==>FHE("2009<br>Gentry: FHE") === S2:::hidden === S3:::hidden ==>LTV("2012<br>LTV") ==> GSW("2013<br>GSW") ~~~ S6:::hidden
+    end
+    subgraph OTI [Over the Integers]
+        DGHV("2010<br>DGHV")
+    end
+    subgraph NTRU [NTRU schemes]
+        BLLN("2013<br>BLLN")
+    end
+    subgraph bootstrapping [Fast Bootstrapping]
+        FHEW("2014<br>FHEW")==>TFHE("2016<br>TFHE") ==> S7:::hidden
+    end
+    class main_trunk branchLabel
+    class OTI branchLabel
+    class NTRU branchLabel
+    class leveled branchLabel
+    class bootstrapping branchLabel
+    FHE ==> DGHV
+    S2 ==> BGV
+    LTV ==> BLLN
+    GSW ==> FHEW

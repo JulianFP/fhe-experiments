@@ -61,16 +61,19 @@
 % code listings
 \usepackage{listings}
 \usepackage{xcolor}
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codebackground}{rgb}{1,1,1}
+\definecolor{keywordcolor}{rgb}{0,0,0.8}
+\definecolor{stringcolor}{rgb}{0.8,0,0.09}
+\definecolor{commentcolor}{rgb}{0.07,0.53,0.03}
+\definecolor{numbercolor}{rgb}{0.75,0.75,0.75}
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
+    backgroundcolor=\color{codebackground},
+    commentstyle=\color{commentcolor},
+    keywordstyle=\color{keywordcolor},
+    morekeywords={as, and},
+    numberstyle=\tiny\color{numbercolor},
+    stringstyle=\color{stringcolor},
+    language=Python,
     basicstyle=\ttfamily\footnotesize,
     breakatwhitespace=false,
     breaklines=true,
@@ -81,7 +84,7 @@
     showspaces=false,
     showstringspaces=false,
     showtabs=false,
-    tabsize=2
+    tabsize=4
 }
 \lstset{style=mystyle}
 

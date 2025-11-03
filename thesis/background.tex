@@ -121,9 +121,30 @@ Please note that we used two different secret keys $sk_1$ and $sk_2$ in this exp
 
 With the bootstrapping algorithm at disposal, constructing an FHE scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme. To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme. For FHE, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact. Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times. Because of this even modern bootstrappable FHE schemes feature very cheap decryption, especially compared to traditional encryption schemes like RSA \cite{gentry_fully_2009}.
 
-\subsection{The Learning With Errors (LWE) problem}
+\subsection{The Path to Modern FHE schemes}
 
-In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD problem. While there are many mathematical problems that have been used to base HE schemes on, the most prominent and pretty much the only ones that don't have known security flaws against them are based in some way on the Learning With Errors (LWE) problem, or its ring version, the Ring-LWE problem \cite{smart_final_2022}.
+Because of many of the limitations we discussed in \ref{DGHV}, the DGHV scheme and in general schemes defined just over the integers did not proof to be useful in practice. Most FHE schemes rely on more complex constructions, and their security is based on different mathematical problems. A timeline featuring the most important of these schemes can be seen in \ref{fig:fhe_timeline}. Most notably today we have two main branches in the FHE world:
+
+The \textbf{"Fast Bootstrapping branch"}, which computes with simple single bit operations and focuses on improving the bootstrapping performance during this.
+
+The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. While these schemes also use bootstrapping, they can only evaluate circuits up to a pre-set depth d. This depth can be arbitrary, however it must be known at encryption time \cite{gentry_fully_2009}. This limitation only matters if in a specific application the circuit depth is significantly dependent on the input and thus dynamic and not known beforehand. For example Performing inference on a neural network would be an use case where this does not matter, since a forward through the model always goes through a fixed amount of layers and thus operations. These schemes are also not defined on bit operations, but on integer and (approximate) floating point operations.
+
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{figures/fhe_timeline.png}
+    \end{center}
+    \caption{A timeline of major FHE breakthroughs and encryption schemes, ordered by the different kind of schemes \cite{noauthor_continuing_nodate}}
+    \label{fig:fhe_timeline}
+\end{figure}
+
+\subsection{The Learning With Errors (LWE) problem}\label{LWE}
+
+In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD problem. Most other schemes however (with the NTRU branch and BLLN being notable exceptions) are based on some kind of lattice problem. For example the original FHE scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}. Most other modern schemes are based in some way on the Learning With Errors (LWE) problem, or its ring version, the RLWE problem \cite{smart_final_2022}. The first scheme to use LWE was the BGV scheme in 2011. It's improved version BFV which came out shortly after, is also considered to be the first truly practical FHE scheme \cite{noauthor_continuing_nodate}. Because we nowadays also know some possible attacks against NTRU, LWE- and RLWE-based schemes are more or less the only secure and practical FHE schemes in existence \cite{smart_final_2022}.
+
+Most of these schemes (with the NTRU branch and BLLN being a notable exception) are based on some kind of lattice-based problem, most of which on LWE which we will discuss in \ref{LWE} \cite{gentry_fully_2009} \cite{noauthor_continuing_nodate}.
+
+Please note that there are also other lattice-based schemes that have been used for homomorphic encryption, e.g. the one based on ideal lattices used by Gentry in his original FHE paper, or NTRU based schemes \cite{gentry_fully_2009}. However nowadays these schemes have mostly been broken or have some type of security flaw \cite{smart_final_2022} .
 
 LWE was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
 
@@ -162,12 +183,8 @@ While solving this looks quite trivial on the picture, please note that the comp
 
 Our definition of the LWE problem shares a lot of similarities with the CVP problem: The given vectors $a_i$ of each equation can be viewed as one matrix $A$ that would be the basis of our lattice. The $b_i$ is the given vector $t$ that contains the error and as such is not part of the lattice, and the problem would become to find the vector $c$ (or $s$), that generates the lattice point closest to this vector.
 
-Please note that there are also other lattice-based schemes that have been used for homomorphic encryption, e.g. the one based on ideal lattices used by Gentry in his original FHE paper, or NTRU based schemes \cite{gentry_fully_2009}. However nowadays these schemes have mostly been broken or have some type of security flaw \cite{smart_final_2022}.
-
-\subsection{The Path to Modern FHE schemes}
-
-
-
 \subsection{TFHE: FHE Over the Torus}
+
+We will know have a closer look at the TFHE scheme because all our experiments in the later chapters will be utilizing TFHE in some way. The paper 'TFHE: Fast Fully Homomorphic Encryption Over the Torus' was originally introduced in 2016 by the authors Ilaria Chillotti, Nicolas Gama, Mariya Georgieva, and Malika Izabachène (hence this scheme is sometimes also called CGGI) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{noauthor_continuing_nodate}.
 
 \section{Machine Learning Concepts and Model Types}
