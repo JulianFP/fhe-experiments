@@ -14,7 +14,7 @@ Similarly how $\mathbf{P}$ is the class of decision problems that are solvable i
 
 An alternative definition of a PTM would be to add a second tape to a TM which includes bits that are results of fair coin tosses, i.e. each symbol on the second tape is chosen mutually independent and uniformly at random from the set $\{ 0, 1 \}$, and then the tape is fed to a TM in addition to the regular input tape. From this viewpoint comes a phrasing of referring to the randomness in cryptographic algorithms like encrypt or key generation functions as 'coins'. These independent random coin-flips can be viewed as an implicit input to any such algorithm, and are in practice most commonly obtained by pseudo-random number generators.
 
-Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$. This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \text{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the PTM-equivalent of the 'Encrypt' algorithm chosen uniformly at random. The \$ denotes the random coins used as input. Note that some literature may also use $R$ instead of \$.
+Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$. This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \mathrm{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the PTM-equivalent of the 'Encrypt' algorithm chosen uniformly at random. The \$ denotes the random coins used as input. Note that some literature may also use $R$ instead of \$.
 
 \subsection{A Simple Somewhat Homomorphic Encryption Scheme (DGHV)}\label{DGHV}
 
@@ -34,10 +34,10 @@ Here $q$ and $r$ are also some integers $\neq p$, sampled at random from some in
 The ciphertext $c$ can then be decrypted by doing the following:
 
 \begin{equation}
-    m \leftarrow \left( c \Mod{p} \right) \Mod{2}
+    m \leftarrow \left( c\ \mathrm{mod}\ p \right)\ \mathrm{mod}\ 2
 \end{equation}
 
-This encryption scheme is correct because by calculating $\Mod{p}$ we get rid of the $p \cdot q$ term in \ref{eq:dijk_encryption} while $\Mod{2}$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2. Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order in obfuscate the message. $p$ is odd, but $q$ can either be odd or even making the result unpredictable.
+This encryption scheme is correct because by calculating $\mathrm{mod}\ p$ we get rid of the $p \cdot q$ term in \ref{eq:dijk_encryption} while $\mathrm{mod}\ 2$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2. Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order in obfuscate the message. $p$ is odd, but $q$ can either be odd or even making the result unpredictable.
 
 \begin{remark}
     This is also the reason why $p$ must be odd, if $p$ where even then $pq$ would always be even as well, making the resulting ciphertext even if $m$ is 0, and odd if $m$ is 1, and thus providing no security at all.
@@ -66,7 +66,7 @@ Finally we will cover the most interesting attribute of this encryption scheme: 
     \label{eq:dijk_hom_add}
 \end{equation}
 
-Decryption would first remove the first term with the $\Mod{p}$ operation, and then remove the second term with the $\Mod{2}$, only leaving $m_1 + m_2$.
+Decryption would first remove the first term with the $\mathrm{mod}\ p$ operation, and then remove the second term with the $\mathrm{mod}\ 2$, only leaving $m_1 + m_2$.
 
 \begin{equation}
     \begin{aligned}
@@ -77,9 +77,9 @@ Decryption would first remove the first term with the $\Mod{p}$ operation, and t
     \label{eq:dijk_hom_mult}
 \end{equation}
 
-Once again decryption would remove the first term with the $\Mod{p}$ operation, and then the second term with the $\Mod{2}$ operation, only leaving $m_1 m_2$.
+Once again decryption would remove the first term with the $\mathrm{mod}\ p$ operation, and then the second term with the $\mathrm{mod}\ 2$ operation, only leaving $m_1 m_2$.
 
-Please note that because of the $\Mod{2}$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway. So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
+Please note that because of the $\mathrm{mod}\ 2$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway. So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
 
 We can also see some deficits of this simple homomorphic encryption scheme: The noise $r$ grows linearly during addition (see the $r_1 + r_2$ term in \ref{eq:dijk_hom_add}), and quadratically during multiplication ($r_1r_2$ in \ref{eq:dijk_hom_mult}). Since these homomorphic evaluations only stay correct while the noise is sufficiently smaller than $p$ as already stated, we can only homomorphically evaluate a limited amount of additions and multiplications before decryption would output an incorrect result. This is why Gentry called these kind of schemes \emph{somewhat} homomorphic encryption scheme in \cite{gentry_fully_2009}, while also providing us with an general algorithm to turn somewhat homomorphic schemes into fully homomorphic ones which we will look at next.
 
@@ -93,31 +93,31 @@ Finally this scheme in the current form also lacks circuit privacy, another attr
 
 While this simplified version of the DGHV scheme is not representative of modern FHE schemes, it helps to understand the goals as well as struggles of FHE in general. Most encryption schemes introduce some sort of noise parameter that is strictly required for the security of the scheme, but also introduces limitations regarding accuracy and/or depth of homomorphic evaluation. Balancing security with these drawbacks as well as handling noise in ciphertexts remain current challenges even with state-of-the-art FHE schemes.
 
-\subsection{Bootstrapping}
+\subsection{Bootstrapping}\label{Bootstrapping}
 
 Our previous scheme was only somewhat homomorphic, because it could only evaluate circuits up to a certain depth before the noise got too large for correct decryption. Because of limitations like this, every homomorphic encryption scheme up until 2009 was not able to evaluate arbitrary computation of arbitrary depth to a ciphertext. Then Gentry introduced a new quite ingenious technique called \emph{Bootstrapping} in his PhD thesis which enabled him to build the first Fully Homomorphic Encryption scheme \cite{gentry_fully_2009}.
 
 The basic principle behind the bootstrapping approach is to build a somewhat homomorphic encryption scheme that is able to homomorphically evaluate it's own decryption circuit. It turns out that this decreases the noise of the given ciphertext. The general strategy becomes to apply computations on the given ciphertext while keeping track of it's noise. Ones the noise reaches a certain threshold, we apply bootstrapping to get a new equivalent ciphertext with lower noise on which we can then continue our computations until the noise reaches our threshold again and so on. This means that as long as we can build a somewhat homomorphic encryption scheme that can evaluate computations of the required depth to evaluate it's own decryption circuit plus some additional operations, i.e. if the scheme is bootstrappable, we get a fully homomorphic encryption scheme that can evaluate any circuit on a given ciphertext.
 
-We will now look at bootstrapping in more detail and explain on a high level why it works: We already know that with an homomorphic encryption scheme we can evaluate a function $f$ on some ciphertext $c \xleftarrow{\$} \text{Encrypt}_{sk_1}(m)$ and get the encryption of the result of the function f $\text{Encrypt}_{sk_1}(f(m))$, with $sk_1$ being a secret key. For bootstrapping, we now introduce a second secret key $sk_2$, and define our function as $f(x) = \text{Decrypt}_x(c)$. Please note that our function is the decryption algorithm, and that the input of $f$ is not the ciphertext that should be decypted, but the key that should be used to decrypt our ciphertext. To apply this function homomorphically, we have to provide the input to f, namely the secret key $sk_1$, in an encrypted form, i.e. encrypt the first secret key with a second one. We will call this encryption of $sk_1$ our bootstrapping key, or $bk$:
+We will now look at bootstrapping in more detail and explain on a high level why it works: We already know that with an homomorphic encryption scheme we can evaluate a function $f$ on some ciphertext $c \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(m)$ and get the encryption of the result of the function f $\mathrm{Encrypt}_{sk_1}(f(m))$, with $sk_1$ being a secret key. For bootstrapping, we now introduce a second secret key $sk_2$, and define our function as $f(x) = \mathrm{Decrypt}_x(c)$. Please note that our function is the decryption algorithm, and that the input of $f$ is not the ciphertext that should be decypted, but the key that should be used to decrypt our ciphertext. To apply this function homomorphically, we have to provide the input to f, namely the secret key $sk_1$, in an encrypted form, i.e. encrypt the first secret key with a second one. We will call this encryption of $sk_1$ our bootstrapping key, or $bk$:
 
 \begin{equation}
-    bk \xleftarrow{\$} \text{Encrypt}_{sk_2}(sk_1)
+    bk \xleftarrow{\$} \mathrm{Encrypt}_{sk_2}(sk_1)
 \end{equation}
 
 We can now compute our $f$ homomorphically on this bootstrapping key:
 
 \begin{equation}
     \begin{aligned}
-        f(bk) \quad (\text{hom. eval. under } sk_2) &\rightarrow \text{Encrypt}_{sk_2}(f(sk_1))\\
-                                       &=\text{Encrypt}_{sk_2}\left( \text{Decrypt}_{sk_1}(c) \right)\\
-                                       &=\text{Encrypt}_{sk_2}(m)
+        f(bk) \quad (\mathrm{hom. eval. under } sk_2) &\rightarrow \mathrm{Encrypt}_{sk_2}(f(sk_1))\\
+                                       &=\mathrm{Encrypt}_{sk_2}\left( \mathrm{Decrypt}_{sk_1}(c) \right)\\
+                                       &=\mathrm{Encrypt}_{sk_2}(m)
     \end{aligned}
 \end{equation}
 
 As you can see, the result is an encryption of the original message under the second secret key $sk_2$. So by applying the decryption circuit of a ciphertext encrypted under $sk_1$ homomorphically with the encrypted $sk_1$ as input we received a different ciphertext $c_{new}$ that is encrypted under a different secret key $sk_2$. We effectively switched our ciphertext from one key to another, without decrypting it first or learning anything about the plaintext. Most importantly, if our $c$ had a high level of noise, the resulting $c_{new}$ has a much lower level of noise enabling further homomorphic evaluation on it. \cite{gentry_fully_2009} \cite{dolev_programmable_2021}
 
-Please note that we used two different secret keys $sk_1$ and $sk_2$ in this explanation which would require switching the ciphertext between encryptions of both secret keys and also requiring two bootstrapping keys $bk_1 \xleftarrow{\$} \text{Encrypt}_{sk_2}(sk_1)$ and $bk_2 \xleftarrow{\$} \text{Encrypt}_{sk_1}(sk_2)$ for repeated executions of the bootstrapping algorithm. In practice however it is possible to just set $sk_1 = sk_2$ and thus only requiring one bootstrapping key $bk \xleftarrow{\$} \text{Encrypt}_{sk}(sk)$, i.e. the secret key encrypted with itself. This is called circular security and severely hardens the scheme's security analysis. Depending on the underlying scheme however it is deemed to be an acceptable practice.
+Please note that we used two different secret keys $sk_1$ and $sk_2$ in this explanation which would require switching the ciphertext between encryptions of both secret keys and also requiring two bootstrapping keys $bk_1 \xleftarrow{\$} \mathrm{Encrypt}_{sk_2}(sk_1)$ and $bk_2 \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(sk_2)$ for repeated executions of the bootstrapping algorithm. In practice however it is possible to just set $sk_1 = sk_2$ and thus only requiring one bootstrapping key $bk \xleftarrow{\$} \mathrm{Encrypt}_{sk}(sk)$, i.e. the secret key encrypted with itself. This is called circular security and severely hardens the scheme's security analysis. Depending on the underlying scheme however it is deemed to be an acceptable practice.
 
 With the bootstrapping algorithm at disposal, constructing an FHE scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme. To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme. For FHE, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact. Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times. Because of this even modern bootstrappable FHE schemes feature very cheap decryption, especially compared to traditional encryption schemes like RSA \cite{gentry_fully_2009}.
 
@@ -125,10 +125,9 @@ With the bootstrapping algorithm at disposal, constructing an FHE scheme became 
 
 Because of many of the limitations we discussed in \ref{DGHV}, the DGHV scheme and in general schemes defined just over the integers did not proof to be useful in practice. Most FHE schemes rely on more complex constructions, and their security is based on different mathematical problems. A timeline featuring the most important of these schemes can be seen in \ref{fig:fhe_timeline}. Most notably today we have two main branches in the FHE world:
 
-The \textbf{"Fast Bootstrapping branch"}, which computes with simple single bit operations and focuses on improving the bootstrapping performance during this.
+The \textbf{"Fast Bootstrapping branch"}, which computes with simple single bit operations and focuses on improving the bootstrapping performance during this. It can evaluate arbitrary circuits with arbitrary depths, and the party who encrypts the inputs doesn't have to know anything about these circuits at encryption time, making these schemes very flexible \cite{chillotti_tfhe_2021}.
 
-The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. While these schemes also use bootstrapping, they can only evaluate circuits up to a pre-set depth d. This depth can be arbitrary, however it must be known at encryption time \cite{gentry_fully_2009}. This limitation only matters if in a specific application the circuit depth is significantly dependent on the input and thus dynamic and not known beforehand. For example Performing inference on a neural network would be an use case where this does not matter, since a forward through the model always goes through a fixed amount of layers and thus operations. These schemes are also not defined on bit operations, but on integer and (approximate) floating point operations.
-
+The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. This approach can only evaluate circuits on encrypted inputs up to a pre-defined depth d. This depth can be arbitrary, however it must be known at encryption time \cite{gentry_fully_2009}. Encrypting for deeper circuits means larger cryptographic parameters and slower evaluation times. While these limitations make these schemes less flexible, they mostly matter if in a specific application the circuit depth is significantly dependent on the input and thus dynamic or just not known beforehand by the party encrypting the inputs. For example performing inference on a neural network would be an use case where this does not necessarily matter much, since a forward through the model always goes through a fixed amount of layers and thus operations. It is important to note that leveled schemes may still allow bootstrapping, they just mostly try to avoid it by setting d statically beforehand. These schemes are also not defined on bit operations, but on integer and (approximate) floating point operations \cite{chillotti_tfhe_2021}.
 
 \begin{figure}[h]
     \begin{center}
@@ -138,13 +137,11 @@ The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. Wh
     \label{fig:fhe_timeline}
 \end{figure}
 
+In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD problem. Most other schemes however (with the NTRU branch and BLLN being notable exceptions) are based on some kind of lattice problem. For example the original FHE scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}. Most other modern schemes are based in some way on the Learning With Errors (LWE) problem which we will explain in \ref{LWE}, or its polynomial ring version, the RLWE problem \cite{smart_final_2022}. The first scheme to use LWE was the BGV scheme in 2011. It's improved version BFV which came out shortly after, is also considered to be the first truly practical FHE scheme \cite{noauthor_continuing_nodate}. Because we nowadays also know some possible attacks against NTRU, LWE- and RLWE-based schemes are more or less the only secure and practical FHE schemes in existence \cite{smart_final_2022}.
+
+Another notable mention is the GSW scheme introduced by Craig Gentry, Amit Sahai, and Brent Waters in 2013 \cite{gentry_homomorphic_2013}, since the modern TFHE scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the RGSW ciphertext which is a polynomial ring variation of the GSW ciphertext.
+
 \subsection{The Learning With Errors (LWE) problem}\label{LWE}
-
-In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD problem. Most other schemes however (with the NTRU branch and BLLN being notable exceptions) are based on some kind of lattice problem. For example the original FHE scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}. Most other modern schemes are based in some way on the Learning With Errors (LWE) problem, or its ring version, the RLWE problem \cite{smart_final_2022}. The first scheme to use LWE was the BGV scheme in 2011. It's improved version BFV which came out shortly after, is also considered to be the first truly practical FHE scheme \cite{noauthor_continuing_nodate}. Because we nowadays also know some possible attacks against NTRU, LWE- and RLWE-based schemes are more or less the only secure and practical FHE schemes in existence \cite{smart_final_2022}.
-
-Most of these schemes (with the NTRU branch and BLLN being a notable exception) are based on some kind of lattice-based problem, most of which on LWE which we will discuss in \ref{LWE} \cite{gentry_fully_2009} \cite{noauthor_continuing_nodate}.
-
-Please note that there are also other lattice-based schemes that have been used for homomorphic encryption, e.g. the one based on ideal lattices used by Gentry in his original FHE paper, or NTRU based schemes \cite{gentry_fully_2009}. However nowadays these schemes have mostly been broken or have some type of security flaw \cite{smart_final_2022} .
 
 LWE was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
 
@@ -152,9 +149,9 @@ Let $n \geq 1$ be an integer (our dimensionality), let p be a prime number, and 
 
 \begin{equation}
     \begin{aligned}
-        \langle s, a_1 \rangle + e_1 &= b_1 \quad (\Mod p)\\
-        \langle s, a_2 \rangle + e_2 &= b_2 \quad (\Mod p)\\
-        \langle s, a_3 \rangle + e_3 &= b_3 \quad (\Mod p)\\
+        \langle s, a_1 \rangle + e_1 &= b_1 &\Mod p\\
+        \langle s, a_2 \rangle + e_2 &= b_2 &\Mod p\\
+        \langle s, a_3 \rangle + e_3 &= b_3 &\Mod p\\
         \vdots&
     \end{aligned}
 \end{equation}
@@ -185,6 +182,143 @@ Our definition of the LWE problem shares a lot of similarities with the CVP prob
 
 \subsection{TFHE: FHE Over the Torus}
 
-We will know have a closer look at the TFHE scheme because all our experiments in the later chapters will be utilizing TFHE in some way. The paper 'TFHE: Fast Fully Homomorphic Encryption Over the Torus' was originally introduced in 2016 by the authors Ilaria Chillotti, Nicolas Gama, Mariya Georgieva, and Malika Izabachène (hence this scheme is sometimes also called CGGI) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{noauthor_continuing_nodate}.
+We will know have a closer look at the TFHE scheme because all our experiments in the later chapters will be utilizing TFHE in some way. The paper 'TFHE: Fast Fully Homomorphic Encryption Over the Torus' was originally introduced in 2016 by the authors Ilaria Chillotti, Nicolas Gama, Mariya Georgieva, and Malika Izabachène (hence this scheme is sometimes also called CGGI) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
 
+On a high level, THFE consists of three different types of ciphertexts, and defines a broad set of operations within and across these three ciphertexts. We will not explain all these operations exhaustively, but just give a broad overview to give some understanding why mapping arbitrary computations to the most efficient set of FHE operations might be challenging.
+
+\subsubsection{LWE ciphertexts}
+
+First of we will start with LWE ciphertexts: These use the LWE problem as explained in \ref{LWE}, and encode the message $m$ from a message space $\mathcal{M}$ in what was before the error of the LWE equations. This guarantees that the message cannot be obtained if only the $b_i$ and $a_i$ are known, because if that where possible one could also easily obtain $s$, the hardness of which is guaranteed by LWE and the underlying CVP on lattices.
+
+\begin{equation}
+    b = \langle s, a \rangle + e + \Delta m \Mod p\label{eq:LWE_encryption}
+\end{equation}
+
+In \ref{eq:LWE_encryption} you can see how we encrypt the message $m \in \mathcal{M}$ using LWE, with $(a \in \mathbb{Z}_p^n,b \in \mathbb{Z}_p)$ being the ciphertext, $s \in \mathbb{Z}_p^n$ being the secret required for decryption, $\Delta = \frac{p}{|\mathcal{M}|}$ being a scaling factor, and $e$ being a random error with $-\frac{\Delta}{2} < e < \frac{\Delta}{2}$. Please note that $p$ is not a prime number and thus $\mathbb{Z}_p$ not a field anymore, however in practice this turns out to be fine. Decryption then becomes just computing the inner product between $a$ and $s$, and subtracting that from $b$:
+
+\begin{equation}
+    b - \langle s, a \rangle = \Delta m + e \Mod p \xrightarrow{\mathrm{decode}} m\label{eq:LWE_decryption}
+\end{equation}
+
+To see how the last decoding step works and to understand the purpose of $\Delta$, we will look at the following construction:
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.45\textwidth]{figures/lwe_message_encoding.png}
+    \end{center}
+    \caption{An illustration for how a 2-bit message can be encoded and decoded from a $\mathbb{Z}_{48}$ space}
+    \label{fig:lwe_message_encoding}
+\end{figure}
+
+\ref{fig:lwe_message_encoding} illustrates how our $\Delta m + e$ term works for $p = 48$, and $m$ being a 2-bit integer (i.e. $\mathcal{M} = \{ 0, 1, 2, 3 \}$), resulting in $\Delta = 48 / 4 = 12$. For example, if we now want to encode the message $m=2$ with a random error of $e = 4$, we would get $12 * 2 + 4 = 28$. Decoding $28$ would be done by dividing by $\Delta$, and rounding to the next multiple of $\Delta$. Essentially in the image each possible encoded message without any error ($\Delta m$) is one of the blue lines while the red lines represent the thresholds within which the error can freely move the encoded message without changing it's meaning. If $|e|$ were to grow to $6$ or larger, then we would not receive our original message during decoding anymore \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+We can easily perform both addition (\ref{eq:LWE_addition}) and multiplication with a constant factor $\gamma \in \mathcal{M}$ (\ref{eq:LWE_multiplication}) directly on LWE ciphertexts.
+
+\begin{align}
+    \mathrm{Addition:} \quad &(a_1, b_1) + (a_2, b_2) \equiv (a_1 + a_2, b_2 + b_2) &\Mod p \label{eq:LWE_addition}\\
+    \mathrm{Constant\ multiplication:} \quad &\gamma (a, b) \equiv (\gamma a, \gamma b) &\Mod p \label{eq:LWE_multiplication}
+\end{align}
+
+Why these are equivalent and still correct after decryption can easily be seen in \ref{eq:LWE_addition_proof} and \ref{eq:LWE_multiplication_proof}.
+
+\begin{equation}\label{eq:LWE_addition_proof}
+    \begin{aligned}
+        b_1 &= \langle s, a_1 \rangle + e_1 + \Delta m_1 &\Mod p\\
+        b_2 &=  \langle s, a_2 \rangle + e_2 + \Delta m_2 &\Mod p\\
+        a' &= a_1 + a_2 &\Mod p\\
+        b' &= b_1 + b_2 &\Mod p\\
+        b' &= \langle s, a_1 \rangle + e_1 + \Delta m_1 + \langle s, a_2 \rangle + e_2 + \Delta m_2 &\Mod p\\
+           &= \langle s, a_1 + a_2 \rangle + e_1 + e_2 + \Delta (m_1 + m_2) &\Mod p\\
+           &= \langle s, a' \rangle + e_1 + e_2 + \Delta (m_1 + m_2) \Mod p\\
+        \mathrm{Decrypt:} \quad &b' - \langle s, a' \rangle = e_1 + e_2 + \Delta (m_1 + m_2) \Mod p\\
+        (\mathrm{if}\ |e_1 + e_2| < \frac{\Delta}{2}) \quad &\xrightarrow{\mathrm{Decode}} m_1 + m_2
+    \end{aligned}
+\end{equation}
+
+\begin{equation}\label{eq:LWE_multiplication_proof}
+    \begin{aligned}
+        b &= \langle s, a \rangle + e + \Delta m &\Mod p\\
+        a' &= \gamma a &\Mod p\\
+        b' &= \gamma b &\Mod p\\
+        b' &= \gamma \left( \langle s, a \rangle + e + \Delta m \right) &\Mod p\\
+           &= \langle s, \gamma a \rangle + \gamma e + \Delta \gamma m &\Mod p\\
+           &= \langle s, a' \rangle + \gamma e + \Delta \gamma m &\Mod p\\
+        \mathrm{Decrypt:} \quad &b' - \langle s, a' \rangle = \gamma e + \Delta \gamma m &\Mod p \\
+        (\mathrm{if}\ |\gamma e| < \frac{\Delta}{2}) \quad &\xrightarrow{\mathrm{Decode}} \gamma m
+    \end{aligned}
+\end{equation}
+
+\subsubsection{RLWE ciphertext}
+
+This ciphertext works equivalently to the LWE ciphertext, with the only difference being that instead of having integers modulo $p$, we know work with polynomials modulo $X^N + 1$. The message, secret, our factors, and the error now become polynomials: $M(X), S(X), A(X), B(X), E(X)$, encoding $N$ coefficients. Encryption and decryption stays equivalent though \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}:
+
+\begin{align}
+    \text{Encrypt: } &B(X) = S(X) \cdot A(X) + E(X) + \Delta M(X) \Mod{X^N + 1}\\
+    \text{Ciphertext: } &(A(X),B(X))\\
+    \text{Decrypt: } &B(X) - A(X) \cdot S(X) = \Delta M(X) + E(X) \Mod{X^N + 1} \xrightarrow{\mathrm{Decode}} M(X)
+\end{align}
+
+Decoding also stays the same, just that the process has to be repeated $N$ times for every coefficient of our polynomial (with $\Delta M_0 + E_0$ for the first coefficient, $\Delta M_1 + E_1$ for the second one, and so on).
+
+On this ciphertext we can also perform addition and multiplication by a constant, except that our constant is a constant polynomial $\Gamma(X)$ this time. The proofs for why this works are equivalent to the ones we already did for LWE ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\subsubsection{RGSW ciphertext}
+
+The RGSW ciphertext essentially consists of a multitude of RLWE encryptions with additional terms in them, arranged in a 3-dimensional matrix. Because of it's complex structure we will not explain it in detail and just give a high level overview. This 3-dim matrix is constructed as $l$ $2\times2$ matrices, where the $j$th $2\times2$ matrix consists of two encryptions of our message: $(A_j(X), B_j(X))$ (the first row), and $(A_j^*(X), B_J^*(X))$ (the second row). These encryptions differ in the two terms they get in addition to a regular RLWE ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+RGSW allows addition and multiplication with a constant as well which work the same as for RLWE, but applied for every single RLWE encryption in our matrix. However additionally it also allows for multiplication between two ciphertexts which was not possible with the last two ciphertexts.
+
+This multiplication works by first decomposing the four polynomials of one of our $2\times2$ matrices from the left-hand site into $l$ smaller polynomials, again returning us a $2 \times 2 \times l$ matrix. The second step is to perform a matrix multiplication with this decomposition matrix with the right-hand site of our multiplication, returning us a $2\times2$ matrix. These two steps then have to be repeated $l$ times for every $2\times2$ matrix on the left hand site, combining all $l$ results into one matrix which will then again be a valid RGSW ciphertext encrypting $m_1 \cdot m_2$ \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\subsubsection{Additional TFHE building blocks}
+
+TFHE defines more operations than just addition and multiplication that allow for greater flexibility when implementing arbitrary circuits over ciphertexts, especially when switching between the three different kinds of ciphertexts in TFHE. We give a non-exhaustive list of the most important ones.
+
+The \textbf{External Product} also allows for multiplication between two ciphertexts, with the difference being that on the left-hand side we now have an RLWE ciphertext that we multiply with an RGSW ciphertext on the right-hand side. The algorithm works otherwise quite similar to multiplication over two RGSW ciphertexts however it works with $1\times2$ matrices instead of $2\times2$ and does not require the $l$ repetitions thus being more efficient. The result is an RLWE ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+The \textbf{Controlled Mux (CMux)} is a common binary gate with three inputs $d_0, d_1, b$ and one output $d_b$. It's function is quite simple:
+
+\begin{equation}
+    d_b = \begin{cases}
+        d_0 &\mathrm{if\ } b = 0\\
+        d_1 &\mathrm{if\ } b = 1
+    \end{cases}
+\end{equation}
+
+So effectively the CMux gate assigns the output to either $d_0$ or $d_1$ depending on $b$. This is also why CMux is so important in TFHE, it's being used to implement if-conditions and branching in TFHE. Its implemented using three other operations in the following way (with $\odot$ being the external product, and $-,+$ being addition between RLWE ciphertexts):
+
+\begin{equation}
+    \mathrm{RLWE}(d_b) = \left( \left( \mathrm{RLWE}(d_0) - \mathrm{RLWE}(d_1) \right) \odot \mathrm{RGSW}(b) \right) + \mathrm{RLWE}(d_0)
+\end{equation}
+
+This works because if $b = 1$ this equation will result in $d_1 - d_0 + d_0 = d_1$, but if $b = 0$ then the whole first term will be zero as well and we will be left with just $d_0$ from the second term \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\textbf{Rotation} allows to rotate the encrypted polynomial of an RLWE ciphertext by some $p$ positions, i.e. an coefficient at position $p$ will be at position $0$ after rotation. This is achieved easily by multiplying the polynomial with $X^{-p}$, and because of the $\mathrm{mod} X^N + 1$ this will automatically rotate the polynomial (plus changing the signs of the coefficients 'falling of' at the left):
+
+\begin{equation}
+   \begin{aligned}
+       M(X) &= M_0 + M_1 X + ... + M_p X^p + ... + M_{N-1} X^{N-1} &\Mod{X^N + 1}\\
+       M(X) \cdot X^{-p} &= M_p + M_{p+1} X + ... + M_{N-1} X^{N-1-p}-M_0X^{N-p} - ... - M_{p-1}X^{N-1} &\Mod{X^N + 1}
+   \end{aligned}
+\end{equation}
+
+This can be extended to a \textbf{Blind Rotation}, where $p$ is also encrypted (but under RGSW). This is implemented by having $p$ be encrypted bit-by-bit, i.e. we have encryptions of $p_0$, $p_1$,...,$p_k$ where each $p_i$ is one bit of $p$. Now for each $p_i$ we can perform the regular rotation by $2^i$ positions, and then combine this with a CMux with $b = p_i$, $d_0$ being the unrotated $M$, and $d_1$ the rotated one. That CMux will then effectively output $M(X) \cdot X^{-2^i}$ if $p_i = 1$, and just $M(X)$ if $p_i = 0$. This has to be repeated $k$ times (for every bit of $p$), and all the results have to be summed up afterwards. Thus we are now able to rotate an unknown polynomial by an unknown amount of positions \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\textbf{Sample Extraction} allows to simply extract one of the coefficients of an RLWE polynomial. Remember that since every coefficient in RLWE is just an LWE encryption, this operation returns an LWE ciphertext. This operation is quite trivial and, in contrary to the other non-Bootstrapping operations, adds no noise to the ciphertext. It can be used to completely convert an RLWE ciphertext to an LWE ciphertext by simply repeating the process for each of the RLWE coefficients \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\textbf{Key Switching} enables us to change the secret key $s$ under which a ciphertext is encrypted to a new secret key $s'$, without having to decrypt it and without knowing both of the keys. It requires a so called key-switching-key which can be viewed as a special kind of public-key, and can be performed from LWE to LWE, RLWE to RLWE, or even from LWE to RLWE and many-LWE to 1-RLWE ciphertexts. In addition to changing the encryption key it can also be used to change any other cryptographic parameters of the ciphertext, or to even evaluate arbitrary functions on the ciphertext which is called Functional Key Switching \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+We already described the main goal of \textbf{Bootstrapping} (the reduction of noise) and the general function of it in \ref{Bootstrapping}. In TFHE this is implemented on LWE ciphertexts, i.e. this algorithm executes the LWE decryption (see \ref{eq:LWE_decryption}) homomorphically. It achiees this quite efficiently using the building blocks described above, more specifically a combination of (blind) rotation, CMuxes, and the Key Switching to move back to the original decryption key. Since this algorithm is quite complex we will not describe it here in more detail, you can refer to the linked sources for a more in-depth explanation. Please note that even though the Bootstrapping process uses two different encryption keys, TFHE still relies on circular security because of the Key Switching Key which is an encryption of itself \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+TFHE also includes multiple more elaborate bootstrapping techniques like \textbf{Gate Bootstrapping}, \textbf{Programmable Bootstrapping}, and \textbf{Circuit Bootstrapping}. The first two are extensions to the regular LWE Bootstrapping that additionally allow the execution of binary gates or any function that can be expressed using a look-up table \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{dolev_programmable_2021}. Using this the bootstrapping becomes more than a pure no-operation that just adds computation overhead since it can now also compute parts of our circuit while decreasing the noise at the same time which increases efficiency. The third Bootstrapping technique can also execute functions, but most importantly it converts LWE into RGSW ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=\textwidth]{figures/tfhe_building_blocks.png}
+    \end{center}
+    \caption{Major TFHE building blocks and how they convert between TFHE ciphertext types. Dotted lines decrease the noise and solid lines to not. Blocks that take two different kinds of inputs like the External Product/CMux or Blind Rotation are represented slightly inaccurately.}
+    \label{fig:tfhe_building_blocks}
+\end{figure}
+
+A full graphical overview of the above can be seen in \ref{fig:tfhe_building_blocks}. Compiling an algorithm for TFHE ciphertexts becomes the task of combining these building blocks efficiently while keeping track of the noise of the ciphertext and reducing it if necessary. TFHE has some helpful attributes to help with this, for example it allows for constant monitoring of the noise so that the TFHE framework in use can dynamically know when it is best to perform the Bootstrapping. However this abundance of building blocks and their different characteristics make building an optimized TFHE circuit a lot more challenging than one might think, and the efficiency and evaluation overhead introduced by TFHE compared to regular clear evaluation is quite dependent on the specific application and algorithm and how well it can be or has been optimized for TFHE.
 \section{Machine Learning Concepts and Model Types}

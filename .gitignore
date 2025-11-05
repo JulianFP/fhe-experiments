@@ -533,6 +533,7 @@ TSWLatexianTemp*
 
 # --- custom stuff ---
 *.pdf
+*.~lock*
 *model_dir
 *.artifacts
 *.model

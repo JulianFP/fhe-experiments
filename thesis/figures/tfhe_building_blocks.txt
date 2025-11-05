@@ -1,0 +1,24 @@
+%%{init: {"theme": "light", "flowchart": {"defaultRenderer": "elk"}}}%%
+flowchart LR
+    classDef default stroke-width:3px,stroke:black,fill:#fff,font-size:16px,font-weight:bold;
+    classDef branchLabel fill:none,stroke:none,font-size:20px,font-style:italic;
+    linkStyle default stroke-width:4px;
+    LWE -->|Addition| LWE
+    LWE -->|Constant Multiplication| LWE
+    LWE -->|Key Switching| LWE
+    LWE -.->|Bootstrapping| LWE
+    RLWE -->|Addition| RLWE
+    RLWE -->|Constant Multiplication| RLWE
+    RLWE -->|Key Switching| RLWE
+    RLWE -->|Rotation| RLWE
+    RGSW -->|Addition| RGSW
+    RGSW -->|Constant Multiplication| RGSW
+    RGSW -->|Multiplication| RGSW
+    LWE -->|Key Switching| RLWE
+    RLWE -->|Sample Extraction| LWE
+    RGSW -->|External Product| RLWE
+    RGSW -->|CMux| RLWE
+    LWE -.->|Circuit Bootstrapping| RGSW
+
+    RLWE ~~~ RGSW
+    RLWE ~~~ RGSW
