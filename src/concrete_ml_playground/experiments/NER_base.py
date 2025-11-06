@@ -6,7 +6,7 @@ from torch import optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from concrete.ml.deployment import FHEModelClient, FHEModelDev, FHEModelServer
-from ..datasets.clean_conll import NERDatasetInfo
+from ..datasets.clean_conll import LABEL_LIST, analyze_label_set, NERDatasetInfo
 from .. import logger
 
 
@@ -92,13 +92,13 @@ def train_ner_pytorch_model(dataloader: DataLoader, model: nn.Module):
         logger.info(f"Epoch {epoch + 1}/{epochs} - Loss: {total_loss / len(dataloader):.4f}")
 
 
-def print_inference_result_debug_messages(vocab, X_test_token, y_test_str, y_true, y_pred):
+def print_inference_result_debug_messages(X_test_token, y_test_str, y_true, y_pred):
     for X_token, y_str, true_label, pred_label in zip(X_test_token, y_test_str, y_true, y_pred):
         if pred_label == true_label:
             logger.info(f"✅ Sentence: {X_token}, label: {true_label}/'{y_str}'")
         else:
             logger.info(
-                f"❌ Sentence: {X_token}, predicted label: {pred_label}/'{vocab.label_idx_to_string(pred_label)}', correct label: {true_label}/'{y_str}'"
+                f"❌ Sentence: {X_token}, predicted label: {pred_label}/'{LABEL_LIST[pred_label]}', correct label: {true_label}/'{y_str}'"
             )
 
 
@@ -115,9 +115,9 @@ def evaluate_ner_pytorch_model_clear(
             y_pred_clear.append(int(torch.argmax(logits, dim=1).item()))
         timings.append(time.time())
     print_inference_result_debug_messages(
-        dset.vocab, dset.X_test_token, dset.y_test_str, dset.y_test, y_pred_clear
+        dset.X_test_token, dset.y_test_str, dset.y_test, y_pred_clear
     )
-    dset.vocab.analyze_label_set("predicted labels", y_pred_clear)
+    analyze_label_set("predicted labels", y_pred_clear)
 
     return y_pred_clear
 
@@ -182,8 +182,8 @@ def evaluate_ner_pytorch_model_fhe(
     timings.append(time.time())
 
     print_inference_result_debug_messages(
-        dset.vocab, dset.X_test_token, dset.y_test_str, dset.y_test, y_pred_fhe
+        dset.X_test_token, dset.y_test_str, dset.y_test, y_pred_fhe
     )
-    dset.vocab.analyze_label_set("predicted labels", y_pred_fhe)
+    analyze_label_set("predicted labels", y_pred_fhe)
 
     return y_pred_fhe

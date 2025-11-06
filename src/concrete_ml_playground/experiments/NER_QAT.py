@@ -4,7 +4,7 @@ import brevitas.nn as qnn
 from brevitas.quant import Int8ActPerTensorFloat, Int8WeightPerTensorFloat
 from concrete.ml.torch.compile import compile_brevitas_qat_model
 from ..interfaces import ExperimentOutput
-from ..datasets.clean_conll import NERDatasetInfo
+from ..datasets.clean_conll import NERDatasetInfo, load_clean_conll_dataset
 from .. import logger
 from .NER_base import (
     convert_NER_dataset_into_pytorch_dataloaders,
@@ -70,7 +70,8 @@ class NERModel(nn.Module):
         return self.mlp(embeds_flattened)
 
 
-def experiment(tmp_dir: str, dset: NERDatasetInfo) -> ExperimentOutput:
+def experiment(tmp_dir: str) -> tuple[ExperimentOutput, NERDatasetInfo]:
+    dset = load_clean_conll_dataset()
     timings = []
 
     window_size = 5
@@ -110,4 +111,4 @@ def experiment(tmp_dir: str, dset: NERDatasetInfo) -> ExperimentOutput:
         timings=timings,
         y_pred_clear=y_pred_clear,
         y_pred_fhe=y_pred_fhe,
-    )
+    ), dset

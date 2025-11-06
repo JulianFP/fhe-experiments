@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from typing import Callable, Protocol
 from concrete.ml.common.utils import FheMode
 
-from .datasets.clean_conll import NERDatasetInfo
+from .datasets.clean_conll import NERDatasetInfo, RawNERDatasetInfo
 
 
 class ExperimentResult(BaseModel):
@@ -57,4 +57,4 @@ class ExperimentOutput:
 
 
 ExpFunction = Callable[[str, list, list, list], ExperimentOutput]
-NerExpFunction = Callable[[str, NERDatasetInfo], ExperimentOutput]
+NerExpFunction = Callable[[str], tuple[ExperimentOutput, NERDatasetInfo | RawNERDatasetInfo]]

@@ -7,7 +7,7 @@ from datetime import datetime
 from concrete_ml_playground.interfaces import ExperimentOutput
 
 from . import logger
-from .dataset_collector import get_dataset_loaders, get_ner_dataset_loaders
+from .dataset_collector import get_dataset_loaders
 from .experiment_collector import (
     get_inference_experiments,
     get_training_experiments,
@@ -85,22 +85,16 @@ def main(
 ):
     # NER experiments are separate from the rest because they can only run on NER datasets
     dataset_loaders = get_dataset_loaders()
-    ner_dset_loaders = get_ner_dataset_loaders()
     scheduled_dataset_loaders = {}
-    scheduled_ner_dataset_loaders = {}
     if all_dsets:
         scheduled_dataset_loaders = dataset_loaders
-        scheduled_ner_dataset_loaders = ner_dset_loaders
     elif len(dset) > 0:
         for ds in dset:
             dset_loader = dataset_loaders.get(ds)
-            ner_dset_loader = ner_dset_loaders.get(ds)
             if dset_loader is not None:
                 scheduled_dataset_loaders[ds] = dset_loader
-            elif ner_dset_loader is not None:
-                scheduled_ner_dataset_loaders[ds] = ner_dset_loader
             else:
-                possible_values = list(dataset_loaders.keys()) + list(ner_dset_loaders.keys())
+                possible_values = list(dataset_loaders.keys())
                 raise Exception(
                     f"No dataset with name '{ds}' exists. --dset can only have the following values: {possible_values}."
                 )
@@ -142,7 +136,7 @@ def main(
                     possible_values = (
                         list(inf_exp_loaders.keys())
                         + list(train_exp_loaders.keys())
-                        + list(scheduled_ner_exps)
+                        + list(ner_exp_loaders.keys())
                     )
                     raise Exception(
                         f"No experiment with name '{ex}' exists. --exp can only have the following values: {possible_values}."
@@ -171,45 +165,42 @@ def main(
     else:
         done_exps = []
 
-    for ner_dset_name_dict, (
-        ner_dset_loader,
-        ner_dset_name,
-    ) in scheduled_ner_dataset_loaders.items():
-        dset_info = ner_dset_loader()
-        for ner_exp_name_dict, (ner_exp_func, ner_exp_name) in scheduled_ner_exps.items():
-            skip = False
-            for done_exp in done_exps:
-                if (
-                    ner_exp_name_dict == done_exp.exp_name_dict
-                    and ner_dset_name_dict == done_exp.dset_name_dict
-                ):
-                    skip = True
-                    break
-            if not skip:
-                results = []
-                exp_out: ExperimentOutput
-                for i in range(execs):
-                    logger.info(
-                        f"Running '{ner_exp_name}' experiment on '{ner_dset_name}' dataset [{i + 1} of {execs}]..."
-                    )
-                    with tempfile.TemporaryDirectory() as tmpdirname:
-                        exp_out = ner_exp_func(tmpdirname, dset_info)
-                        result = experiment_output_processor(dset_info.y_test, exp_out)
-                    results.append(result)
-                final_result = evaluate_experiment_results(
-                    results, ner_dset_name, ner_dset_name_dict, ner_exp_name, ner_exp_name_dict
-                )
+    ner_dset_name = "CleanCoNLL (NER)"
+    ner_dset_name_dict = "ner"
+    for ner_exp_name_dict, (ner_exp_func, ner_exp_name) in scheduled_ner_exps.items():
+        skip = False
+        for done_exp in done_exps:
+            if (
+                ner_exp_name_dict == done_exp.exp_name_dict
+                and ner_dset_name_dict == done_exp.dset_name_dict
+            ):
+                skip = True
+                break
+        if not skip:
+            results = []
+            exp_out: ExperimentOutput
+            for i in range(execs):
                 logger.info(
-                    f"Mean result of {execs} executions of '{ner_exp_name}' experiment on '{ner_dset_name}' dataset: {final_result}"
+                    f"Running '{ner_exp_name}' experiment on '{ner_dset_name}' dataset [{i + 1} of {execs}]..."
                 )
-                logger.info(
-                    f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
-                )
-                append_result_to_csv(results_dir, final_result)
-            else:
-                logger.info(
-                    f"Found existing '{ner_exp_name}' experiment on '{ner_dset_name}' dataset in results, skipping..."
-                )
+                with tempfile.TemporaryDirectory() as tmpdirname:
+                    exp_out, dset_info = ner_exp_func(tmpdirname)
+                    result = experiment_output_processor(dset_info.y_test, exp_out)
+                results.append(result)
+            final_result = evaluate_experiment_results(
+                results, ner_dset_name, ner_dset_name_dict, ner_exp_name, ner_exp_name_dict
+            )
+            logger.info(
+                f"Mean result of {execs} executions of '{ner_exp_name}' experiment on '{ner_dset_name}' dataset: {final_result}"
+            )
+            logger.info(
+                f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
+            )
+            append_result_to_csv(results_dir, final_result)
+        else:
+            logger.info(
+                f"Found existing '{ner_exp_name}' experiment on '{ner_dset_name}' dataset in results, skipping..."
+            )
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
         X_train, X_test, y_train, y_test = dset_loader()
