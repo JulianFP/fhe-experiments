@@ -121,7 +121,7 @@ Please note that we used two different secret keys $sk_1$ and $sk_2$ in this exp
 
 With the bootstrapping algorithm at disposal, constructing an FHE scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme. To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme. For FHE, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact. Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times. Because of this even modern bootstrappable FHE schemes feature very cheap decryption, especially compared to traditional encryption schemes like RSA \cite{gentry_fully_2009}.
 
-\subsection{The Path to Modern FHE schemes}
+\subsection{The Path to Modern FHE Schemes}
 
 Because of many of the limitations we discussed in \ref{DGHV}, the DGHV scheme and in general schemes defined just over the integers did not proof to be useful in practice. Most FHE schemes rely on more complex constructions, and their security is based on different mathematical problems. A timeline featuring the most important of these schemes can be seen in \ref{fig:fhe_timeline}. Most notably today we have two main branches in the FHE world:
 
@@ -141,7 +141,7 @@ In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD 
 
 Another notable mention is the GSW scheme introduced by Craig Gentry, Amit Sahai, and Brent Waters in 2013 \cite{gentry_homomorphic_2013}, since the modern TFHE scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the RGSW ciphertext which is a polynomial ring variation of the GSW ciphertext.
 
-\subsection{The Learning With Errors (LWE) problem}\label{LWE}
+\subsection{The Learning With Errors (LWE) Problem}\label{LWE}
 
 LWE was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
 
@@ -321,4 +321,65 @@ TFHE also includes multiple more elaborate bootstrapping techniques like \textbf
 \end{figure}
 
 A full graphical overview of the above can be seen in \ref{fig:tfhe_building_blocks}. Compiling an algorithm for TFHE ciphertexts becomes the task of combining these building blocks efficiently while keeping track of the noise of the ciphertext and reducing it if necessary. TFHE has some helpful attributes to help with this, for example it allows for constant monitoring of the noise so that the TFHE framework in use can dynamically know when it is best to perform the Bootstrapping. However this abundance of building blocks and their different characteristics make building an optimized TFHE circuit a lot more challenging than one might think, and the efficiency and evaluation overhead introduced by TFHE compared to regular clear evaluation is quite dependent on the specific application and algorithm and how well it can be or has been optimized for TFHE.
+
 \section{Machine Learning Concepts and Model Types}
+
+We will know switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments. Please note however that these will only be basic overviews and not exhaustive explanations.
+
+\subsection{Logistic Regression}
+
+Logistic Regression is a generalization of Linear Regression specifically for the binary classification setting (i.e. not for regression, contrary to its name) and in general one of the simplest supervised learning approaches.
+
+Our model parameters are our weights $w$ and a bias $b$, and we get the predicted probability of a label by calculating the inner produc t between our input vector $x$ with the weights, adding the bias, and applying the sigmoid function to the result. The sigmoid function essentially just maps it's input to the range $[0, 1]$, so that the models output can be interpreted as a probability for the Bernoulli distribution \cite{murphy_machine_2013}:
+\begin{align}
+    p(y \mid x) &= \mathrm{Ber} \left( y \mid \mathrm{sigm}\left(\langle w, x \rangle + b\right) \right)\\
+    \mathrm{sigm}(\eta) &= \frac{1}{1 + e^{- \eta}} = \frac{e^\eta}{e^\eta + 1}\\
+    \mathrm{Ber}(y \mid p) &= \begin{cases}
+        p &\mathrm{if}\ y = 1 \\
+        1 - p &\mathrm{if}\ y = 0
+    \end{cases}
+\end{align}
+
+This construction solves the binary classification case, however it can be extended to multi-class scenarios by having one weight vector for each class and summing over all classes in the denominator:
+
+\begin{equation}
+    p(y = c \mid x) = \frac{e^{w_c x}}{\sum_{c' = 1}^C e^{w_{c'}x}}
+\end{equation}
+
+The loss-function that is minimized in training for this model is the log-likelihood function. Since it is globally convex and derivable twice it can be minimized using a Quasi-Newton method. Alternatively Stochastic Gradient Descent (SGD) can be applied for Logistic Regression as well which might be faster, especially for large datasets, at the cost of model accuracy \cite{murphy_machine_2013}.
+
+\subsection{Classification and Regression Trees (CART)}
+
+Classification and Regression Trees (CART), or decision trees are a type of model that splits the training data recursively into regions that belong to the same label. This can be represented by a binary tree, where the leafs contain output labels, and each node makes a comparison between one of our features $x_i$ to a threshold $t_i$. Depending on whether the feature was smaller or larger than the threshold, we will traverse to the left or right child and continue with the next comparison. The label in the leaf that we will reach by doing this is our models output. See \ref{fig:decision_tree} for a visual representation of a simple example dataset and a tree fitted to it.
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/decision_tree_data.png}
+    \caption{The partitioned training data with each region colored in it's label ($y_1$ in red, $y_2$ in blue, $y_3$ in green)}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/decision_tree.png}
+    \caption{One possible decision tree for this data}
+\end{subfigure}
+
+\caption{A visualization of a decision tree with depth 3, 2-dim features, and three possible output classes}
+\label{fig:decision_tree}
+\end{figure}
+
+Fitting such a model perfectly, i.e. finding the optimal partitioning for the training data is shown to be NP-complete, which is why it is common to use greedy algorithms that approximate the best partitioning for training. One such algorithm is called Boosting, and it applies a weak learner to weighted versions of the training data sequentially, where the weights are higher for samples that the model mispredicted during the last iteration. In 1998, Leo Breiman called a shallow decision tree combined with the Boosting algorithm the "best off-the-shelf classifier in the world" \cite{murphy_machine_2013}.
+
+\subsection{Feed-Forward Neural Networks (FFNN)}
+
+\subsection{K-Nearest Neighbors}
+
+\subsection{Some Vectorization Techniques for NLP Tasks}
+
+\subsubsection{Bag-Of-Words (BOW)}
+
+\subsubsection{TF-IDF}
+
+\subsubsection{Word Embeddings}

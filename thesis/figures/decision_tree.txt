@@ -1,0 +1,24 @@
+%%{init: {"theme": "light"}}%%
+flowchart TD
+    classDef default stroke-width:3px,stroke:black,fill:#fff,font-size:16px,font-weight:bold;
+    classDef blue stroke:#ABC6E1,stroke-width:6px;
+    classDef red stroke:#E9B4B3,stroke-width:6px;
+    classDef green stroke:#AECEB4,stroke-width:6px;
+    classDef branchLabel fill:none,stroke:none,font-size:20px,font-style:italic;
+    linkStyle default stroke-width:4px;
+    A[$$x_1 \leq 1$$] -->|yes| B[$$x_2 \le 1$$]
+    A -->|no| C[$$x_2 \leq 1$$]
+    B -->|yes| D(($$y_1$$))
+    B -->|no| E(($$y_2$$))
+    C -->|yes| F[$$x_1 \leq 1.5$$]
+    C -->|no| G[$$x_2 \leq 1.75$$]
+    F -->|yes| H(($$y_2$$))
+    F -->|no| I(($$y_3$$))
+    G -->|yes| J(($$y_1$$))
+    G -->|no| K(($$y_2$$))
+    class D red
+    class E blue
+    class H blue
+    class I green
+    class J red
+    class K blue
