@@ -316,7 +316,7 @@ TFHE also includes multiple more elaborate bootstrapping techniques like \textbf
     \begin{center}
         \includegraphics[width=\textwidth]{figures/tfhe_building_blocks.png}
     \end{center}
-    \caption{Major TFHE building blocks and how they convert between TFHE ciphertext types. Dotted lines decrease the noise and solid lines to not. Blocks that take two different kinds of inputs like the External Product/CMux or Blind Rotation are represented slightly inaccurately.}
+    \caption{Major TFHE building blocks and how they convert between TFHE ciphertext types. Dotted lines decrease the noise and solid lines do not. Blocks that take two different kinds of inputs like the External Product/CMux or Blind Rotation are represented slightly inaccurately.}
     \label{fig:tfhe_building_blocks}
 \end{figure}
 
@@ -324,7 +324,7 @@ A full graphical overview of the above can be seen in \ref{fig:tfhe_building_blo
 
 \section{Machine Learning Concepts and Model Types}
 
-We will know switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments. Please note however that these will only be basic overviews and not exhaustive explanations.
+We will now switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments. Please note however that these will only be basic overviews and not exhaustive explanations.
 
 \subsection{Logistic Regression}
 
@@ -333,7 +333,7 @@ Logistic Regression is a generalization of Linear Regression specifically for th
 Our model parameters are our weights $w$ and a bias $b$, and we get the predicted probability of a label by calculating the inner produc t between our input vector $x$ with the weights, adding the bias, and applying the sigmoid function to the result. The sigmoid function essentially just maps it's input to the range $[0, 1]$, so that the models output can be interpreted as a probability for the Bernoulli distribution \cite{murphy_machine_2013}:
 \begin{align}
     p(y \mid x) &= \mathrm{Ber} \left( y \mid \mathrm{sigm}\left(\langle w, x \rangle + b\right) \right)\\
-    \mathrm{sigm}(\eta) &= \frac{1}{1 + e^{- \eta}} = \frac{e^\eta}{e^\eta + 1}\\
+    \mathrm{sigm}(\eta) &= \frac{1}{1 + e^{- \eta}} = \frac{e^\eta}{e^\eta + 1}\label{eq:sigmoid}\\
     \mathrm{Ber}(y \mid p) &= \begin{cases}
         p &\mathrm{if}\ y = 1 \\
         1 - p &\mathrm{if}\ y = 0
@@ -346,7 +346,15 @@ This construction solves the binary classification case, however it can be exten
     p(y = c \mid x) = \frac{e^{w_c x}}{\sum_{c' = 1}^C e^{w_{c'}x}}
 \end{equation}
 
-The loss-function that is minimized in training for this model is the log-likelihood function. Since it is globally convex and derivable twice it can be minimized using a Quasi-Newton method. Alternatively Stochastic Gradient Descent (SGD) can be applied for Logistic Regression as well which might be faster, especially for large datasets, at the cost of model accuracy \cite{murphy_machine_2013}.
+The loss-function that is minimized in training for this model is the log-likelihood function. Since it is globally convex and derivable twice it can be minimized using a Quasi-Newton method. Alternatively Stochastic Gradient Descent (SGD) can be applied for Logistic Regression as well which might be faster, especially for large datasets, possibly at the cost of model accuracy. SGD also has the upside of being an online learning algorithm, i.e. the learning scenario where we can update our model weights one sample at a time and not just across large batches of samples \cite{murphy_machine_2013}.
+
+SGD can be used with a variety of loss functions, one of which is called Perceptron. This is a linear loss that for each sample, adds the computed gradient to the model weights if the classification was incorrect, and doesn't change the weights if it was correct. A slight variation from this is the hinge-loss, that additionally introduces a margin of 1 to the loss to increase the separation of the decision boundary \cite{murphy_machine_2013}. A good overview with graphs plotting these loss functions can be found in scikit-learn's user guide \cite{noauthor_stochastic_nodate}. The main takeaway for this thesis is that all these models perform the same operation during inference, namely the argmax of all the inner products between the different class weights and the inputs:
+
+\begin{equation}
+    y' = \argmax_c \langle w_c, x \rangle
+\end{equation}
+
+For example in scikit-learn, the LogisticRegression, SGDClassifier, and Perceptron classes all perform this step during inference while employing different training techniques. The Perceptron class is even a wrapper over the SGDClassifier class that just changes the loss function from the hinge-loss to the perceptron-loss and sets the learning rate to be constant \cite{noauthor_api_nodate}.
 
 \subsection{Classification and Regression Trees (CART)}
 
@@ -374,12 +382,99 @@ Fitting such a model perfectly, i.e. finding the optimal partitioning for the tr
 
 \subsection{Feed-Forward Neural Networks (FFNN)}
 
-\subsection{K-Nearest Neighbors}
+The Feed-Forward Neural Network (FNN), also called Multi-Layer Perceptron (MLP) is essentially just a series of Perceptron/Logistic Regression models. The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer. This means that a forward pass for each layer consists of a matrix product between the layers weights and the last layers output, and then applying the activation function. A neural network always consists of one input layer (the values of the feature vector), one output layer (e.g. the probability values of each possible output label), and at least one hidden layer with an activation function. Most notably these types of neural networks do not form cycles, in contrary to for example Recurrent Neural Networks (RNN) \cite{murphy_machine_2013}. An example can be seen in \ref{fig:NN}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.95\textwidth]{figures/nn.png}
+    \end{center}
+    \caption{A FNN with two inputs, two outputs, and one 5-dim hidden layer}\label{fig:NN}
+\end{figure}
+
+A model like this (one with only one hidden layer) used for a binary classification problem would thus have the following form:
+
+\begin{equation}
+    \begin{aligned}
+        z(x) &= g(\langle w_1, x \rangle) \\
+        p(y \mid x) &= \mathrm{Ber}(y \mid \mathrm{sigm}( \langle w_2, z(x) \rangle))
+    \end{aligned}
+\end{equation}
+
+Here $w_1$ are the weights from the input layer to the hidden layer, $w_2$ the weights from the hidden layer to the output layer, $z(x)$ the output of the hidden layer, and $g$ the activation function. It is important that the activation function is non-linear, since otherwise neural networks would collapse into one large linear model of the form $y = \langle w_1 (\langle w_2 x \rangle) \rangle$. With suitable non-linear activation functions however it can be shown that this type of model can be a universal approximator that can model any smooth function (given enough hidden units) to any desired level of accuracy \cite{murphy_machine_2013}.
+
+A very common and very simple activation function is the rectified linear unit function (ReLu), that just cuts any output smaller than $0$:
+
+\begin{equation}
+    \mathrm{ReLu}(x) = \max(0, x)
+\end{equation}
+
+Other possible activation functions are the logistic sigmoid function (as already defined in \ref{eq:sigmoid}), or the hyperbolic tan function ($\tanh$) \cite{noauthor_api_nodate}.
+
+\subsection{K-Nearest Neighbors (KNN)}
+
+The K-Nearest Neighbors classifier (KNN) is the last type of model that we will have a look at in this thesis. In contrary to the previous models it is a non-parametric model. While parametric models have a fixed set of parameters that are adjusted during training, for non-parametric models such as KNN the set of parameters grows with the training data. This is why non-parametric methods are also called memory-based learning, or instance-based learning \cite{murphy_machine_2013}.
+
+Training a KNN model is quite simple: The model just stores all the feature vector to label mappings that it has seen during training (or a representative set). For any new feature vector $x$ it will then compute the $K$ geometrically closest training vectors to $x$ according to some metric. The probability that $x$ belongs to a given label $y = c$ is then the proportion of vectors in $K$ assigned to $c$. Formally this can be written as follows, where $N_K(x, \mathcal{D})$ are the indices of the $K$ nearest points to $x$ in $\mathcal{D}$:
+
+\begin{equation}
+    \begin{aligned}
+    p(y = c \mid x, \mathcal{D}, K) &= \frac{1}{K} \sum_{i \in N_K(x, \mathcal{D})} \mathbb{I}(y_i = c) \\
+    \mathbb{I}(e) &= \begin{cases}
+        1 &\text{if } e \text{ is true}\\
+        0 &\text{if } e \text{ is false}
+    \end{cases}
+    \end{aligned}
+\end{equation}
+
+To compute $N_K(x, \mathcal{D})$ most of the time the Euclidean metric is used, however other metrics are also possible and especially useful if our features are not real-valued \cite{murphy_machine_2013}. A geometric representation of this process can be seen in \ref{fig:knearestneighbors}.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{figures/knearestneighbors.png}
+    \end{center}
+    \caption{Illustration of two vectors $x_1$ and $x_2$ that are getting classified in a K-Nearest Neighbors model by using the training vectors (round points), with $K=3$. $x_1$ has with probability $1$ label $y_1$ while $x_2$ has with probability $2/3$ label $y_2$ and with $1/3$ label $y_1$.}\label{fig:knearestneighbors}
+\end{figure}
+
+KNN can achieve quite good results, and it has even been shown to be able to come within the factor of $2$ to the pest possible classification performance. However it also has some major downsides: In addition to the growing parameter count which impacts the memory and runtime behaviors of a KNN model, KNN notably also suffers from another drawback called the curse of dimensionality. This effect describes how, with increasing dimensionality of the vectors, we also have to increase the portion of our hyper-space that we consider to be 'neighboring' to our input $x$. If we want to draw a hyper-cube around our vector $x$ that contains $1\%$ of the data, it's expected edge length has to be $0.01^{\frac{1}{D}}$, with $D$ being our dimensionality. For $D=3$, we would have to extend the cube to less than $22\%$ in each dimension. For $D=30$, this would already be almost $86\%$. The problem with considering such a large proportion of our total space when looking for neighbors is, that the vectors we would compare to our input would not be that similar to it anymore and thus they might not be very good comparison points. The curse of dimensionality thus results in rapidly declining accuracies of the KNN model with increasing the dimensionality \cite{murphy_machine_2013}.
 
 \subsection{Some Vectorization Techniques for NLP Tasks}
 
-\subsubsection{Bag-Of-Words (BOW)}
+So far we have mostly assumed that our inputs are vectors of numbers (integer or real-valued). For Natural Language Processing (NLP) tasks this does not hold true however since our real inputs are text. There are a lot of preprocessing steps that have to be performed on this text before it can be fed to one of the models we described above. We will not cover most of these steps, e.g. we will assume that the text has been tokenized already. We will however look a bit closer at some vectorization techniques, i.e. processes that turn pre-processed tokens (list of strings) into feature vectors (list of integers/floats). Some of these techniques can be applied to whole documents (i.e. larger excerpts of text), some only for shorter token sequences or just individual tokens.
+
+\subsubsection{One-Hot Encoding and Bag-Of-Words (BOW)}
+
+These very simple vectorization techniques generate a vector of dimensionality $|\mathcal{V}|$ for a document and a pre-defined vocabulary $\mathcal{V}$, where each vector entry $x_i$ is one if the word occurred in the document, and zero if not. For example consider the vocabulary $\mathcal{V} = [ \text{i}, \text{magician}, \text{model}, \text{using}, \text{a}, \text{like}, \text{can} ]$ and the following document:
+\begin{verbatim}
+    I like using a ML model. I feel like I am using black magic.
+\end{verbatim}
+
+With One-Hot Encoding this would get translated into this vector (case insensitive): $[ 1, 0, 1, 1, 1, 1, 0 ]$. We set the positions corresponding to the vocabulary words that occur in the document to $1$, and the ones that do not occur to $0$ \cite{murphy_machine_2013}.
+
+Bag-Of-Words (BOW) is similar except that we do not just encode in the vector whether a vocabulary token occurs in the document or not, but rather how often it occurs. BOW would generate the following vector for our example document and vocabulary: $[3, 0, 1, 2, 1, 2, 0]$ \cite{murphy_machine_2013}.
 
 \subsubsection{TF-IDF}
 
-\subsubsection{Word Embeddings}
+One major problem with BOW is that we want our features to more uniquely describe their respective documents and their attributes. Consider for example the use case of sentiment analysis on movie reviews. This can be implemented as a binary document classification task. While BOW would capture all the words contained in each document (that we know from training), most of these words are not relevant at all to the sentiment of the review. The amount of occurrences of stop words like "a" or "to" for example is very inconclusive for determining the documents sentiment, or most other classification tasks for that matter.
+
+The "Term Frequency - Inverse Document Frequency" (TF-IDF) technique solves this by weighting the frequency of a term inside the document (like we use in BOW) against the frequency of other documents where this term also occurs. This means that for our features to become large a token from our vocabulary not only has to occur often in the given document, but it also must occur seldom in other documents. More formally:
+
+\begin{equation}
+    \begin{aligned}
+        \mathrm{tf}_{t,d} &= \begin{cases}
+            1 + \log_{10} \mathrm{count}(t, d) &\mathrm{if\ } \mathrm{count}(t,d) > 0 \\
+            0 &\mathrm{otherwise}
+        \end{cases} \\
+        \mathrm{idf}_t = \log_{10} \frac{N}{\mathrm{df_t}} \\
+        \text{tf-idf}(t,d) = \mathrm{tf}_{t,d} \cdot \mathrm{idf}_t
+    \end{aligned}
+\end{equation}
+
+Where $t$ is our term, $d$ our document, $N$ the total number of documents, $\mathrm{count}(t, d)$ a function that returns the count of the term $t$ in $d$, and $\mathrm{df}_t$ the amount of documents containing the term $t$ \cite{jurafsky_speech_2025}.
+
+\subsubsection{Semantic Word Embeddings}
+
+In general a main goal of vectorization is to generate vectors that bring similar data samples close to each other in the resulting vector space, e.g. in classification we would like to have feature vectors to have a high cosine similarity to other vectors of the same output class. The previous approaches solely relied on frequencies of our terms in the documents which works well for simple document classification tasks. Other more complex tasks however require our model to gain an intricate understanding of the semantics of any given word and thus it's positional relation to other words in a sentence.
+
+For this we want to generate semantic word embeddings for each word. These vectors should be similar to one another if and only if they appear in very similar contexts to one another. For example if two words can be interchanged in most sentences without drastically changing the sentence's meaning or correctness, we would expect the embeddings of these two words to have a very high cosine similarity. This will not only capture semantic meaning for our model but also automatically deal with synonyms but also homographs (e.g. the "like" in our document example above).
+
+Semantic embeddings are generated by a model specifically trained for this task, like a Word2Vec model or, more commonly nowadays and with much improved results, transformer based models like Bert. We will not explain the details of these models but refer to a good source instead that covers the topic of textual embeddings more deeply: \cite{jurafsky_speech_2025}.
