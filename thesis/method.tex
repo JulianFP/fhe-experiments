@@ -4,17 +4,81 @@ In this chapter we will describe the experiment setup used to measure various tr
 
 \section{Technological Overview}
 
-The source code of all experiments described in this thesis is open-source and available on GitHub \cite{partanen_julianfpfhe-experiments_2025}. The repository includes a README file with some basic instructions in how to run the experiments. This means that the reader may generate every data point or graph in this thesis themselves. The absolute numbers will differ because of hardware and software environment differences, but the relative numbers as well as general findings should thus be reproducible by anyone .
+The source code of all experiments described in this thesis is open-source and available on GitHub \cite{partanen_julianfpfhe-experiments_2025}. The repository includes a README file with some basic instructions in how to run the experiments. This means that the reader may generate every data point or graph in this thesis themselves. The absolute numbers will differ because of hardware and software environment differences, but the relative numbers as well as general findings should thus be reproducible by anyone.
 
 The experiments were implemented in Python, the de facto standard language in the field of machine learning. We have added astral's \emph{uv} \cite{astral_uv_nodate} as a project and dependency management tool to make running the script with all necessary dependencies easier and to pinpoint all dependencies to a specific version to increase reproducibility.
 
-We defined a common interface for all experiments as well as datasets to ease their implementation, reduce code duplication, and to ensure to only change desired attributes between different experiments to increase comparability.
+We defined common interfaces for all experiments as well as datasets to ease their implementation, reduce code duplication, and to ensure to only change desired attributes between different experiments to increase comparability.
 
 For generating result data we used Python's statistics and csv modules as well as \emph{matplotlib} \cite{noauthor_matplotlib_nodate} to generate all graphics. The graph generation runs independently from the experiment execution which allows redrawing graphs of existing experiment results to for example change the styling of graphs after the fact.
 
 The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add an easy-to-use CLI to be able to adjust parameters like execution repetitions, which experiment-dataset combinations should be executed, or which graphs should be generated.
 
-\section{Datasets}
+\section{The Examined FHE Framework: concrete-ml}
+
+We chose the \emph{concrete-ml} framework to implement a variety of machine learning models in FHE \cite{noauthor_concrete_2025}. It is built on top of the TFHE compiler \emph{concrete} which turns Python programs into TFHE circuit-equivalents \cite{noauthor_concrete_2025-1}. Both projects are fully open-source and are being developed by the cryptography start-up Zama. While concrete-ml and Zama are not the only ones trying to implement FHE in the space for machine learning, from what we have seen concrete-ml seems to be by far the easiest, most complete, and most high-level solution at the time of writing. It's main selling points are support for a large variety of models, including custom models, while requiring very little or no cryptography knowledge from the user. This means that data scientists and in general people with some machine learning experience but no FHE or cryptography knowledge should be able to build FHE models with concrete-ml without leaving the comfort of Python and Pytorch or scikit-learn. We will look at some alternatives later, but during our experiments we exclusively relied on concrete-ml.
+
+\subsection{Feature Overview}
+
+What the framework promises to do
+
+\subsection{Pre- and Post-Processing}
+
+explain serialization and quantization.
+
+\subsection{Setup and Usage}
+
+how we set it up, show how easy it is to use. Explain some compilation parameters we used
+
+\section{Experiments and Models}
+
+With our experiments, we aim to find out how well concrete-ml can fulfill real-world use cases, especially while looking at the main two culprits of FHE execution which are runtime performance and degraded model accuracy and drawing comparisons both between models and datasets as well as to regular clear executions of the same experiment.
+
+To test the feature set promised by concrete-ml as exhaustively as possible, we implemented a variety of tests which generally can be split in three categories.
+
+\subsection{Encrypted Inference with Built-In Models}\label{encrypted_inference}
+
+Our first group of experiments tests the off-the-shelf models provided by concrete-ml themselves on a set of simpler classification datasets across multiple real world problems like image and document classification (see section \ref{datasets}). We expect these models to perform relatively well since they are purpose-built to be used in FHE, architecturally simpler, and since they only need to solve relatively easy classification problems. For every model/dataset combination in this category we follow the same basic steps:
+
+\begin{enumerate}
+    \item Train our model in clear on the train dataset
+    \item Compile the trained clear model to the FHE equivalent, or train the untrained FHE-equivalent model on the same train dataset (depending on model in use)
+    \item Run inference using the clear model on all samples in the test dataset while measuring the required time for completing this step
+    \item Run the required FHE pre-processing (quantization, encryption, serialization) on all the samples in the test dataset while measuring the required time for completing this step
+    \item Run inference using the FHE model on all encrypted test dataset samples while measuring the required time for completing this step
+    \item Run the required FHE post-processing (deserialization, decryption, dequantization, some last operation that needs to run in clear like an argmax) on all the encrypted results from the previous steps while measuring the required time for completing this step
+    \item Return the four measured timings as well as accuracy and F1 scores for both clear and FHE execution
+\end{enumerate}
+
+These steps are then repeated 10 times for each model/dataset combination (including the model training), and we compute the average values as well as standard deviations for all of the returned metrics across these 10 executions.
+
+\subsubsection{Logistic Regression}
+
+\subsubsection{XGB Tree-based Classifier}
+
+\subsubsection{Neural Network Classifier}
+
+\subsection{Encrypted Training with Built-In Model}
+
+This second experiment group tests the use case of encrypted training. Here instead of training a model on clear data and then performing inference on encrypted data we already perform the training on encrypted data. This might be interesting in fields where training data is very sparse and the only available data is confidential and cannot shared with the entity performing the model training or machine learning service. It allows a training-as-a-service deployment, where e.g. people working in medicine can train models on confidential patient data on external infrastructure without exposing this data to this infrastructure provider. This will be tested on the same datasets and thus use cases as \ref{encrypted_inference}, however the experiment steps and the measured attributes differ slightly:
+
+\begin{enumerate}
+    \item Train our model in clear on the train dataset while measuring the required time for completing this step
+    \item Run the required FHE pre-processing (quantization, encryption, serialization) on all the samples in the train dataset while measuring the required time for completing this step
+    \item Train the untrained FHE-equivalent model on all encrypted train dataset samples while measuring the required time for completing this step
+    \item Run the required FHE post-processing (deserialization, decryption, dequantization) on the trained model weights and bias while measuring the required time for completing this step
+    \item Run inference using the model trained in clear on all samples in the test dataset
+    \item Run inference using the model trained with FHE on all samples of the same test dataset
+    \item Return the four measured timings as well as accuracy and F1 scores for both models
+\end{enumerate}
+
+\subsection{Encrypted Inference with custom approaches for the Named-Entity Recognition task}
+
+\subsubsection{Custom PyTorch model with Embedding layer}
+
+\subsubsection{Transformer Embeddings with KNN Classifier}
+
+\section{Datasets}\label{datasets}
 
 We used a variation of datasets across different classification problems commonly solved with a machine learning approach. Some of these datasets are synthetic for maximum control over their characteristics to specifically measure a models behavior under certain conditions, while others are real-world datasets that we used to measure how well the models perform solving a variety of real-world problems, mimicking a production deployment of a homomorphic machine learning setup as much as possible.
 
@@ -37,6 +101,12 @@ The dataset's feature vectors are 2-dimensional. The label is 1 if and only if o
 As the name suggests this mimics the boolean XOR operator, with some differences: The inputs are 0.25 and 0.75 instead of 0 and 1 to keep them between 0 and 1 even with noise applied. Since some models require more than just 4 samples we also repeated each of them 10 times for both the training and test set resulting in a total of 40 samples each. To make these repeated samples unique and to add meaningful differences between the training and test set we added some noise to all samples in the form of a random number drawn from an unique distribution between $\pm 0.24$.
 
 The result can be seen in \ref{fig:xor_problem_plot}: A feature space with 4 feature clusters, arranged in a way that makes it impossible for a linear model to separate with an accuracy higher than 75\%. This makes this dataset great in ensuring that more complex non-linear model actually come with an accuracy improvement.
+
+\subsection{Iris}
+
+\subsection{Digits}
+
+\subsection{Breast Cancer}
 
 \subsection{Synthetic}
 
@@ -97,3 +167,5 @@ To extract feature vectors from the documents we use scikit-learn's TF-IDF Vecto
 Like with the 'Synthetic' dataset we also performed a 60/40 train/test set split which resulted in a dataset size of 3344 and 2230 samples for the training and testing sets respectively.
 
 The result can be seen in \ref{fig:sms_spam_plot}. The same limitation regarding PCA as mentioned for the 'Synthetic' dataset applies here as well.
+
+\subsection{CleanCoNLL}
