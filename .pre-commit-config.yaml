@@ -23,4 +23,4 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        args: [ -w, --ignore-words-list=FitH, --skip=thesis/zusammenfassung.tex, --skip=thesis/references.bib ]
+        args: [ -w, --ignore-words-list=FitH, --skip=tex/thesis/zusammenfassung.tex, --skip=tex/references.bib ]

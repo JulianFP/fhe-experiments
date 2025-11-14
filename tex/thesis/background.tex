@@ -131,7 +131,7 @@ The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. Th
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=\textwidth]{figures/fhe_timeline.png}
+        \includegraphics[width=\textwidth]{../figures/fhe_timeline.png}
     \end{center}
     \caption{A timeline of major FHE breakthroughs and encryption schemes, ordered by the different kind of schemes \cite{noauthor_continuing_nodate}}
     \label{fig:fhe_timeline}
@@ -170,7 +170,7 @@ The CVP problem now is, given a basis for a lattice $B$ and a vector $t \in \mat
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=0.5\textwidth]{figures/lattice_cvp.png}
+        \includegraphics[width=0.5\textwidth]{../figures/lattice_cvp.png}
     \end{center}
     \caption{A 2-dimensional space containing the lattice with the base $B = ((0,1),(1,0))$ and a real vector $t$ in orange, with the closest lattice point $v$ to it highlighted in green}
     \label{fig:lattice_cvp}
@@ -204,7 +204,7 @@ To see how the last decoding step works and to understand the purpose of $\Delta
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=0.45\textwidth]{figures/lwe_message_encoding.png}
+        \includegraphics[width=0.45\textwidth]{../figures/lwe_message_encoding.png}
     \end{center}
     \caption{An illustration for how a 2-bit message can be encoded and decoded from a $\mathbb{Z}_{48}$ space}
     \label{fig:lwe_message_encoding}
@@ -314,7 +314,7 @@ TFHE also includes multiple more elaborate bootstrapping techniques like \textbf
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=\textwidth]{figures/tfhe_building_blocks.png}
+        \includegraphics[width=\textwidth]{../figures/tfhe_building_blocks.png}
     \end{center}
     \caption{Major TFHE building blocks and how they convert between TFHE ciphertext types. Dotted lines decrease the noise and solid lines do not. Blocks that take two different kinds of inputs like the External Product/CMux or Blind Rotation are represented slightly inaccurately.}
     \label{fig:tfhe_building_blocks}
@@ -364,13 +364,13 @@ Classification and Regression Trees (CART), or decision trees are a type of mode
 \centering
 \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/decision_tree_data.png}
+    \includegraphics[width=\textwidth]{../figures/decision_tree_data.png}
     \caption{The partitioned training data with each region colored in it's label ($y_1$ in red, $y_2$ in blue, $y_3$ in green)}
 \end{subfigure}
 \hfill
 \begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{figures/decision_tree.png}
+    \includegraphics[width=\textwidth]{../figures/decision_tree.png}
     \caption{One possible decision tree for this data}
 \end{subfigure}
 
@@ -386,7 +386,7 @@ The Feed-Forward Neural Network (FNN), also called Multi-Layer Perceptron (MLP) 
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=0.95\textwidth]{figures/nn.png}
+        \includegraphics[width=0.95\textwidth]{../figures/nn.png}
     \end{center}
     \caption{A FNN with two inputs, two outputs, and one 5-dim hidden layer}\label{fig:NN}
 \end{figure}
@@ -430,7 +430,7 @@ To compute $N_K(x, \mathcal{D})$ most of the time the Euclidean metric is used, 
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=0.5\textwidth]{figures/knearestneighbors.png}
+        \includegraphics[width=0.5\textwidth]{../figures/knearestneighbors.png}
     \end{center}
     \caption{Illustration of two vectors $x_1$ and $x_2$ that are getting classified in a K-Nearest Neighbors model by using the training vectors (round points), with $K=3$. $x_1$ has with probability $1$ label $y_1$ while $x_2$ has with probability $2/3$ label $y_2$ and with $1/3$ label $y_1$.}\label{fig:knearestneighbors}
 \end{figure}
