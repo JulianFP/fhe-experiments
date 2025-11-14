@@ -180,7 +180,7 @@ While solving this looks quite trivial on the picture, please note that the comp
 
 Our definition of the LWE problem shares a lot of similarities with the CVP problem: The given vectors $a_i$ of each equation can be viewed as one matrix $A$ that would be the basis of our lattice. The $b_i$ is the given vector $t$ that contains the error and as such is not part of the lattice, and the problem would become to find the vector $c$ (or $s$), that generates the lattice point closest to this vector.
 
-\subsection{TFHE: FHE Over the Torus}
+\subsection{TFHE: FHE Over the Torus}\label{TFHE}
 
 We will know have a closer look at the TFHE scheme because all our experiments in the later chapters will be utilizing TFHE in some way. The paper 'TFHE: Fast Fully Homomorphic Encryption Over the Torus' was originally introduced in 2016 by the authors Ilaria Chillotti, Nicolas Gama, Mariya Georgieva, and Malika Izabachène (hence this scheme is sometimes also called CGGI) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
 
@@ -270,7 +270,7 @@ RGSW allows addition and multiplication with a constant as well which work the s
 
 This multiplication works by first decomposing the four polynomials of one of our $2\times2$ matrices from the left-hand site into $l$ smaller polynomials, again returning us a $2 \times 2 \times l$ matrix. The second step is to perform a matrix multiplication with this decomposition matrix with the right-hand site of our multiplication, returning us a $2\times2$ matrix. These two steps then have to be repeated $l$ times for every $2\times2$ matrix on the left hand site, combining all $l$ results into one matrix which will then again be a valid RGSW ciphertext encrypting $m_1 \cdot m_2$ \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\subsubsection{Additional TFHE building blocks}
+\subsubsection{Additional TFHE building blocks}\label{TFHE_building_blocks}
 
 TFHE defines more operations than just addition and multiplication that allow for greater flexibility when implementing arbitrary circuits over ciphertexts, especially when switching between the three different kinds of ciphertexts in TFHE. We give a non-exhaustive list of the most important ones.
 
@@ -326,7 +326,7 @@ A full graphical overview of the above can be seen in \ref{fig:tfhe_building_blo
 
 We will now switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments. Please note however that these will only be basic overviews and not exhaustive explanations.
 
-\subsection{Logistic Regression}
+\subsection{Logistic Regression}\label{LogisticRegression}
 
 Logistic Regression is a generalization of Linear Regression specifically for the binary classification setting (i.e. not for regression, contrary to its name) and in general one of the simplest supervised learning approaches.
 
@@ -356,7 +356,7 @@ SGD can be used with a variety of loss functions, one of which is called Percept
 
 For example in scikit-learn, the LogisticRegression, SGDClassifier, and Perceptron classes all perform this step during inference while employing different training techniques. The Perceptron class is even a wrapper over the SGDClassifier class that just changes the loss function from the hinge-loss to the perceptron-loss and sets the learning rate to be constant \cite{noauthor_api_nodate}.
 
-\subsection{Classification and Regression Trees (CART)}
+\subsection{Classification and Regression Trees (CART)}\label{CART}
 
 Classification and Regression Trees (CART), or decision trees are a type of model that splits the training data recursively into regions that belong to the same label. This can be represented by a binary tree, where the leafs contain output labels, and each node makes a comparison between one of our features $x_i$ to a threshold $t_i$. Depending on whether the feature was smaller or larger than the threshold, we will traverse to the left or right child and continue with the next comparison. The label in the leaf that we will reach by doing this is our models output. See \ref{fig:decision_tree} for a visual representation of a simple example dataset and a tree fitted to it.
 
@@ -380,9 +380,9 @@ Classification and Regression Trees (CART), or decision trees are a type of mode
 
 Fitting such a model perfectly, i.e. finding the optimal partitioning for the training data is shown to be NP-complete, which is why it is common to use greedy algorithms that approximate the best partitioning for training. One such algorithm is called Boosting, and it applies a weak learner to weighted versions of the training data sequentially, where the weights are higher for samples that the model mispredicted during the last iteration. In 1998, Leo Breiman called a shallow decision tree combined with the Boosting algorithm the "best off-the-shelf classifier in the world" \cite{murphy_machine_2013}.
 
-\subsection{Feed-Forward Neural Networks (FFNN)}
+\subsection{Feedforward Neural Networks (FNN)}\label{FNN}
 
-The Feed-Forward Neural Network (FNN), also called Multi-Layer Perceptron (MLP) is essentially just a series of Perceptron/Logistic Regression models. The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer. This means that a forward pass for each layer consists of a matrix product between the layers weights and the last layers output, and then applying the activation function. A neural network always consists of one input layer (the values of the feature vector), one output layer (e.g. the probability values of each possible output label), and at least one hidden layer with an activation function. Most notably these types of neural networks do not form cycles, in contrary to for example Recurrent Neural Networks (RNN) \cite{murphy_machine_2013}. An example can be seen in \ref{fig:NN}
+The Feedforward Neural Network (FNN), also called Multi-Layer Perceptron (MLP) is essentially just a series of Perceptron/Logistic Regression models. The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer. This means that a forward pass for each layer consists of a matrix product between the layers weights and the last layers output, and then applying the activation function. A neural network always consists of one input layer (the values of the feature vector), one output layer (e.g. the probability values of each possible output label), and at least one hidden layer with an activation function. Most notably these types of neural networks do not form cycles, in contrary to for example Recurrent Neural Networks (RNN) \cite{murphy_machine_2013}. An example can be seen in \ref{fig:NN}
 
 \begin{figure}
     \begin{center}
@@ -410,7 +410,7 @@ A very common and very simple activation function is the rectified linear unit f
 
 Other possible activation functions are the logistic sigmoid function (as already defined in \ref{eq:sigmoid}), or the hyperbolic tan function ($\tanh$) \cite{noauthor_api_nodate}.
 
-\subsection{K-Nearest Neighbors (KNN)}
+\subsection{K-Nearest Neighbors (KNN)}\label{KNN}
 
 The K-Nearest Neighbors classifier (KNN) is the last type of model that we will have a look at in this thesis. In contrary to the previous models it is a non-parametric model. While parametric models have a fixed set of parameters that are adjusted during training, for non-parametric models such as KNN the set of parameters grows with the training data. This is why non-parametric methods are also called memory-based learning, or instance-based learning \cite{murphy_machine_2013}.
 

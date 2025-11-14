@@ -16,19 +16,69 @@ The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add a
 
 \section{The Examined FHE Framework: concrete-ml}
 
-We chose the \emph{concrete-ml} framework to implement a variety of machine learning models in FHE \cite{noauthor_concrete_2025}. It is built on top of the TFHE compiler \emph{concrete} which turns Python programs into TFHE circuit-equivalents \cite{noauthor_concrete_2025-1}. Both projects are fully open-source and are being developed by the cryptography start-up Zama. While concrete-ml and Zama are not the only ones trying to implement FHE in the space for machine learning, from what we have seen concrete-ml seems to be by far the easiest, most complete, and most high-level solution at the time of writing. It's main selling points are support for a large variety of models, including custom models, while requiring very little or no cryptography knowledge from the user. This means that data scientists and in general people with some machine learning experience but no FHE or cryptography knowledge should be able to build FHE models with concrete-ml without leaving the comfort of Python and Pytorch or scikit-learn. We will look at some alternatives later, but during our experiments we exclusively relied on concrete-ml.
+We chose the \emph{concrete-ml} framework to implement a variety of machine learning models in FHE \cite{noauthor_concrete_2025}. It is built on top of the TFHE compiler \emph{concrete} which turns Python programs into TFHE circuit-equivalents \cite{noauthor_concrete_2025-1}. Both projects are fully open-source and are being developed by the cryptography start-up Zama. While concrete-ml and Zama are not the only ones trying to implement FHE for machine learning applications, from what we have seen concrete-ml seems to be by far the easiest, most complete, and most high-level solution at the time of writing. It's main selling points are support for a large variety of models, including custom models, while requiring very little or no cryptography knowledge from the developer implementing these models. This means that data scientists and in general people with some machine learning experience but no FHE or cryptography knowledge should be able to build FHE models with concrete-ml without leaving the comfort of Python and Pytorch or scikit-learn. We will look at some alternatives to concrete-ml later, but during our experiments we exclusively relied on concrete-ml.
 
 \subsection{Feature Overview}
 
-What the framework promises to do
+We already explained the TFHE scheme to some extend in \ref{TFHE}. Concrete largely implements this scheme as described in that section, with some extensions to increase it's functionality and flexibility. It's main innovation was \emph{Programmable Bootstrapping (PBS)} (which we already mentioned in \ref{TFHE_building_blocks}) which allows to execute functions that can be expressed as a look-up table during the Bootstrapping process. This PBS approach is used a lot by concrete and concrete-ml, in practice it implements most non-linear operations (i.e. everything that cannot be expressed as addition and multiplication with a constant). When looking at a neural network, many operations are linear like matrix multiplications with the model weights. However machine learning models have to incorporate non-linear functions to be able to separate non-linear data which means that in order to run these models homomorphically we need to be able to evaluate these non-linear functions in FHE as well. For neural networks, these functions mostly are the activation functions, and in concrete-ml they are mostly implemented using look-up tables during PBS \cite{dolev_programmable_2021} \cite{noauthor_concrete_2025-1}.
+
+We will now describe the high-level feature set of concrete-ml and some real-world applications they might proof useful in:
+
+concrete-ml provides 21 Built-In model classes which aim to be direct replacements for their scikit-learn counterparts and also provide the same scikit-learn interfaces. 12 of these models are simple linear models (e.g. logistic regression with different training methods, see \ref{LogisticRegression}), 6 of them are tree-based models (see \ref{CART}), 2 of them are neural network models (see \ref{FNN}), and there also exists one model class for K-Nearest Neighbors classification (see \ref{KNN}). For our experiments we chose one model class from each category to evaluate as much of concrete-ml's feature set as possible without having to test all 21 models. Some of these model classes provide a \texttt{from\_sklearn\_model} method to initialize the model object from a pre-trained scikit-learn model, others however do not (most notably the FNN and KNN models). These models need to be trained from the ground up using concrete-ml's model class and \texttt{fit} method \cite{noauthor_concrete_2025-1} \cite{noauthor_concrete-mluse_case_examples_nodate}.
+
+If this is too restricting regarding model architecture and/or re-training requirements concrete-ml also supports custom PyTorch or ONNX models. For our experiments we disregarded the ONNX option and went with custom PyTorch models instead because of PyTorch's overwhelming popularity. concrete-ml allows to turn a custom self-defined PyTorch model into an FHE either before or after training, allowing us to deploy already fully trained neural networks into an FHE setting \cite{noauthor_concrete_2025-1} \cite{noauthor_concrete-mluse_case_examples_nodate}.
+
+Finally concrete-ml also promises support for more modern and complex model architectures as well, most notably transformer models like the ones being used in Large Language Models (LLMs). In addition to evaluating these models fully in FHE, concrete-ml also allows for a hybrid deployment, where the linear layers are executed homomorphically on the server, and the non-linear activation functions in clear on the client, with the intermediate results being exchanged and de-/encrypted in between. concrete-ml provides some use-case examples that include running GPT-2 completely homomorphically. While this looks very exciting, we did not include it in our suite of experiments for this thesis because of runtime concerns. We aimed to make our benchmarks as close to real-world examples as possible which for a LLM always means generating a considerable amount of tokens for a sizeable amount of input tokens. Zama's own benchmarks however already show that predicting the next token after 8 input tokens took almost 3 minutes while using a single attention head, and over 14 minutes while utilizing 12 attention heads. Since every following token would have to take the previously generated tokens into consideration, this runtime would only increase for every following token resulting in unbearable runtimes for larger sets of input/output tokens. We struggled to come up with real-world use-cases that would strictly require an LLM while not requiring more than single digit input/output tokens \cite{noauthor_concrete_2025-1} \cite{noauthor_concrete-mluse_case_examples_nodate}.
 
 \subsection{Pre- and Post-Processing}
 
-explain serialization and quantization.
+Our experiment results will include runtimes for FHE pre-/post-processing in addition to the processing runtimes. We introduced this terminology to capture all operations that need to be executed on the client-side before the actual FHE circuit can be applied on the inputs, or after the output of the FHE circuit can be interpreted. This of course includes encryption of the inputs during pre-processing, and decryption of the output during post-processing. However it also includes a couple of other operations as well, most notably quantization and serialization during pre-processing, and dequantization and deserialization during post-processing which we will explain in the following.
+
+Concrete (and thus also concrete-ml) introduces a major restriction to our plaintext inputs: It only supports integers (and booleans). This means that floating point data (which unfortunately are very common in ML applications) have to be turned into integers before they can be encrypted using a technique called quantization. Concrete does support floating point data for intermediate values of FHE operations, as long as the input and output of any look-up table are integers. For example when turning $(60 * np.sin(x).astype(np.int64)$ into a single look-up table operation, $np.sin(x)$ is an allowed floating point intermediate, however after multiplication with the constant $60$ the result needs to casted into an integer again \cite{noauthor_concrete_2025-1}.
+
+Quantization works by observing the range of possible values that any input variable can have, and then mapping this floating point range to a suitable integer range. Every new input value will then be mapped to this integer space and rounded to the closest integer within it. For example if our input variable would contain some kind of probability, it's values would always be between $0.0$ and $1.0$. We could then quantize it to a 6-bit integer (i.e. the range $0$ to $64$) by mapping $0.0$ to $0$, and $1.0$ to $64$, and similarly for everything in between. As you can see this means that we loose precision because of the rounding to the next integer. Specifically for machine learning applications, this has to be done with both inputs and model weights since they all are almost always floating point values. The good aspect of this however is that in ML the lost precision does often not result in false computations, but just in minor differences in output probabilities. However if we already are close to the decision boundary, for classification problems this can mean more false classifications, and also regression models will have more inaccuracies due to quantization. How much a model accuracy is affected by quantization heavily depends on the type of model in use and how the input data is shaped. For example linear models tend to suffer a lot less from quantization because the error introduced by it is not accumulated across many operations or model layers. In concrete-ml specifically, quantization is also a lot less aggressive for linear models since these do not use look-up tables which cannot work with high prevision integers since they would drastically increase the size of these look-up tables \cite{noauthor_concrete_2025} \cite{noauthor_concrete_2025-1}.
+
+Specifically for neural networks, concrete-ml offers two types of quantization: Post-Training Quantization (PTQ), and Quantization-Aware Training (QAT). We will not explain these quantization algorithms in detail, it is however important to point out that, as the name suggests, PTQ can be applied after training while QAT executes during training introducing the requirement of re-training any given model from scratch. QAT is on the other hand considered to return more optimal quantization resulting in less accuracy loss. This is why, as already mentioned, some model types is concrete-ml do not allow to be imported directly from an already trained model but require pre-training (e.g. the built-in NeuralNet classes) \cite{noauthor_concrete_2025}.
+
+It is worth noting that quantizing ML models is a common practice even outside the FHE space, mostly with the goal to reduce model sizes and thus hardware requirements for running them. concrete-ml uses the Brevitas library for performing QAT on neural networks which is not an FHE-specific library \cite{noauthor_concrete_2025} \cite{noauthor_xilinxbrevitas_2025}. However in FHE and for non-linear models like neural networks, this quantization must be quite aggressive since concrete also has limits to what bit-widths it can support. Because of this we will always measure accuracy and F1 scores during our experiments to see how big of an impact the quantization has on any given models accuracy on each dataset.
+
+After quantization and encryption, the client has to also perform serialization. This is the step of encoding our data into a common format that can be send over the network to the server and includes all the required metadata so that the server can read and interpret the ciphertexts correctly. These three steps also have to be reversed on the output returned by the server in reverse order (post-processing) \cite{noauthor_concrete_2025} \cite{noauthor_concrete_2025-1}.
 
 \subsection{Setup and Usage}
 
-how we set it up, show how easy it is to use. Explain some compilation parameters we used
+The most prominent problem that concrete-ml tries to solve is encrypted inference, i.e. we deploy an already trained ML model on a relatively powerful server machine, and users can encrypt inputs, send them to the server, and receive encrypted outputs of the model without the server being able to decipher either of them. For this we would use concrete-ml to compile a model into an FHE equivalent model, and export that into two archives: A server.zip and a client.zip. The first one contains the model and everything the server needs to run it homomorphically. The second one contains cryptographic parameters and descriptions of all required pre-/post-processing that needs to be done by the client (but reveals no information about the model or it's weights). An example for how this process looks can be seen in \ref{code:compile_model}.
+
+\begin{lstlisting}[language=Python, caption=Simple example of compiling an already trained logistic regression model into the FHE equivalent, label=code:compile_model]
+    # executed by the model developer in order to generate a server.zip and client.zip
+    fhe_model = LogisticRegression.from_sklearn_model(model, example_input_data, n_bits=8)
+    fhe_model.compile()
+    dev = FHEModelDev(path_dir=<path where server.zip and client.zip will be saved>, model=fhe_model)
+    dev.save()
+\end{lstlisting}
+
+The example\_input\_data is required so that concrete-ml can automatically figure out the best quantization parameters for the model. It can be an excerpt from the training data, or some randomly generated data within the same boundaries as the training data. After this the model can be deployed to the server that will be used to run it with encrypted user inptus. An example of how a deployment of this can look can be seen in \ref{code:client_server_inference}.
+
+\begin{lstlisting}[language=Python, caption=Client/Server example of encrypted inference, label=code:client_server_inference]
+    # on the server-side: Init server object from a server.zip
+    server = FHEModelServer(path_dir=<path to server.zip>)
+    server.load()
+    # send client.zip to our client
+
+    # client-side: Init client object from received client.zip and encrypt input
+    client = FHEModelClient(path_dir=<path to client.zip>)
+    serialized_evaluation_keys = client.get_serialized_evaluation_keys()
+    encrypted_input = client.quantize_encrypt_serialize(input)
+    # send serialized_evaluation_keys and encrypted_input to the server
+
+    # server-side: Run model inference in FHE on encrypted input
+    encrypted_result = server.run(encrypted_input, serialized_evaluation_keys)
+    # send encrypted_result back to our client
+
+    # client-side: decrypt result
+    result = client.client.deserialize_decrypt_dequantize(encrypted_result)
+\end{lstlisting}
+
+Please note that the serialized\_evaluation\_keys can be viewed as the public key of the client and importantly cannot be used by the server to decrypt the inputs. They are needed for example for the bootstrapping process (for how the bootstrapping key is used see \ref{Bootstrapping}). While concrete-ml also offers all-in-one functions to run inference on FHE models homomorphically, in our experiments we always implemented this client-server setup to simulate how a real-world deployment as closely as possible.
 
 \section{Experiments and Models}
 
@@ -38,7 +88,7 @@ To test the feature set promised by concrete-ml as exhaustively as possible, we 
 
 \subsection{Encrypted Inference with Built-In Models}\label{encrypted_inference}
 
-Our first group of experiments tests the off-the-shelf models provided by concrete-ml themselves on a set of simpler classification datasets across multiple real world problems like image and document classification (see section \ref{datasets}). We expect these models to perform relatively well since they are purpose-built to be used in FHE, architecturally simpler, and since they only need to solve relatively easy classification problems. For every model/dataset combination in this category we follow the same basic steps:
+Our first group of experiments tests the off-the-shelf built-in models provided by concrete-ml themselves on a set of simpler classification datasets across multiple real world problems like image and document classification (see section \ref{datasets}). We expect these models to perform relatively well since they are purpose-built to be used in FHE, architecturally simpler, and since they only need to solve relatively easy classification problems. For every model/dataset combination in this category we follow the same basic steps:
 
 \begin{enumerate}
     \item Train our model in clear on the train dataset
@@ -54,7 +104,15 @@ These steps are then repeated 10 times for each model/dataset combination (inclu
 
 \subsubsection{Logistic Regression}
 
+This model represents the set of linear models that concrete-ml has built-in support for. We trained it using the LogisticRegression model from scikit-learn, and then used the \texttt{from\_sklearn\_model} method of the concrete-ml object to turn the trained model into it's FHE equivalent, using a relatively high bit-width of 8. This is possible because this  model is linear and does not require table look-ups. In fact it is even implemented in a leveled way, meaning it should not require Bootstrapping at all. The operations that are executed inside FHE are just one matrix multiplication with the model weights and an addition with the model bias (see \ref{LogisticRegression} for a full explanation). The pre-processing includes an argmax to choose the class with the highest probability as the output \cite{noauthor_concrete_2025}.
+
+Because of this we expect the runtime overheads to be relatively low compared to the other models, and the accuracy loss due to quantization almost non-existent. However with it being a very simple and only a linear model, we also expect it to perform quite poorly on more complex problems that require non-linearity to solve them.
+
 \subsubsection{XGB Tree-based Classifier}
+
+This XGBClassifier class is our representative for tree-based models, and it is concrete-ml's equivalent class to the XGBClassifier from the XGBoost library that implements the Boosting algorithm (see \ref{CART}). We train the XGBoost model together with a standard scaler and PCA for dimensionality reduction in a scikit-learn pipeline as recommended by the concrete-ml documentation. This is something that probably would not be necessary if executed in clear, but we found that it also did not change the models accuracy much so we chose to follow this recommendation which just improves FHE execution times. We then again compiled the model into the FHE equivalent using the \texttt{from\_sklearn\_model} method \cite{noauthor_concrete_2025}.
+
+FHE runtime? See paper for implementation details
 
 \subsubsection{Neural Network Classifier}
 
