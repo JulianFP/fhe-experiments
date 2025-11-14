@@ -23,6 +23,9 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
     # commented out datasets produced problems with some models due to too large feature sizes
     return {
         "xor": (load_xor_split_dataset, "XOR problem"),
+        "iris": (load_iris_dataset, "Iris"),
+        "digits": (load_digits_dataset, "Digits"),
+        "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
         "synth_50": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 50),
         "synth_100": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 100),
         "synth_250": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 250),
@@ -38,7 +41,4 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
         "spam_2500": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 2500),
         # "spam_5000": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam", 5000),
         # "spam_all": get_dataset_loader_entry(load_sms_spam_dataset, "SMS Spam"),
-        "iris": (load_iris_dataset, "Iris"),
-        "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
-        "digits": (load_digits_dataset, "Digits"),
     }
