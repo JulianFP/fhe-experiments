@@ -53,13 +53,21 @@
 \newtheorem*{remark}{Remark}
 
 %I switched to BibLatex
-\usepackage[backend=biber]{biblatex}
+\usepackage[
+    maxnames=99,
+    minnames=99,
+    backend=biber
+]{biblatex}
 \addbibresource{../references.bib}
 \usepackage{xurl} %without this some URLs would overflow the page
 
-% hyperrefs in the documents
+% hyperrefs in the documents and cleveref
 \usepackage[bookmarks=true,colorlinks,pdfpagelabels,pdfstartview = FitH,bookmarksopen = true,bookmarksnumbered = true,linkcolor = black,plainpages = false,hypertexnames = false,citecolor = black,urlcolor=black]{hyperref}
 %\usepackage{hyperref}
+\usepackage[noabbrev]{cleveref}
+
+% acronyms
+\usepackage[printonlyused]{acronym}
 
 % code listings
 \usepackage{listings}
@@ -90,6 +98,8 @@
     tabsize=4
 }
 \lstset{style=mystyle}
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -173,6 +183,8 @@ Submission Date: & December 02, 2025
 
 % List of tables (Tabellenverzeichnis):
 %\listoftables
+
+\include{acronyms}
 
 % References (Literaturverzeichnis):
 % a) Style (with abbreviations: use alpha):

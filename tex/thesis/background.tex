@@ -1,26 +1,39 @@
 \chapter{Background}
 
-The topic of this thesis falls into an overlap between the fields of cryptography and machine learning, and as such we will first introduce some concepts from both fields in this chapter. We will not assume anything more than surface-level knowledge in any of the two fields from the reader.
+The topic of this thesis falls into an overlap between the fields of cryptography and machine learning, and as such we will first introduce some concepts from both fields in this chapter.
+We will not assume anything more than surface-level knowledge in any of the two fields from the reader.
 
-\section{Cryptography Concepts and FHE}
+\section{Cryptography Concepts and \acs{fhe}}
 
 \subsection{Basic Notation and Phrases}
 
-Throughout this work we will use some of the following notations and phrases that are also commonly encountered in other cryptography-related works. We will introduce these concepts informally aiming for a basic understanding of them while linking to formal definitions.
+Throughout this work we will use some of the following notations and phrases that are also commonly encountered in other cryptography-related works.
+We will introduce these concepts informally aiming for a basic understanding of them while linking to formal definitions.
 
-First we need to introduce the concept of randomness in the context of computational theory. For this we will use the definitions of Anjeev Arora's and Boaz Barak's "Computational Complexity: A Modern Approach" \cite{arora_computational_2009}. Many algorithms in Cryptography rely inherently on randomness and thus cannot be modeled by a standard deterministic Turing Machine (TM) with polynomial programs. Instead we need to model their computation using the Probabilistic Turing Machine (PTM) which is an extension of the TM. In contrast to the TM which only has one transition function $\delta$, the PTM has two transition functions $\delta_0$ and $\delta_1$ and chooses at each step at random which one to apply, with probability half to apply $\delta_0$ and half to apply $\delta_1$.
+First we need to introduce the concept of randomness in the context of computational theory.
+For this we will use the definitions of \citetitle*{arora_computational_2009} by \citeauthor{arora_computational_2009} \cite{arora_computational_2009}.
+Many algorithms in Cryptography rely inherently on randomness and thus cannot be modeled by a standard deterministic \ac{tm} with polynomial programs.
+Instead we need to model their computation using the \ac{ptm} which is an extension of the \ac{tm}.
+In contrast to the \ac{tm} which only has one transition function $\delta$, the \ac{ptm} has two transition functions $\delta_0$ and $\delta_1$ and chooses at each step at random which one to apply, with probability half to apply $\delta_0$ and half to apply $\delta_1$.
 
-Similarly how $\mathbf{P}$ is the class of decision problems that are solvable in polynomial time by a TM, $\mathbf{BPP}$ is the class of decision problems that are solvable in polynomial time by a PTM. Note that since the TM is a special case of the PTM (the one where $\delta_0 = \delta_1$), and since it is possible to simulate all branches of a PTM with a TM in time $2^{poly(n)}$ it holds that $\mathbf{P} \subseteq \mathbf{BPP} \subseteq \mathbf{EXP}$ (see chapter 7.1 in \cite{arora_computational_2009}).
+Similarly how $\mathbf{P}$ is the class of decision problems that are solvable in polynomial time by a ac{tm}, $\mathbf{BPP}$ is the class of decision problems that are solvable in polynomial time by a \ac{ptm}.
+Note that since the \ac{tm} is a special case of the \ac{ptm} (the one where $\delta_0 = \delta_1$), and since it is possible to simulate all branches of a \ac{ptm} with a \ac{tm} in time $2^{poly(n)}$ it holds that $\mathbf{P} \subseteq \mathbf{BPP} \subseteq \mathbf{EXP}$ (see chapter 7.1 in \cite{arora_computational_2009}).
 
-An alternative definition of a PTM would be to add a second tape to a TM which includes bits that are results of fair coin tosses, i.e. each symbol on the second tape is chosen mutually independent and uniformly at random from the set $\{ 0, 1 \}$, and then the tape is fed to a TM in addition to the regular input tape. From this viewpoint comes a phrasing of referring to the randomness in cryptographic algorithms like encrypt or key generation functions as 'coins'. These independent random coin-flips can be viewed as an implicit input to any such algorithm, and are in practice most commonly obtained by pseudo-random number generators.
+An alternative definition of a \ac{ptm} would be to add a second tape to a \ac{tm} which includes bits that are results of fair coin tosses, i.e. each symbol on the second tape is chosen mutually independent and uniformly at random from the set $\{ 0, 1 \}$, and then the tape is fed to a \ac{tm} in addition to the regular input tape.
+From this viewpoint comes a phrasing of referring to the randomness in cryptographic algorithms like encrypt or key generation functions as 'coins'.
+These independent random coin-flips can be viewed as an implicit input to any such algorithm, and are in practice most commonly obtained by pseudo-random number generators.
 
-Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$. This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \mathrm{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the PTM-equivalent of the 'Encrypt' algorithm chosen uniformly at random. The \$ denotes the random coins used as input. Note that some literature may also use $R$ instead of \$.
+Furthermore, as introduced in the lecture notes of Mihir Bellare and Phillip Rogaway \cite{bellare_introduction_2005} in chapter 1.3, we will use the following notation to mean that $i$ is a value chosen uniformly at random from the set $\mathcal{S}$: $i \xleftarrow{\$} \mathcal{S}$.
+This notation can also be used for algorithms, e.g. $i \xleftarrow{\$} \mathrm{Encrypt}$ which can be viewed as $i$ being a random value from the image of 'Encrypt', or a random result of all possible branches of the \ac{ptm}-equivalent of the 'Encrypt' algorithm chosen uniformly at random.
+The \$ denotes the random coins used as input.
+Note that some literature may also use $R$ instead of \$.
 
-\subsection{A Simple Somewhat Homomorphic Encryption Scheme (DGHV)}\label{DGHV}
+\subsection{A Simple Somewhat Homomorphic Encryption Scheme: \acs{dghv}}\label{DGHV}
 
-We will begin by introducing a simplified version of an encryption scheme described by Dijk, Gentry, Halevi and Vaikuntanathan (hence it is often called DGHV scheme) in 'Fully Homomorphic Encryption over the Integers' \cite{van_dijk_fully_2010} as an easy to understand example to explain some fundamentals of FHE on before moving on to more complicated and current schemes.
+We will begin by introducing a simplified version of an encryption scheme named after \acf{dghv} in \citetitle*{van_dijk_fully_2010} \cite{van_dijk_fully_2010} as an easy to understand example to explain some fundamentals of \ac{fhe} on before moving on to more complicated and current schemes.
 
-This first scheme encrypts bits, so our plaintext space is defined as $m \in \{ 0, 1 \}$. Our secret key $p$ is an odd integer that is sufficiently large.
+This first scheme encrypts bits, so our plaintext space is defined as $m \in \{ 0, 1 \}$.
+Our secret key $p$ is an odd integer that is sufficiently large.
 
 We will now encrypt our $m$ into our ciphertext $c$:
 
@@ -37,7 +50,9 @@ The ciphertext $c$ can then be decrypted by doing the following:
     m \leftarrow \left( c\ \mathrm{mod}\ p \right)\ \mathrm{mod}\ 2
 \end{equation}
 
-This encryption scheme is correct because by calculating $\mathrm{mod}\ p$ we get rid of the $p \cdot q$ term in \ref{eq:dijk_encryption} while $\mathrm{mod}\ 2$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2. Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order to obfuscate the message. $p$ is odd, but $q$ can either be odd or even making the result unpredictable.
+This encryption scheme is correct because by calculating $\mathrm{mod}\ p$ we get rid of the $p \cdot q$ term in \cref{eq:dijk_encryption} while $\mathrm{mod}\ 2$ nullifies $2r$, with our $m$ staying untouched since it is either 0 or 1 and thus smaller than 2.
+Effectively we encode our message in an integer by making it even if it is 0, and odd if it is 1, and then we add $q$ times our secret $p$ to it in order to obfuscate the message.
+$p$ is odd, but $q$ can either be odd or even making the result unpredictable.
 
 \begin{remark}
     This is also the reason why $p$ must be odd, if $p$ where even then $pq$ would always be even as well, making the resulting ciphertext even if $m$ is 0, and odd if $m$ is 1, and thus providing no security at all.
@@ -48,20 +63,26 @@ To see why this encryption is secure we first reduce the encryption to the follo
     \begin{aligned}
         x_1 &= p q_1 + r_1 \\
         x_2 &= p q_2 + r_2 \\
-        ... &\\
+        ...
+&\\
         x_n &= p q_n + r_n
     \end{aligned}
 \end{equation}
-for a randomly chosen odd integer $p$, find $p$. So in other words the challenger would generate the parameters and then provide the adversary only with $x_1$ to $x_n$, who then would have to find $p$. Compared to our encryption in \ref{eq:dijk_encryption}, the $x_i$ would be many different ciphertexts, and the $r_i$ would be results of $2r + m$.
+for a randomly chosen odd integer $p$, find $p$.
+So in other words the challenger would generate the parameters and then provide the adversary only with $x_1$ to $x_n$, who then would have to find $p$.
+Compared to our encryption in \cref{eq:dijk_encryption}, the $x_i$ would be many different ciphertexts, and the $r_i$ would be results of $2r + m$.
 
-While this looks very similar to the well-known Greatest Common Divisor (GCD) problem, the key difference here is the random noise $r_i$ which makes the results only approximates of common divisors of $p$. Because of that this variation is called \emph{Approximate} GCD problem (AGCD). While the GCD problem can be efficiently solved using Euclid's algorithm, AGCD with correctly chosen parameters is hard to solve. While we leave the proof of that to \cite{van_dijk_fully_2010}, intuitively this is the case because when applying Euclid's algorithm the noise values $r_i$ amplify each other rendering the result meaningless.
+While this looks very similar to the well-known \ac{gcd} problem, the key difference here is the random noise $r_i$ which makes the results only approximates of common divisors of $p$.
+Because of that this variation is called \acf{agcd}.
+While the \ac{gcd} problem can be efficiently solved using Euclid's algorithm, \ac{agcd} with correctly chosen parameters is hard to solve.
+While we leave the proof of that to \cite{van_dijk_fully_2010}, intuitively this is the case because when applying Euclid's algorithm the noise values $r_i$ amplify each other rendering the result meaningless.
 
-Finally we will cover the most interesting attribute of this encryption scheme: As long as $r$ stays sufficiently smaller than $p$, multiple ciphertexts obtained from \ref{eq:dijk_encryption} are homomorphic in both addition and multiplication which can easily be shown:
+Finally we will cover the most interesting attribute of this encryption scheme: As long as $r$ stays sufficiently smaller than $p$, multiple ciphertexts obtained from \cref{eq:dijk_encryption} are homomorphic in both addition and multiplication which can easily be shown:
 
 \begin{equation}
     \begin{aligned}
         c_1 + c_2 &= pq_1 + 2 r_1 + m_1 + pq_2 + 2 r_2 + m_2 \\
-                &=p \left( q_1 + q_2 \right) + 2 \left( r_1 + r_2 \right) + m_1 + m_2
+                  &=p \left( q_1 + q_2 \right) + 2 \left( r_1 + r_2 \right) + m_1 + m_2
     \end{aligned}
     \label{eq:dijk_hom_add}
 \end{equation}
@@ -71,35 +92,60 @@ Decryption would first remove the first term with the $\mathrm{mod}\ p$ operatio
 \begin{equation}
     \begin{aligned}
         c_1 \cdot c_2 &= \left(pq_1 + 2r_1 + m_1 \right) \left( pq_2 + 2r_2 + m_2 \right) \\
-                    &= p^2 q_1 q_2 + 2 r_2 pq_1 + pq_1m_2 + 2r_1pq_2 + 4r_1r_2 + 2r_1m_2 + pq_2m_1 + 2r_1m_1 + m_1m_2\\
-                    &= p\left(pq_1q_2 + 2r_2q_2 + q_1m_2 + 2r_1q_2 + q_2m_1\right) + 2\left( 2r_1 r_2 + r_1m_2 + r_1 m_1 \right) + m_1 m_2
+                      &= p^2 q_1 q_2 + 2 r_2 pq_1 + pq_1m_2 + 2r_1pq_2 + 4r_1r_2 + 2r_1m_2 + pq_2m_1 + 2r_1m_1 + m_1m_2\\
+                      &= p\left(pq_1q_2 + 2r_2q_2 + q_1m_2 + 2r_1q_2 + q_2m_1\right) + 2\left( 2r_1 r_2 + r_1m_2 + r_1 m_1 \right) + m_1 m_2
     \end{aligned}
     \label{eq:dijk_hom_mult}
 \end{equation}
 
 Once again decryption would remove the first term with the $\mathrm{mod}\ p$ operation, and then the second term with the $\mathrm{mod}\ 2$ operation, only leaving $m_1 m_2$.
 
-Please note that because of the $\mathrm{mod}\ 2$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway. So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
+Please note that because of the $\mathrm{mod}\ 2$ operation, in the case of $m_1 = m_2 = 1$, $m_1 + m_2$ becomes $0$ which is fine since our message space is binary anyway.
+So when only looking at the plaintext effectively addition is the XOR-operator and multiplication is the AND-operator.
 
-We can also see some deficits of this simple homomorphic encryption scheme: The noise $r$ grows linearly during addition (see the $r_1 + r_2$ term in \ref{eq:dijk_hom_add}), and quadratically during multiplication ($r_1r_2$ in \ref{eq:dijk_hom_mult}). Since these homomorphic evaluations only stay correct while the noise is sufficiently smaller than $p$ as already stated, we can only homomorphically evaluate a limited amount of additions and multiplications before decryption would output an incorrect result. This is why Gentry called these kind of schemes \emph{somewhat} homomorphic encryption schemes in \cite{gentry_fully_2009}, while also providing us with a general algorithm to turn somewhat homomorphic schemes into fully homomorphic ones which we will look at next.
+We can also see some deficits of this simple homomorphic encryption scheme: The noise $r$ grows linearly during addition (see the $r_1 + r_2$ term in \cref{eq:dijk_hom_add}), and quadratically during multiplication ($r_1r_2$ in \cref{eq:dijk_hom_mult}).
+Since these homomorphic evaluations only stay correct while the noise is sufficiently smaller than $p$ as already stated, we can only homomorphically evaluate a limited amount of additions and multiplications before decryption would output an incorrect result.
+This is why Gentry called these kind of schemes \emph{somewhat} homomorphic encryption schemes in \cite{gentry_fully_2009}, while also providing us with a general algorithm to turn somewhat homomorphic schemes into fully homomorphic ones which we will look at next.
 
-A second deficiency of this scheme is that the ciphertext grows in size during homomorphic evaluation, e.g. after multiplication the 'key-part' of the ciphertext grew quadratically (the $p^2 q_1 q_2$ term in \ref{eq:dijk_hom_mult}). In other words this scheme doesn't compactly evaluate circuits, as defined by Gentry in definition 2.1.2 and 2.1.3 \cite{gentry_fully_2009}. Compact Homomorphic Encryption requires the decryption complexity to not by dependent on the circuit depth which in turn requires the ciphertexts and keys (which are the inputs of the decryption algorithm) to not grow with the depth of the circuit.
+A second deficiency of this scheme is that the ciphertext grows in size during homomorphic evaluation, e.g. after multiplication the 'key-part' of the ciphertext grew quadratically (the $p^2 q_1 q_2$ term in \cref{eq:dijk_hom_mult}).
+In other words this scheme doesn't compactly evaluate circuits, as defined by Gentry in definition 2.1.2 and 2.1.3 \cite{gentry_fully_2009}.
+Compact Homomorphic Encryption requires the decryption complexity to not by dependent on the circuit depth which in turn requires the ciphertexts and keys (which are the inputs of the decryption algorithm) to not grow with the depth of the circuit.
 
-Finally this scheme in the current form also lacks circuit privacy, another attribute introduced by Gentry in \cite{gentry_fully_2009}. A regular encryption scheme guarantees that if Bob encrypts a plaintext and sends it to Alice, Alice is not able to infer anything about the contents of the plaintext from the ciphertext. With homomorphic encryption an additional desired attribute is that, if Alice is performing some operations on Bob's ciphertext, i.e. applying a circuit to it, and then sends the resulting ciphertext back to Bob, that Bob is then not able to infer anything about the nature of Alice's circuit. He should only be able to decrypt the result of Alice's algorithm, not learn anything about it. This is called (Statistical) Circuit Private Homomorphic Encryption, since it essentially mandates that the probability distribution of a resulting ciphertext should be the same regardless whether we applied a circuit C homomorphically to it or if we applied the circuit C to the plaintext first and only then encrypted the result. While our scheme currently doesn't fulfill this attribute, Gentry also points out that most schemes can become circuit private by adding encryptions of '0' to the result many times, randomizing the ciphertext. Also many schemes only fulfill a relaxed version of circuit privacy where the resulting ciphertext is allowed to reflect the depth of the circuit that got applied to it, but no details of it's exact nature. \cite{gentry_fully_2009}
+Finally this scheme in the current form also lacks circuit privacy, another attribute introduced by Gentry in \cite{gentry_fully_2009}.
+A regular encryption scheme guarantees that if Bob encrypts a plaintext and sends it to Alice, Alice is not able to infer anything about the contents of the plaintext from the ciphertext.
+With homomorphic encryption an additional desired attribute is that, if Alice is performing some operations on Bob's ciphertext, i.e. applying a circuit to it, and then sends the resulting ciphertext back to Bob, that Bob is then not able to infer anything about the nature of Alice's circuit.
+He should only be able to decrypt the result of Alice's algorithm, not learn anything about it.
+This is called (Statistical) Circuit Private Homomorphic Encryption, since it essentially mandates that the probability distribution of a resulting ciphertext should be the same regardless whether we applied a circuit C homomorphically to it or if we applied the circuit C to the plaintext first and only then encrypted the result.
+While our scheme currently doesn't fulfill this attribute, Gentry also points out that most schemes can become circuit private by adding encryptions of '0' to the result many times, randomizing the ciphertext.
+Also many schemes only fulfill a relaxed version of circuit privacy where the resulting ciphertext is allowed to reflect the depth of the circuit that got applied to it, but no details of it's exact nature \cite{gentry_fully_2009}.
 
 \begin{remark}
-    While we constructed this scheme as a symmetric encryption scheme, in homomorphic encryption any symmetric scheme can be converted into an asymmetric scheme by setting the public key to many encryptions of 0, e.g. in our scheme integers $x_i = q_i p + 2r_i$. Anybody can then create a valid ciphertext for their bit m by adding one of the $x_i$s to it. For randomization purposes the encrypter should even add multiple $x_i$s to the bit. \cite{van_dijk_fully_2010}
+    While we constructed this scheme as a symmetric encryption scheme, in homomorphic encryption any symmetric scheme can be converted into an asymmetric scheme by setting the public key to many encryptions of 0, e.g. in our scheme integers $x_i = q_i p + 2r_i$.
+    Anybody can then create a valid ciphertext for their bit m by adding one of the $x_i$s to it.
+    For randomization purposes the encrypter should even add multiple $x_i$s to the bit \cite{van_dijk_fully_2010}.
 \end{remark}
 
-While this simplified version of the DGHV scheme is not representative of modern FHE schemes, it helps to understand the goals as well as struggles of FHE in general. Most encryption schemes introduce some sort of noise parameter that is strictly required for the security of the scheme, but also introduces limitations regarding accuracy and/or depth of homomorphic evaluation. Balancing security with these drawbacks as well as handling noise in ciphertexts remain current challenges even with state-of-the-art FHE schemes.
+While this simplified version of the \ac{dghv} scheme is not representative of modern \ac{fhe} schemes, it helps to understand the goals as well as struggles of \ac{fhe} in general.
+Most encryption schemes introduce some sort of noise parameter that is strictly required for the security of the scheme, but also introduces limitations regarding accuracy and/or depth of homomorphic evaluation.
+Balancing security with these drawbacks as well as handling noise in ciphertexts remain current challenges even with state-of-the-art \ac{fhe} schemes.
 
 \subsection{Bootstrapping}\label{Bootstrapping}
 
-Our previous scheme was only somewhat homomorphic, because it could only evaluate circuits up to a certain depth before the noise got too large for correct decryption. Because of limitations like this, every homomorphic encryption scheme up until 2009 was not able to evaluate arbitrary computation of arbitrary depth to a ciphertext. Then Gentry introduced a new quite ingenious technique called \emph{Bootstrapping} in his PhD thesis which enabled him to build the first Fully Homomorphic Encryption scheme \cite{gentry_fully_2009}.
+Our previous scheme was only somewhat homomorphic, because it could only evaluate circuits up to a certain depth before the noise got too large for correct decryption.
+Because of limitations like this, every homomorphic encryption scheme up until 2009 was not able to evaluate arbitrary computation of arbitrary depth to a ciphertext.
+Then Gentry introduced a new quite ingenious technique called \emph{Bootstrapping} in his PhD thesis which enabled him to build the first Fully Homomorphic Encryption scheme \cite{gentry_fully_2009}.
 
-The basic principle behind the bootstrapping approach is to build a somewhat homomorphic encryption scheme that is able to homomorphically evaluate it's own decryption circuit. It turns out that this decreases the noise of the given ciphertext. The general strategy becomes to apply computations on the given ciphertext while keeping track of it's noise. Ones the noise reaches a certain threshold, we apply bootstrapping to get a new equivalent ciphertext with lower noise on which we can then continue our computations until the noise reaches our threshold again and so on. This means that as long as we can build a somewhat homomorphic encryption scheme that can evaluate computations of the required depth to evaluate it's own decryption circuit plus some additional operations, i.e. if the scheme is bootstrappable, we get a fully homomorphic encryption scheme that can evaluate any circuit on a given ciphertext.
+The basic principle behind the bootstrapping approach is to build a somewhat homomorphic encryption scheme that is able to homomorphically evaluate it's own decryption circuit.
+It turns out that this decreases the noise of the given ciphertext.
+The general strategy becomes to apply computations on the given ciphertext while keeping track of it's noise.
+Ones the noise reaches a certain threshold, we apply bootstrapping to get a new equivalent ciphertext with lower noise on which we can then continue our computations until the noise reaches our threshold again and so on.
+This means that as long as we can build a somewhat homomorphic encryption scheme that can evaluate computations of the required depth to evaluate it's own decryption circuit plus some additional operations, i.e. if the scheme is bootstrappable, we get a fully homomorphic encryption scheme that can evaluate any circuit on a given ciphertext.
 
-We will now look at bootstrapping in more detail and explain on a high level why it works: We already know that with an homomorphic encryption scheme we can evaluate a function $f$ on some ciphertext $c \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(m)$ and get the encryption of the result of the function f $\mathrm{Encrypt}_{sk_1}(f(m))$, with $sk_1$ being a secret key. For bootstrapping, we now introduce a second secret key $sk_2$, and define our function as $f(x) = \mathrm{Decrypt}_x(c)$. Please note that our function is the decryption algorithm, and that the input of $f$ is not the ciphertext that should be decypted, but the key that should be used to decrypt our ciphertext. To apply this function homomorphically, we have to provide the input to f, namely the secret key $sk_1$, in an encrypted form, i.e. encrypt the first secret key with a second one. We will call this encryption of $sk_1$ our bootstrapping key, or $bk$:
+We will now look at bootstrapping in more detail and explain on a high level why it works: We already know that with an homomorphic encryption scheme we can evaluate a function $f$ on some ciphertext $c \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(m)$ and get the encryption of the result of the function f $\mathrm{Encrypt}_{sk_1}(f(m))$, with $sk_1$ being a secret key.
+For bootstrapping, we now introduce a second secret key $sk_2$, and define our function as $f(x) = \mathrm{Decrypt}_x(c)$.
+Please note that our function is the decryption algorithm, and that the input of $f$ is not the ciphertext that should be decypted, but the key that should be used to decrypt our ciphertext.
+To apply this function homomorphically, we have to provide the input to f, namely the secret key $sk_1$, in an encrypted form, i.e. encrypt the first secret key with a second one.
+We will call this encryption of $sk_1$ our bootstrapping key, or $bk$:
 
 \begin{equation}
     bk \xleftarrow{\$} \mathrm{Encrypt}_{sk_2}(sk_1)
@@ -109,43 +155,71 @@ We can now compute our $f$ homomorphically on this bootstrapping key:
 
 \begin{equation}
     \begin{aligned}
-        f(bk) \quad (\mathrm{hom. eval. under } sk_2) &\rightarrow \mathrm{Encrypt}_{sk_2}(f(sk_1))\\
-                                       &=\mathrm{Encrypt}_{sk_2}\left( \mathrm{Decrypt}_{sk_1}(c) \right)\\
-                                       &=\mathrm{Encrypt}_{sk_2}(m)
+        f(bk) \quad (\text{hom. eval. under } sk_2) &\rightarrow \mathrm{Encrypt}_{sk_2}(f(sk_1))\\
+                                                    &=\mathrm{Encrypt}_{sk_2}\left( \mathrm{Decrypt}_{sk_1}(c) \right)\\
+                                                    &=\mathrm{Encrypt}_{sk_2}(m)
     \end{aligned}
 \end{equation}
 
-As you can see, the result is an encryption of the original message under the second secret key $sk_2$. So by applying the decryption circuit of a ciphertext encrypted under $sk_1$ homomorphically with the encrypted $sk_1$ as input we received a different ciphertext $c_{new}$ that is encrypted under a different secret key $sk_2$. We effectively switched our ciphertext from one key to another, without decrypting it first or learning anything about the plaintext. Most importantly, if our $c$ had a high level of noise, the resulting $c_{new}$ has a much lower level of noise enabling further homomorphic evaluation on it. \cite{gentry_fully_2009} \cite{dolev_programmable_2021}
+As you can see, the result is an encryption of the original message under the second secret key $sk_2$.
+So by applying the decryption circuit of a ciphertext encrypted under $sk_1$ homomorphically with the encrypted $sk_1$ as input we received a different ciphertext $c_{new}$ that is encrypted under a different secret key $sk_2$.
+We effectively switched our ciphertext from one key to another, without decrypting it first or learning anything about the plaintext.
+Most importantly, if our $c$ had a high level of noise, the resulting $c_{new}$ has a much lower level of noise enabling further homomorphic evaluation on it \cite{gentry_fully_2009} \cite{dolev_programmable_2021}.
 
-Please note that we used two different secret keys $sk_1$ and $sk_2$ in this explanation which would require switching the ciphertext between encryptions of both secret keys and also requiring two bootstrapping keys $bk_1 \xleftarrow{\$} \mathrm{Encrypt}_{sk_2}(sk_1)$ and $bk_2 \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(sk_2)$ for repeated executions of the bootstrapping algorithm. In practice however it is possible to just set $sk_1 = sk_2$ and thus only requiring one bootstrapping key $bk \xleftarrow{\$} \mathrm{Encrypt}_{sk}(sk)$, i.e. the secret key encrypted with itself. This is called circular security and severely hardens the scheme's security analysis. Depending on the underlying scheme however it is deemed to be an acceptable practice.
+Please note that we used two different secret keys $sk_1$ and $sk_2$ in this explanation which would require switching the ciphertext between encryptions of both secret keys and also requiring two bootstrapping keys $bk_1 \xleftarrow{\$} \mathrm{Encrypt}_{sk_2}(sk_1)$ and $bk_2 \xleftarrow{\$} \mathrm{Encrypt}_{sk_1}(sk_2)$ for repeated executions of the bootstrapping algorithm.
+In practice however it is possible to just set $sk_1 = sk_2$ and thus only requiring one bootstrapping key $bk \xleftarrow{\$} \mathrm{Encrypt}_{sk}(sk)$, i.e. the secret key encrypted with itself.
+This is called circular security and severely hardens the scheme's security analysis.
+Depending on the underlying scheme however it is deemed to be an acceptable practice.
 
-With the bootstrapping algorithm at disposal, constructing an FHE scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme. To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme. For FHE, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact. Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times. Because of this even modern bootstrappable FHE schemes feature very cheap decryption, especially compared to traditional encryption schemes like RSA \cite{gentry_fully_2009}.
+With the bootstrapping algorithm at disposal, constructing an \ac{fhe} scheme became the challenge of building a bootstrappable somewhat homomorphic encryption scheme.
+To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme.
+For \ac{fhe}, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact.
+Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times.
+Because of this even modern bootstrappable \ac{fhe} schemes feature very cheap decryption, especially compared to traditional encryption schemes like \acused{rsa}\ac{rsa} \cite{gentry_fully_2009}.
 
-\subsection{The Path to Modern FHE Schemes}
+\subsection{The Path to Modern \acs{fhe} Schemes}
 
-Because of many of the limitations we discussed in \ref{DGHV}, the DGHV scheme and in general schemes defined just over the integers did not proof to be useful in practice. Most FHE schemes rely on more complex constructions, and their security is based on different mathematical problems. A timeline featuring the most important of these schemes can be seen in \ref{fig:fhe_timeline}. Most notably today we have two main branches in the FHE world:
+Because of many of the limitations we discussed in \cref{DGHV}, the \ac{dghv} scheme and in general schemes defined just over the integers did not proof to be useful in practice.
+Most \ac{fhe} schemes rely on more complex constructions, and their security is based on different mathematical problems.
+A timeline featuring the most important of these schemes can be seen in \cref{fig:fhe_timeline}.
+Most notably today we have two main branches in the \ac{fhe} world:
 
-The \textbf{"Fast Bootstrapping branch"}, which computes with simple single bit operations and focuses on improving the bootstrapping performance during this. It can evaluate arbitrary circuits with arbitrary depths, and the party who encrypts the inputs doesn't have to know anything about these circuits at encryption time, making these schemes very flexible \cite{chillotti_tfhe_2021}.
+The \textbf{"Fast Bootstrapping branch"}, which computes with simple single bit operations and focuses on improving the bootstrapping performance during this.
+It can evaluate arbitrary circuits with arbitrary depths, and the party who encrypts the inputs doesn't have to know anything about these circuits at encryption time, making these schemes very flexible \cite{chillotti_tfhe_2021}.
 
-The \textbf{"Leveled schemes branch"}, which implement so called Leveled FHE. This approach can only evaluate circuits on encrypted inputs up to a pre-defined depth d. This depth can be arbitrary, however it must be known at encryption time \cite{gentry_fully_2009}. Encrypting for deeper circuits means larger cryptographic parameters and slower evaluation times. While these limitations make these schemes less flexible, they mostly matter if in a specific application the circuit depth is significantly dependent on the input and thus dynamic or just not known beforehand by the party encrypting the inputs. For example performing inference on a neural network would be an use case where this does not necessarily matter much, since a forward through the model always goes through a fixed amount of layers and thus operations. It is important to note that leveled schemes may still allow bootstrapping, they just mostly try to avoid it by setting d statically beforehand. These schemes are also not defined on bit operations, but on integer and (approximate) floating point operations \cite{chillotti_tfhe_2021}.
+The \textbf{"Leveled schemes branch"}, which implement so called Leveled \ac{fhe}.
+This approach can only evaluate circuits on encrypted inputs up to a pre-defined depth d.
+This depth can be arbitrary, however it must be known at encryption time \cite{gentry_fully_2009}.
+Encrypting for deeper circuits means larger cryptographic parameters and slower evaluation times.
+While these limitations make these schemes less flexible, they mostly matter if in a specific application the circuit depth is significantly dependent on the input and thus dynamic or just not known beforehand by the party encrypting the inputs.
+For example performing inference on a neural network would be an use case where this does not necessarily matter much, since a forward through the model always goes through a fixed amount of layers and thus operations.
+It is important to note that leveled schemes may still allow bootstrapping, they just mostly try to avoid it by setting d statically beforehand.
+These schemes are also not defined on bit operations, but on integer and (approximate) floating point operations \cite{chillotti_tfhe_2021}.
 
 \begin{figure}[h]
     \begin{center}
         \includegraphics[width=\textwidth]{../figures/fhe_timeline.png}
     \end{center}
-    \caption{A timeline of major FHE breakthroughs and encryption schemes, ordered by the different kind of schemes \cite{noauthor_continuing_nodate}}
+    \caption{A timeline of major \ac{fhe} breakthroughs and encryption schemes, ordered by the different kind of schemes \cite{noauthor_continuing_nodate}}
     \label{fig:fhe_timeline}
 \end{figure}
 
-In \ref{DGHV} we built a simple homomorphic encryption scheme based on the AGCD problem. Most other schemes however (with the NTRU branch and BLLN being notable exceptions) are based on some kind of lattice problem. For example the original FHE scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}. Most other modern schemes are based in some way on the Learning With Errors (LWE) problem which we will explain in \ref{LWE}, or its polynomial ring version, the RLWE problem \cite{smart_final_2022}. The first scheme to use LWE was the BGV scheme in 2011. It's improved version BFV which came out shortly after, is also considered to be the first truly practical FHE scheme \cite{noauthor_continuing_nodate}. Because we nowadays also know some possible attacks against NTRU, LWE- and RLWE-based schemes are more or less the only secure and practical FHE schemes in existence \cite{smart_final_2022}.
+In \cref{DGHV} we built a simple homomorphic encryption scheme based on the \ac{agcd} problem.
+Most other schemes however (with the \acused{ntru}\ac{ntru} branch being a notable exception) are based on some kind of lattice problem.
+For example the original \ac{fhe} scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}.
+Most other modern schemes are based in some way on the \ac{lwe} problem which we will explain in \cref{LWE}, or its polynomial ring version, the \ac{rlwe} problem \cite{smart_final_2022}.
+The first scheme to use \ac{lwe} was the \ac{bgv} scheme in 2011 \cite{brakerski_leveled_2012}.
+It's improved version \ac{bfv} \cite{fan_somewhat_2012} which came out shortly after, is also considered to be the first truly practical \ac{fhe} scheme \cite{noauthor_continuing_nodate}.
+Because we nowadays also know some possible attacks against \ac{ntru}, \ac{lwe}- and \ac{rlwe}-based schemes are more or less the only secure and practical \ac{fhe} schemes in existence \cite{smart_final_2022}.
 
-Another notable mention is the GSW scheme introduced by Craig Gentry, Amit Sahai, and Brent Waters in 2013 \cite{gentry_homomorphic_2013}, since the modern TFHE scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the RGSW ciphertext which is a polynomial ring variation of the GSW ciphertext.
+Another notable mention is the \ac{gsw} scheme introduced by \citetitle*{gentry_homomorphic_2013} in 2013 \cite{gentry_homomorphic_2013}, since the modern \ac{tfhe} scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the \ac{rgsw} ciphertext which is a polynomial ring variation of the \ac{gsw} ciphertext.
 
-\subsection{The Learning With Errors (LWE) Problem}\label{LWE}
+\subsection{The \acf{lwe} Problem}\label{LWE}
 
-LWE was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
+\ac{lwe} was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
 
-Let $n \geq 1$ be an integer (our dimensionality), let p be a prime number, and let $s \in \mathbb{Z}_p^n$ be a secret vector. Now consider the following set of equations
+Let $n \geq 1$ be an integer (our dimensionality), let p be a prime number, and let $s \in \mathbb{Z}_p^n$ be a secret vector.
+Now consider the following set of equations
 
 \begin{equation}
     \begin{aligned}
@@ -158,15 +232,24 @@ Let $n \geq 1$ be an integer (our dimensionality), let p be a prime number, and 
 
 Here the $a_i \in \mathbb{Z}_p^n$ are chosen at random uniformly and independently, $e_i \in \mathbb{Z}_p$ are chosen independently according to some probability distribution $\chi: \mathbb{Z}_p \rightarrow \mathbb{R}^+$, and thus $b_i \in \mathbb{Z}_p$.
 
-Now the LWE problem is to obtain $s$ when only the $(a_i, b_i)$ pairs are known. If all $e_i = 0$, solving this becomes trivial using Gaussian elimination on this set of linear equations. However with sufficiently large errors $s$ becomes unrecoverable using just Gaussian elimination, making this a hard problem solve. One strategy would be to apply a maximum likelihood algorithm on a set of $O(n)$ of these equations. This algorithm would try out different vectors $s'$ and test how many it could solve. The $s'$ that solves the most equation is equal to $s$. This however requires testing out many possible $s$ by brute-force, which is why it's runtime is in $2^{O(n)}$. There are no algorithms that improve this runtime significantly, making this problem NP-hard \cite{regev_lattices_2005}.
+Now the \ac{lwe} problem is to obtain $s$ when only the $(a_i, b_i)$ pairs are known.
+If all $e_i = 0$, solving this becomes trivial using Gaussian elimination on this set of linear equations.
+However with sufficiently large errors $s$ becomes unrecoverable using just Gaussian elimination, making this a hard problem solve.
+One strategy would be to apply a maximum likelihood algorithm on a set of $O(n)$ of these equations.
+This algorithm would try out different vectors $s'$ and test how many it could solve.
+The $s'$ that solves the most equation is equal to $s$.
+This however requires testing out many possible $s$ by brute-force, which is why it's runtime is in $2^{O(n)}$.
+There are no algorithms that improve this runtime significantly, making this problem NP-hard \cite{regev_lattices_2005}.
 
-The LWE problem can be reduced to lattice problems such as the Closest Vector Problem (CVP) which makes LWE cryptosystems also lattice-based cryptosystems. To explain this interpretation of the LWE problem we will first define a lattice $L$ with the basis $B$ as the set of all vectors that can be built with this basis using integer coefficients:
+The \ac{lwe} problem can be reduced to lattice problems such as the \ac{cvp} which makes \ac{lwe} cryptosystems also lattice-based cryptosystems.
+To explain this interpretation of the \ac{lwe} problem we will first define a lattice $L$ with the basis $B$ as the set of all vectors that can be built with this basis using integer coefficients:
 
 \begin{equation}
     L = L(B) = \{ Bc : c \in \mathbb{Z}^k \}, B \in \mathbb{R}^{n \times k}
 \end{equation}
 
-The CVP problem now is, given a basis for a lattice $B$ and a vector $t \in \mathbb{R}^n$, to find a vector $v \in L(B)$ such that this vector is the closest vector to $t$ in the lattice. In \ref{fig:lattice_cvp} you can see a graphical representation of this for two dimensions and a trivial basis.
+The \ac{cvp} problem now is, given a basis for a lattice $B$ and a vector $t \in \mathbb{R}^n$, to find a vector $v \in L(B)$ such that this vector is the closest vector to $t$ in the lattice.
+In \cref{fig:lattice_cvp} you can see a graphical representation of this for two dimensions and a trivial basis.
 
 \begin{figure}[h]
     \begin{center}
@@ -176,25 +259,33 @@ The CVP problem now is, given a basis for a lattice $B$ and a vector $t \in \mat
     \label{fig:lattice_cvp}
 \end{figure}
 
-While solving this looks quite trivial on the picture, please note that the complexity was $2^{O(n)}$, with $n$ being the dimensionality. Also this is the trivial basis where the shortest vectors of the lattice are already part of it which makes it a lot easier to solve. For much higher dimensionality and a more suited base this would indeed become very hard to solve \cite{gentry_fully_2009}.
+While solving this looks quite trivial on the picture, please note that the complexity was $2^{O(n)}$, with $n$ being the dimensionality.
+Also this is the trivial basis where the shortest vectors of the lattice are already part of it which makes it a lot easier to solve.
+For much higher dimensionality and a more suited base this would indeed become very hard to solve \cite{gentry_fully_2009}.
 
-Our definition of the LWE problem shares a lot of similarities with the CVP problem: The given vectors $a_i$ of each equation can be viewed as one matrix $A$ that would be the basis of our lattice. The $b_i$ is the given vector $t$ that contains the error and as such is not part of the lattice, and the problem would become to find the vector $c$ (or $s$), that generates the lattice point closest to this vector.
+Our definition of the \ac{lwe} problem shares a lot of similarities with the \ac{cvp} problem: The given vectors $a_i$ of each equation can be viewed as one matrix $A$ that would be the basis of our lattice.
+The $b_i$ is the given vector $t$ that contains the error and as such is not part of the lattice, and the problem would become to find the vector $c$ (or $s$), that generates the lattice point closest to this vector.
 
-\subsection{TFHE: FHE Over the Torus}\label{TFHE}
+\subsection{\acf{tfhe}}\label{TFHE}
 
-We will know have a closer look at the TFHE scheme because all our experiments in the later chapters will be utilizing TFHE in some way. The paper 'TFHE: Fast Fully Homomorphic Encryption Over the Torus' was originally introduced in 2016 by the authors Ilaria Chillotti, Nicolas Gama, Mariya Georgieva, and Malika Izabachène (hence this scheme is sometimes also called CGGI) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
+We will know have a closer look at the \ac{tfhe} scheme because all our experiments in the later chapters will be utilizing \ac{tfhe} in some way.
+The paper \citetitle*{chillotti_tfhe_2020} was originally introduced in 2016 by the authors \citeauthor{chillotti_tfhe_2020} (hence this scheme is sometimes also called \acused{cggi}\ac{cggi}) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
 
-On a high level, THFE consists of three different types of ciphertexts, and defines a broad set of operations within and across these three ciphertexts. We will not explain all these operations exhaustively, but just give a broad overview to give some understanding why mapping arbitrary computations to the most efficient set of FHE operations might be challenging.
+On a high level, \ac{tfhe} consists of three different types of ciphertexts, and defines a broad set of operations within and across these three ciphertexts.
+We will not explain all these operations exhaustively, but just give a broad overview to give some understanding why mapping arbitrary computations to the most efficient set of \ac{fhe} operations might be challenging.
 
-\subsubsection{LWE ciphertexts}
+\subsubsection{\ac{lwe} ciphertexts}
 
-First of we will start with LWE ciphertexts: These use the LWE problem as explained in \ref{LWE}, and encode the message $m$ from a message space $\mathcal{M}$ in what was before the error of the LWE equations. This guarantees that the message cannot be obtained if only the $b_i$ and $a_i$ are known, because if that where possible one could also easily obtain $s$, the hardness of which is guaranteed by LWE and the underlying CVP on lattices.
+First of we will start with \ac{lwe} ciphertexts: These use the \ac{lwe} problem as explained in \cref{LWE}, and encode the message $m$ from a message space $\mathcal{M}$ in what was before the error of the \ac{lwe} equations.
+This guarantees that the message cannot be obtained if only the $b_i$ and $a_i$ are known, because if that where possible one could also easily obtain $s$, the hardness of which is guaranteed by \ac{lwe} and the underlying \ac{cvp} on lattices.
 
 \begin{equation}
     b = \langle s, a \rangle + e + \Delta m \Mod p\label{eq:LWE_encryption}
 \end{equation}
 
-In \ref{eq:LWE_encryption} you can see how we encrypt the message $m \in \mathcal{M}$ using LWE, with $(a \in \mathbb{Z}_p^n,b \in \mathbb{Z}_p)$ being the ciphertext, $s \in \mathbb{Z}_p^n$ being the secret required for decryption, $\Delta = \frac{p}{|\mathcal{M}|}$ being a scaling factor, and $e$ being a random error with $-\frac{\Delta}{2} < e < \frac{\Delta}{2}$. Please note that $p$ is not a prime number and thus $\mathbb{Z}_p$ not a field anymore, however in practice this turns out to be fine. Decryption then becomes just computing the inner product between $a$ and $s$, and subtracting that from $b$:
+In \cref{eq:LWE_encryption} you can see how we encrypt the message $m \in \mathcal{M}$ using \ac{lwe}, with $(a \in \mathbb{Z}_p^n,b \in \mathbb{Z}_p)$ being the ciphertext, $s \in \mathbb{Z}_p^n$ being the secret required for decryption, $\Delta = \frac{p}{|\mathcal{M}|}$ being a scaling factor, and $e$ being a random error with $-\frac{\Delta}{2} < e < \frac{\Delta}{2}$.
+Please note that $p$ is not a prime number and thus $\mathbb{Z}_p$ not a field anymore, however in practice this turns out to be fine.
+Decryption then becomes just computing the inner product between $a$ and $s$, and subtracting that from $b$:
 
 \begin{equation}
     b - \langle s, a \rangle = \Delta m + e \Mod p \xrightarrow{\mathrm{decode}} m\label{eq:LWE_decryption}
@@ -210,16 +301,21 @@ To see how the last decoding step works and to understand the purpose of $\Delta
     \label{fig:lwe_message_encoding}
 \end{figure}
 
-\ref{fig:lwe_message_encoding} illustrates how our $\Delta m + e$ term works for $p = 48$, and $m$ being a 2-bit integer (i.e. $\mathcal{M} = \{ 0, 1, 2, 3 \}$), resulting in $\Delta = 48 / 4 = 12$. For example, if we now want to encode the message $m=2$ with a random error of $e = 4$, we would get $12 * 2 + 4 = 28$. Decoding $28$ would be done by dividing by $\Delta$, and rounding to the next multiple of $\Delta$. Essentially in the image each possible encoded message without any error ($\Delta m$) is one of the blue lines while the red lines represent the thresholds within which the error can freely move the encoded message without changing it's meaning. If $|e|$ were to grow to $6$ or larger, then we would not receive our original message during decoding anymore \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+\Cref{fig:lwe_message_encoding} illustrates how our $\Delta m + e$ term works for $p = 48$, and $m$ being a 2-bit integer (i.e.
+$\mathcal{M} = \{ 0, 1, 2, 3 \}$), resulting in $\Delta = 48 / 4 = 12$.
+For example, if we now want to encode the message $m=2$ with a random error of $e = 4$, we would get $12 * 2 + 4 = 28$.
+Decoding $28$ would be done by dividing by $\Delta$, and rounding to the next multiple of $\Delta$.
+Essentially in the image each possible encoded message without any error ($\Delta m$) is one of the blue lines while the red lines represent the thresholds within which the error can freely move the encoded message without changing it's meaning.
+If $|e|$ were to grow to $6$ or larger, then we would not receive our original message during decoding anymore \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-We can easily perform both addition (\ref{eq:LWE_addition}) and multiplication with a constant factor $\gamma \in \mathcal{M}$ (\ref{eq:LWE_multiplication}) directly on LWE ciphertexts.
+We can easily perform both addition (\cref{eq:LWE_addition}) and multiplication with a constant factor $\gamma \in \mathcal{M}$ (\cref{eq:LWE_multiplication}) directly on \ac{lwe} ciphertexts.
 
 \begin{align}
     \mathrm{Addition:} \quad &(a_1, b_1) + (a_2, b_2) \equiv (a_1 + a_2, b_2 + b_2) &\Mod p \label{eq:LWE_addition}\\
     \mathrm{Constant\ multiplication:} \quad &\gamma (a, b) \equiv (\gamma a, \gamma b) &\Mod p \label{eq:LWE_multiplication}
 \end{align}
 
-Why these are equivalent and still correct after decryption can easily be seen in \ref{eq:LWE_addition_proof} and \ref{eq:LWE_multiplication_proof}.
+Why these are equivalent and still correct after decryption can easily be seen in \cref{eq:LWE_addition_proof} and \cref{eq:LWE_multiplication_proof}.
 
 \begin{equation}\label{eq:LWE_addition_proof}
     \begin{aligned}
@@ -248,9 +344,11 @@ Why these are equivalent and still correct after decryption can easily be seen i
     \end{aligned}
 \end{equation}
 
-\subsubsection{RLWE ciphertext}
+\subsubsection{\ac{rlwe} ciphertext}
 
-This ciphertext works equivalently to the LWE ciphertext, with the only difference being that instead of having integers modulo $p$, we know work with polynomials modulo $X^N + 1$. The message, secret, our factors, and the error now become polynomials: $M(X), S(X), A(X), B(X), E(X)$, encoding $N$ coefficients. Encryption and decryption stays equivalent though \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}:
+This ciphertext works equivalently to the \ac{lwe} ciphertext, with the only difference being that instead of having integers modulo $p$, we know work with polynomials modulo $X^N + 1$.
+The message, secret, our factors, and the error now become polynomials: $M(X), S(X), A(X), B(X), E(X)$, encoding $N$ coefficients.
+Encryption and decryption stays equivalent though \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}:
 
 \begin{align}
     \text{Encrypt: } &B(X) = S(X) \cdot A(X) + E(X) + \Delta M(X) \Mod{X^N + 1}\\
@@ -260,23 +358,34 @@ This ciphertext works equivalently to the LWE ciphertext, with the only differen
 
 Decoding also stays the same, just that the process has to be repeated $N$ times for every coefficient of our polynomial (with $\Delta M_0 + E_0$ for the first coefficient, $\Delta M_1 + E_1$ for the second one, and so on).
 
-On this ciphertext we can also perform addition and multiplication by a constant, except that our constant is a constant polynomial $\Gamma(X)$ this time. The proofs for why this works are equivalent to the ones we already did for LWE ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+On this ciphertext we can also perform addition and multiplication by a constant, except that our constant is a constant polynomial $\Gamma(X)$ this time.
+The proofs for why this works are equivalent to the ones we already did for \ac{lwe} ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\subsubsection{RGSW ciphertext}
+\subsubsection{\ac{rgsw} ciphertext}
 
-The RGSW ciphertext essentially consists of a multitude of RLWE encryptions with additional terms in them, arranged in a 3-dimensional matrix. Because of it's complex structure we will not explain it in detail and just give a high level overview. This 3-dim matrix is constructed as $l$ $2\times2$ matrices, where the $j$th $2\times2$ matrix consists of two encryptions of our message: $(A_j(X), B_j(X))$ (the first row), and $(A_j^*(X), B_J^*(X))$ (the second row). These encryptions differ in the two terms they get in addition to a regular RLWE ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+The \ac{rgsw} ciphertext essentially consists of a multitude of \ac{rlwe} encryptions with additional terms in them, arranged in a 3-dimensional matrix.
+Because of it's complex structure we will not explain it in detail and just give a high level overview.
+This 3-dim matrix is constructed as $l$ $2\times2$ matrices, where the $j$th $2\times2$ matrix consists of two encryptions of our message: $(A_j(X), B_j(X))$ (the first row), and $(A_j^*(X), B_J^*(X))$ (the second row).
+These encryptions differ in the two terms they get in addition to a regular \ac{rlwe} ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-RGSW allows addition and multiplication with a constant as well which work the same as for RLWE, but applied for every single RLWE encryption in our matrix. However additionally it also allows for multiplication between two ciphertexts which was not possible with the last two ciphertexts.
+\ac{rgsw} allows addition and multiplication with a constant as well which work the same as for \ac{rlwe}, but applied for every single \ac{rlwe} encryption in our matrix.
+However additionally it also allows for multiplication between two ciphertexts which was not possible with the last two ciphertexts.
 
-This multiplication works by first decomposing the four polynomials of one of our $2\times2$ matrices from the left-hand site into $l$ smaller polynomials, again returning us a $2 \times 2 \times l$ matrix. The second step is to perform a matrix multiplication with this decomposition matrix with the right-hand site of our multiplication, returning us a $2\times2$ matrix. These two steps then have to be repeated $l$ times for every $2\times2$ matrix on the left hand site, combining all $l$ results into one matrix which will then again be a valid RGSW ciphertext encrypting $m_1 \cdot m_2$ \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+This multiplication works by first decomposing the four polynomials of one of our $2\times2$ matrices from the left-hand site into $l$ smaller polynomials, again returning us a $2 \times 2 \times l$ matrix.
+The second step is to perform a matrix multiplication with this decomposition matrix with the right-hand site of our multiplication, returning us a $2\times2$ matrix.
+These two steps then have to be repeated $l$ times for every $2\times2$ matrix on the left hand site, combining all $l$ results into one matrix which will then again be a valid \ac{rgsw} ciphertext encrypting $m_1 \cdot m_2$ \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\subsubsection{Additional TFHE building blocks}\label{TFHE_building_blocks}
+\subsubsection{Additional \ac{tfhe} building blocks}\label{TFHE_building_blocks}
 
-TFHE defines more operations than just addition and multiplication that allow for greater flexibility when implementing arbitrary circuits over ciphertexts, especially when switching between the three different kinds of ciphertexts in TFHE. We give a non-exhaustive list of the most important ones.
+\ac{tfhe} defines more operations than just addition and multiplication that allow for greater flexibility when implementing arbitrary circuits over ciphertexts, especially when switching between the three different kinds of ciphertexts in \ac{tfhe}.
+We give a non-exhaustive list of the most important ones.
 
-The \textbf{External Product} also allows for multiplication between two ciphertexts, with the difference being that on the left-hand side we now have an RLWE ciphertext that we multiply with an RGSW ciphertext on the right-hand side. The algorithm works otherwise quite similar to multiplication over two RGSW ciphertexts however it works with $1\times2$ matrices instead of $2\times2$ and does not require the $l$ repetitions thus being more efficient. The result is an RLWE ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+The \textbf{External Product} also allows for multiplication between two ciphertexts, with the difference being that on the left-hand side we now have an \ac{rlwe} ciphertext that we multiply with an \ac{rgsw} ciphertext on the right-hand side.
+The algorithm works otherwise quite similar to multiplication over two \ac{rgsw} ciphertexts however it works with $1\times2$ matrices instead of $2\times2$ and does not require the $l$ repetitions thus being more efficient.
+The result is an \ac{rlwe} ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-The \textbf{Controlled Mux (CMux)} is a common binary gate with three inputs $d_0, d_1, b$ and one output $d_b$. It's function is quite simple:
+The \textbf{\ac{cmux}} is a common binary gate with three inputs $d_0, d_1, b$ and one output $d_b$.
+It's function is quite simple:
 
 \begin{equation}
     d_b = \begin{cases}
@@ -285,7 +394,9 @@ The \textbf{Controlled Mux (CMux)} is a common binary gate with three inputs $d_
     \end{cases}
 \end{equation}
 
-So effectively the CMux gate assigns the output to either $d_0$ or $d_1$ depending on $b$. This is also why CMux is so important in TFHE, it's being used to implement if-conditions and branching in TFHE. Its implemented using three other operations in the following way (with $\odot$ being the external product, and $-,+$ being addition between RLWE ciphertexts):
+So effectively the \ac{cmux} gate assigns the output to either $d_0$ or $d_1$ depending on $b$.
+This is also why \ac{cmux} is so important in \ac{tfhe}, it's being used to implement if-conditions and branching in \ac{tfhe}.
+Its implemented using three other operations in the following way (with $\odot$ being the external product, and $-,+$ being addition between \ac{rlwe} ciphertexts):
 
 \begin{equation}
     \mathrm{RLWE}(d_b) = \left( \left( \mathrm{RLWE}(d_0) - \mathrm{RLWE}(d_1) \right) \odot \mathrm{RGSW}(b) \right) + \mathrm{RLWE}(d_0)
@@ -293,7 +404,8 @@ So effectively the CMux gate assigns the output to either $d_0$ or $d_1$ dependi
 
 This works because if $b = 1$ this equation will result in $d_1 - d_0 + d_0 = d_1$, but if $b = 0$ then the whole first term will be zero as well and we will be left with just $d_0$ from the second term \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\textbf{Rotation} allows to rotate the encrypted polynomial of an RLWE ciphertext by some $p$ positions, i.e. an coefficient at position $p$ will be at position $0$ after rotation. This is achieved easily by multiplying the polynomial with $X^{-p}$, and because of the $\mathrm{mod} X^N + 1$ this will automatically rotate the polynomial (plus changing the signs of the coefficients 'falling of' at the left):
+\textbf{Rotation} allows to rotate the encrypted polynomial of an \ac{rlwe} ciphertext by some $p$ positions, i.e. an coefficient at position $p$ will be at position $0$ after rotation.
+This is achieved easily by multiplying the polynomial with $X^{-p}$, and because of the $\mathrm{mod} X^N + 1$ this will automatically rotate the polynomial (plus changing the signs of the coefficients 'falling of' at the left):
 
 \begin{equation}
    \begin{aligned}
@@ -302,35 +414,57 @@ This works because if $b = 1$ this equation will result in $d_1 - d_0 + d_0 = d_
    \end{aligned}
 \end{equation}
 
-This can be extended to a \textbf{Blind Rotation}, where $p$ is also encrypted (but under RGSW). This is implemented by having $p$ be encrypted bit-by-bit, i.e. we have encryptions of $p_0$, $p_1$,...,$p_k$ where each $p_i$ is one bit of $p$. Now for each $p_i$ we can perform the regular rotation by $2^i$ positions, and then combine this with a CMux with $b = p_i$, $d_0$ being the unrotated $M$, and $d_1$ the rotated one. That CMux will then effectively output $M(X) \cdot X^{-2^i}$ if $p_i = 1$, and just $M(X)$ if $p_i = 0$. This has to be repeated $k$ times (for every bit of $p$), and all the results have to be summed up afterwards. Thus we are now able to rotate an unknown polynomial by an unknown amount of positions \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+This can be extended to a \textbf{Blind Rotation}, where $p$ is also encrypted (but under \ac{rgsw}).
+This is implemented by having $p$ be encrypted bit-by-bit, i.e. we have encryptions of $p_0$, $p_1$,...,$p_k$ where each $p_i$ is one bit of $p$.
+Now for each $p_i$ we can perform the regular rotation by $2^i$ positions, and then combine this with a \ac{cmux} with $b = p_i$, $d_0$ being the unrotated $M$, and $d_1$ the rotated one.
+That \ac{cmux} will then effectively output $M(X) \cdot X^{-2^i}$ if $p_i = 1$, and just $M(X)$ if $p_i = 0$.
+This has to be repeated $k$ times (for every bit of $p$), and all the results have to be summed up afterwards.
+Thus we are now able to rotate an unknown polynomial by an unknown amount of positions \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\textbf{Sample Extraction} allows to simply extract one of the coefficients of an RLWE polynomial. Remember that since every coefficient in RLWE is just an LWE encryption, this operation returns an LWE ciphertext. This operation is quite trivial and, in contrary to the other non-Bootstrapping operations, adds no noise to the ciphertext. It can be used to completely convert an RLWE ciphertext to an LWE ciphertext by simply repeating the process for each of the RLWE coefficients \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+\textbf{Sample Extraction} allows to simply extract one of the coefficients of an \ac{rlwe} polynomial.
+Remember that since every coefficient in \ac{rlwe} is just an \ac{lwe} encryption, this operation returns an \ac{lwe} ciphertext.
+This operation is quite trivial and, in contrary to the other non-Bootstrapping operations, adds no noise to the ciphertext.
+It can be used to completely convert an \ac{rlwe} ciphertext to an \ac{lwe} ciphertext by simply repeating the process for each of the \ac{rlwe} coefficients \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\textbf{Key Switching} enables us to change the secret key $s$ under which a ciphertext is encrypted to a new secret key $s'$, without having to decrypt it and without knowing both of the keys. It requires a so called key-switching-key which can be viewed as a special kind of public-key, and can be performed from LWE to LWE, RLWE to RLWE, or even from LWE to RLWE and many-LWE to 1-RLWE ciphertexts. In addition to changing the encryption key it can also be used to change any other cryptographic parameters of the ciphertext, or to even evaluate arbitrary functions on the ciphertext which is called Functional Key Switching \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+\textbf{Key Switching} enables us to change the secret key $s$ under which a ciphertext is encrypted to a new secret key $s'$, without having to decrypt it and without knowing both of the keys.
+It requires a so called key-switching-key which can be viewed as a special kind of public-key, and can be performed from \ac{lwe} to \ac{lwe}, \ac{rlwe} to \ac{rlwe}, or even from \ac{lwe} to \ac{rlwe} and many-\ac{lwe} to 1-\ac{rlwe} ciphertexts.
+In addition to changing the encryption key it can also be used to change any other cryptographic parameters of the ciphertext, or to even evaluate arbitrary functions on the ciphertext which is called Functional Key Switching \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-We already described the main goal of \textbf{Bootstrapping} (the reduction of noise) and the general function of it in \ref{Bootstrapping}. In TFHE this is implemented on LWE ciphertexts, i.e. this algorithm executes the LWE decryption (see \ref{eq:LWE_decryption}) homomorphically. It achiees this quite efficiently using the building blocks described above, more specifically a combination of (blind) rotation, CMuxes, and the Key Switching to move back to the original decryption key. Since this algorithm is quite complex we will not describe it here in more detail, you can refer to the linked sources for a more in-depth explanation. Please note that even though the Bootstrapping process uses two different encryption keys, TFHE still relies on circular security because of the Key Switching Key which is an encryption of itself \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+We already described the main goal of \textbf{Bootstrapping} (the reduction of noise) and the general function of it in \cref{Bootstrapping}.
+In \ac{tfhe} this is implemented on \ac{lwe} ciphertexts, i.e. this algorithm executes the \ac{lwe} decryption (see \cref{eq:LWE_decryption}) homomorphically.
+It achiees this quite efficiently using the building blocks described above, more specifically a combination of (blind) rotation, \acp{cmux}, and the Key Switching to move back to the original decryption key.
+Since this algorithm is quite complex we will not describe it here in more detail, you can refer to the linked sources for a more in-depth explanation.
+Please note that even though the Bootstrapping process uses two different encryption keys, \ac{tfhe} still relies on circular security because of the Key Switching Key which is an encryption of itself \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-TFHE also includes multiple more elaborate bootstrapping techniques like \textbf{Gate Bootstrapping}, \textbf{Programmable Bootstrapping}, and \textbf{Circuit Bootstrapping}. The first two are extensions to the regular LWE Bootstrapping that additionally allow the execution of binary gates or any function that can be expressed using a look-up table \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{dolev_programmable_2021}. Using this the bootstrapping becomes more than a pure no-operation that just adds computation overhead since it can now also compute parts of our circuit while decreasing the noise at the same time which increases efficiency. The third Bootstrapping technique can also execute functions, but most importantly it converts LWE into RGSW ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
+\ac{tfhe} also includes multiple more elaborate bootstrapping techniques like \textbf{Gate Bootstrapping}, \textbf{\acf{pbs}}, and \textbf{Circuit Bootstrapping}.
+The first two are extensions to the regular \ac{lwe} Bootstrapping that additionally allow the execution of binary gates or any function that can be expressed using a look-up table \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{dolev_programmable_2021}.
+Using this the bootstrapping becomes more than a pure no-operation that just adds computation overhead since it can now also compute parts of our circuit while decreasing the noise at the same time which increases efficiency.
+The third Bootstrapping technique can also execute functions, but most importantly it converts \ac{lwe} into \ac{rgsw} ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
 \begin{figure}[h]
     \begin{center}
         \includegraphics[width=\textwidth]{../figures/tfhe_building_blocks.png}
     \end{center}
-    \caption{Major TFHE building blocks and how they convert between TFHE ciphertext types. Dotted lines decrease the noise and solid lines do not. Blocks that take two different kinds of inputs like the External Product/CMux or Blind Rotation are represented slightly inaccurately.}
+    \caption{Major \ac{tfhe} building blocks and how they convert between \ac{tfhe} ciphertext types. Dotted lines decrease the noise and solid lines do not. Blocks that take two different kinds of inputs like the External Product/\ac{cmux} or Blind Rotation are represented slightly inaccurately.}
     \label{fig:tfhe_building_blocks}
 \end{figure}
 
-A full graphical overview of the above can be seen in \ref{fig:tfhe_building_blocks}. Compiling an algorithm for TFHE ciphertexts becomes the task of combining these building blocks efficiently while keeping track of the noise of the ciphertext and reducing it if necessary. TFHE has some helpful attributes to help with this, for example it allows for constant monitoring of the noise so that the TFHE framework in use can dynamically know when it is best to perform the Bootstrapping. However this abundance of building blocks and their different characteristics make building an optimized TFHE circuit a lot more challenging than one might think, and the efficiency and evaluation overhead introduced by TFHE compared to regular clear evaluation is quite dependent on the specific application and algorithm and how well it can be or has been optimized for TFHE.
+A full graphical overview of the above can be seen in \cref{fig:tfhe_building_blocks}.
+Compiling an algorithm for \ac{tfhe} ciphertexts becomes the task of combining these building blocks efficiently while keeping track of the noise of the ciphertext and reducing it if necessary.
+\ac{tfhe} has some helpful attributes to help with this, for example it allows for constant monitoring of the noise so that the \ac{tfhe} framework in use can dynamically know when it is best to perform the Bootstrapping.
+However this abundance of building blocks and their different characteristics make building an optimized \ac{tfhe} circuit a lot more challenging than one might think, and the efficiency and evaluation overhead introduced by \ac{tfhe} compared to regular clear evaluation is quite dependent on the specific application and algorithm and how well it can be or has been optimized for \ac{tfhe}.
 
 \section{Machine Learning Concepts and Model Types}
 
-We will now switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments. Please note however that these will only be basic overviews and not exhaustive explanations.
+We will now switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments.
+Please note however that these will only be basic overviews and not exhaustive explanations.
 
 \subsection{Logistic Regression}\label{LogisticRegression}
 
 Logistic Regression is a generalization of Linear Regression specifically for the binary classification setting (i.e. not for regression, contrary to its name) and in general one of the simplest supervised learning approaches.
 
-Our model parameters are our weights $w$ and a bias $b$, and we get the predicted probability of a label by calculating the inner produc t between our input vector $x$ with the weights, adding the bias, and applying the sigmoid function to the result. The sigmoid function essentially just maps it's input to the range $[0, 1]$, so that the models output can be interpreted as a probability for the Bernoulli distribution \cite{murphy_machine_2013}:
+Our model parameters are our weights $w$ and a bias $b$, and we get the predicted probability of a label by calculating the inner produc t between our input vector $x$ with the weights, adding the bias, and applying the sigmoid function to the result.
+The sigmoid function essentially just maps it's input to the range $[0, 1]$, so that the models output can be interpreted as a probability for the Bernoulli distribution \cite{murphy_machine_2013}:
 \begin{align}
     p(y \mid x) &= \mathrm{Ber} \left( y \mid \mathrm{sigm}\left(\langle w, x \rangle + b\right) \right)\\
     \mathrm{sigm}(\eta) &= \frac{1}{1 + e^{- \eta}} = \frac{e^\eta}{e^\eta + 1}\label{eq:sigmoid}\\
@@ -346,49 +480,68 @@ This construction solves the binary classification case, however it can be exten
     p(y = c \mid x) = \frac{e^{w_c x}}{\sum_{c' = 1}^C e^{w_{c'}x}}
 \end{equation}
 
-The loss-function that is minimized in training for this model is the log-likelihood function. Since it is globally convex and derivable twice it can be minimized using a Quasi-Newton method. Alternatively Stochastic Gradient Descent (SGD) can be applied for Logistic Regression as well which might be faster, especially for large datasets, possibly at the cost of model accuracy. SGD also has the upside of being an online learning algorithm, i.e. the learning scenario where we can update our model weights one sample at a time and not just across large batches of samples \cite{murphy_machine_2013}.
+The loss-function that is minimized in training for this model is the log-likelihood function.
+Since it is globally convex and derivable twice it can be minimized using a Quasi-Newton method.
+Alternatively \ac{sgd} can be applied for Logistic Regression as well which might be faster, especially for large datasets, possibly at the cost of model accuracy.
+\ac{sgd} also has the upside of being an online learning algorithm, i.e. the learning scenario where we can update our model weights one sample at a time and not just across large batches of samples \cite{murphy_machine_2013}.
 
-SGD can be used with a variety of loss functions, one of which is called Perceptron. This is a linear loss that for each sample, adds the computed gradient to the model weights if the classification was incorrect, and doesn't change the weights if it was correct. A slight variation from this is the hinge-loss, that additionally introduces a margin of 1 to the loss to increase the separation of the decision boundary \cite{murphy_machine_2013}. A good overview with graphs plotting these loss functions can be found in scikit-learn's user guide \cite{noauthor_stochastic_nodate}. The main takeaway for this thesis is that all these models perform the same operation during inference, namely the argmax of all the inner products between the different class weights and the inputs:
+\ac{sgd} can be used with a variety of loss functions, one of which is called Perceptron.
+This is a linear loss that for each sample, adds the computed gradient to the model weights if the classification was incorrect, and doesn't change the weights if it was correct.
+A slight variation from this is the hinge-loss, that additionally introduces a margin of 1 to the loss to increase the separation of the decision boundary \cite{murphy_machine_2013}.
+A good overview with graphs plotting these loss functions can be found in scikit-learn's user guide \cite{noauthor_stochastic_nodate}.
+The main takeaway for this thesis is that all these models perform the same operation during inference, namely the argmax of all the inner products between the different class weights and the inputs:
 
 \begin{equation}
     y' = \argmax_c \langle w_c, x \rangle
 \end{equation}
 
-For example in scikit-learn, the LogisticRegression, SGDClassifier, and Perceptron classes all perform this step during inference while employing different training techniques. The Perceptron class is even a wrapper over the SGDClassifier class that just changes the loss function from the hinge-loss to the perceptron-loss and sets the learning rate to be constant \cite{noauthor_api_nodate}.
+For example in scikit-learn, the LogisticRegression, SGDClassifier, and Perceptron classes all perform this step during inference while employing different training techniques.
+The Perceptron class is even a wrapper over the SGDClassifier class that just changes the loss function from the hinge-loss to the perceptron-loss and sets the learning rate to be constant \cite{noauthor_api_nodate}.
 
-\subsection{Classification and Regression Trees (CART)}\label{CART}
+\subsection{\acf{cart}}\label{CART}
 
-Classification and Regression Trees (CART), or decision trees are a type of model that splits the training data recursively into regions that belong to the same label. This can be represented by a binary tree, where the leafs contain output labels, and each node makes a comparison between one of our features $x_i$ to a threshold $t_i$. Depending on whether the feature was smaller or larger than the threshold, we will traverse to the left or right child and continue with the next comparison. The label in the leaf that we will reach by doing this is our models output. See \ref{fig:decision_tree} for a visual representation of a simple example dataset and a tree fitted to it.
+A \acf{cart}, or a decision tree is a type of model that splits the training data recursively into regions that belong to the same label.
+This can be represented by a binary tree, where the leafs contain output labels, and each node makes a comparison between one of our features $x_i$ to a threshold $t_i$.
+Depending on whether the feature was smaller or larger than the threshold, we will traverse to the left or right child and continue with the next comparison.
+The label in the leaf that we will reach by doing this is our models output.
+See \cref{fig:decision_tree} for a visual representation of a simple example dataset and a tree fitted to it.
 
 \begin{figure}[h]
-\centering
-\begin{subfigure}[t]{0.45\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{../figures/decision_tree_data.png}
-    \caption{The partitioned training data with each region colored in it's label ($y_1$ in red, $y_2$ in blue, $y_3$ in green)}
-\end{subfigure}
-\hfill
-\begin{subfigure}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{../figures/decision_tree.png}
-    \caption{One possible decision tree for this data}
-\end{subfigure}
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/decision_tree_data.png}
+        \caption{The partitioned training data with each region colored in it's label ($y_1$ in red, $y_2$ in blue, $y_3$ in green)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/decision_tree.png}
+        \caption{One possible decision tree for this data}
+    \end{subfigure}
 
-\caption{A visualization of a decision tree with depth 3, 2-dim features, and three possible output classes}
-\label{fig:decision_tree}
+    \caption{A visualization of a decision tree with depth 3, 2-dim features, and three possible output classes}
+    \label{fig:decision_tree}
 \end{figure}
 
-Fitting such a model perfectly, i.e. finding the optimal partitioning for the training data is shown to be NP-complete, which is why it is common to use greedy algorithms that approximate the best partitioning for training. One such algorithm is called Boosting, and it applies a weak learner to weighted versions of the training data sequentially, where the weights are higher for samples that the model mispredicted during the last iteration. In 1998, Leo Breiman called a shallow decision tree combined with the Boosting algorithm the "best off-the-shelf classifier in the world" \cite{murphy_machine_2013}.
+Fitting such a model perfectly, i.e. finding the optimal partitioning for the training data is shown to be NP-complete, which is why it is common to use greedy algorithms that approximate the best partitioning for training.
+One such algorithm is called Boosting, and it applies a weak learner to weighted versions of the training data sequentially, where the weights are higher for samples that the model mispredicted during the last iteration.
+In 1998, Leo Breiman called a shallow decision tree combined with the Boosting algorithm the "best off-the-shelf classifier in the world" \cite{murphy_machine_2013}.
 
-\subsection{Feedforward Neural Networks (FNN)}\label{FNN}
+\subsection{\acf{fnn}}\label{FNN}
 
-The Feedforward Neural Network (FNN), also called Multi-Layer Perceptron (MLP) is essentially just a series of Perceptron/Logistic Regression models. The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer. This means that a forward pass for each layer consists of a matrix product between the layers weights and the last layers output, and then applying the activation function. A neural network always consists of one input layer (the values of the feature vector), one output layer (e.g. the probability values of each possible output label), and at least one hidden layer with an activation function. Most notably these types of neural networks do not form cycles, in contrary to for example Recurrent Neural Networks (RNN) \cite{murphy_machine_2013}. An example can be seen in \ref{fig:NN}
+The \acf{fnn}, also called \acf{mlp} is essentially just a series of Perceptron/Logistic Regression models.
+The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer.
+This means that a forward pass for each layer consists of a matrix product between the layers weights and the last layers output, and then applying the activation function.
+A neural network always consists of one input layer (the values of the feature vector), one output layer (e.g. the probability values of each possible output label), and at least one hidden layer with an activation function.
+Most notably these types of neural networks do not form cycles, in contrary to for example a \acf{rnn} \cite{murphy_machine_2013}.
+An example can be seen in \cref{fig:NN}.
 
 \begin{figure}
     \begin{center}
         \includegraphics[width=0.95\textwidth]{../figures/nn.png}
     \end{center}
-    \caption{A FNN with two inputs, two outputs, and one 5-dim hidden layer}\label{fig:NN}
+    \caption{A \ac{fnn} with two inputs, two outputs, and one 5-dim hidden layer}\label{fig:NN}
 \end{figure}
 
 A model like this (one with only one hidden layer) used for a binary classification problem would thus have the following form:
@@ -400,21 +553,29 @@ A model like this (one with only one hidden layer) used for a binary classificat
     \end{aligned}
 \end{equation}
 
-Here $w_1$ are the weights from the input layer to the hidden layer, $w_2$ the weights from the hidden layer to the output layer, $z(x)$ the output of the hidden layer, and $g$ the activation function. It is important that the activation function is non-linear, since otherwise neural networks would collapse into one large linear model of the form $y = \langle w_1 (\langle w_2 x \rangle) \rangle$. With suitable non-linear activation functions however it can be shown that this type of model can be a universal approximator that can model any smooth function (given enough hidden units) to any desired level of accuracy \cite{murphy_machine_2013}.
+Here $w_1$ are the weights from the input layer to the hidden layer, $w_2$ the weights from the hidden layer to the output layer, $z(x)$ the output of the hidden layer, and $g$ the activation function.
+It is important that the activation function is non-linear, since otherwise neural networks would collapse into one large linear model of the form $y = \langle w_1 (\langle w_2 x \rangle) \rangle$.
+With suitable non-linear activation functions however it can be shown that this type of model can be a universal approximator that can model any smooth function (given enough hidden units) to any desired level of accuracy \cite{murphy_machine_2013}.
 
-A very common and very simple activation function is the rectified linear unit function (ReLu), that just cuts any output smaller than $0$:
+A very common and very simple activation function is the \acf{relu} function, that just cuts any output smaller than $0$:
 
 \begin{equation}
     \mathrm{ReLu}(x) = \max(0, x)
 \end{equation}
 
-Other possible activation functions are the logistic sigmoid function (as already defined in \ref{eq:sigmoid}), or the hyperbolic tan function ($\tanh$) \cite{noauthor_api_nodate}.
+Other possible activation functions are the logistic sigmoid function (as already defined in \cref{eq:sigmoid}), or the hyperbolic tan function ($\tanh$) \cite{noauthor_api_nodate}.
 
-\subsection{K-Nearest Neighbors (KNN)}\label{KNN}
+\subsection{\acf{knn}}\label{KNN}
 
-The K-Nearest Neighbors classifier (KNN) is the last type of model that we will have a look at in this thesis. In contrary to the previous models it is a non-parametric model. While parametric models have a fixed set of parameters that are adjusted during training, for non-parametric models such as KNN the set of parameters grows with the training data. This is why non-parametric methods are also called memory-based learning, or instance-based learning \cite{murphy_machine_2013}.
+The \acf{knn} is the last type of model that we will have a look at in this thesis.
+In contrary to the previous models it is a non-parametric model.
+While parametric models have a fixed set of parameters that are adjusted during training, for non-parametric models such as \ac{knn} the set of parameters grows with the training data.
+This is why non-parametric methods are also called memory-based learning, or instance-based learning \cite{murphy_machine_2013}.
 
-Training a KNN model is quite simple: The model just stores all the feature vector to label mappings that it has seen during training (or a representative set). For any new feature vector $x$ it will then compute the $K$ geometrically closest training vectors to $x$ according to some metric. The probability that $x$ belongs to a given label $y = c$ is then the proportion of vectors in $K$ assigned to $c$. Formally this can be written as follows, where $N_K(x, \mathcal{D})$ are the indices of the $K$ nearest points to $x$ in $\mathcal{D}$:
+Training a \ac{knn} model is quite simple: The model just stores all the feature vector to label mappings that it has seen during training (or a representative set).
+For any new feature vector $x$ it will then compute the $K$ geometrically closest training vectors to $x$ according to some metric.
+The probability that $x$ belongs to a given label $y = c$ is then the proportion of vectors in $K$ assigned to $c$.
+Formally this can be written as follows, where $N_K(x, \mathcal{D})$ are the indices of the $K$ nearest points to $x$ in $\mathcal{D}$:
 
 \begin{equation}
     \begin{aligned}
@@ -426,37 +587,60 @@ Training a KNN model is quite simple: The model just stores all the feature vect
     \end{aligned}
 \end{equation}
 
-To compute $N_K(x, \mathcal{D})$ most of the time the Euclidean metric is used, however other metrics are also possible and especially useful if our features are not real-valued \cite{murphy_machine_2013}. A geometric representation of this process can be seen in \ref{fig:knearestneighbors}.
+To compute $N_K(x, \mathcal{D})$ most of the time the Euclidean metric is used, however other metrics are also possible and especially useful if our features are not real-valued \cite{murphy_machine_2013}.
+A geometric representation of this process can be seen in \cref{fig:knearestneighbors}.
 
 \begin{figure}[h]
     \begin{center}
         \includegraphics[width=0.5\textwidth]{../figures/knearestneighbors.png}
     \end{center}
-    \caption{Illustration of two vectors $x_1$ and $x_2$ that are getting classified in a K-Nearest Neighbors model by using the training vectors (round points), with $K=3$. $x_1$ has with probability $1$ label $y_1$ while $x_2$ has with probability $2/3$ label $y_2$ and with $1/3$ label $y_1$.}\label{fig:knearestneighbors}
+    \caption{Illustration of two vectors $x_1$ and $x_2$ that are getting classified in a \ac{knn} model by using the training vectors (round points), with $K=3$. $x_1$ has with probability $1$ label $y_1$ while $x_2$ has with probability $2/3$ label $y_2$ and with $1/3$ label $y_1$.}\label{fig:knearestneighbors}
 \end{figure}
 
-KNN can achieve quite good results, and it has even been shown to be able to come within the factor of $2$ to the pest possible classification performance. However it also has some major downsides: In addition to the growing parameter count which impacts the memory and runtime behaviors of a KNN model, KNN notably also suffers from another drawback called the curse of dimensionality. This effect describes how, with increasing dimensionality of the vectors, we also have to increase the portion of our hyper-space that we consider to be 'neighboring' to our input $x$. If we want to draw a hyper-cube around our vector $x$ that contains $1\%$ of the data, it's expected edge length has to be $0.01^{\frac{1}{D}}$, with $D$ being our dimensionality. For $D=3$, we would have to extend the cube to less than $22\%$ in each dimension. For $D=30$, this would already be almost $86\%$. The problem with considering such a large proportion of our total space when looking for neighbors is, that the vectors we would compare to our input would not be that similar to it anymore and thus they might not be very good comparison points. The curse of dimensionality thus results in rapidly declining accuracies of the KNN model with increasing the dimensionality \cite{murphy_machine_2013}.
+\ac{knn} can achieve quite good results, and it has even been shown to be able to come within the factor of $2$ to the pest possible classification performance.
+However it also has some major downsides: In addition to the growing parameter count which impacts the memory and runtime behaviors of a \ac{knn} model, \ac{knn} notably also suffers from another drawback called the curse of dimensionality.
+This effect describes how, with increasing dimensionality of the vectors, we also have to increase the portion of our hyper-space that we consider to be 'neighboring' to our input $x$.
+If we want to draw a hyper-cube around our vector $x$ that contains $1\%$ of the data, it's expected edge length has to be $0.01^{\frac{1}{D}}$, with $D$ being our dimensionality.
+For $D=3$, we would have to extend the cube to less than $22\%$ in each dimension.
+For $D=30$, this would already be almost $86\%$.
+The problem with considering such a large proportion of our total space when looking for neighbors is, that the vectors we would compare to our input would not be that similar to it anymore and thus they might not be very good comparison points.
+The curse of dimensionality thus results in rapidly declining accuracies of the \ac{knn} model with increasing the dimensionality \cite{murphy_machine_2013}.
 
-\subsection{Some Vectorization Techniques for NLP Tasks}
+\subsection{Some Vectorization Techniques for \acs{nlp} Tasks}
 
-So far we have mostly assumed that our inputs are vectors of numbers (integer or real-valued). For Natural Language Processing (NLP) tasks this does not hold true however since our real inputs are text. There are a lot of preprocessing steps that have to be performed on this text before it can be fed to one of the models we described above. We will not cover most of these steps, e.g. we will assume that the text has been tokenized already. We will however look a bit closer at some vectorization techniques, i.e. processes that turn pre-processed tokens (list of strings) into feature vectors (list of integers/floats). Some of these techniques can be applied to whole documents (i.e. larger excerpts of text), some only for shorter token sequences or just individual tokens.
+So far we have mostly assumed that our inputs are vectors of numbers (integer or real-valued).
+For \ac{nlp} tasks this does not hold true however since our real inputs are text.
+There are a lot of preprocessing steps that have to be performed on this text before it can be fed to one of the models we described above.
+We will not cover most of these steps, e.g. we will assume that the text has been tokenized already.
+We will however look a bit closer at some vectorization techniques, i.e. processes that turn pre-processed tokens (list of strings) into feature vectors (list of integers/floats).
+Some of these techniques can be applied to whole documents (i.e. larger excerpts of text), some only for shorter token sequences or just individual tokens.
 
-\subsubsection{One-Hot Encoding and Bag-Of-Words (BOW)}
+\subsubsection{One-Hot Encoding and \acf{bow}}
 
-These very simple vectorization techniques generate a vector of dimensionality $|\mathcal{V}|$ for a document and a pre-defined vocabulary $\mathcal{V}$, where each vector entry $x_i$ is one if the word occurred in the document, and zero if not. For example consider the vocabulary $\mathcal{V} = [ \text{i}, \text{magician}, \text{model}, \text{using}, \text{a}, \text{like}, \text{can} ]$ and the following document:
+These very simple vectorization techniques generate a vector of dimensionality $|\mathcal{V}|$ for a document and a pre-defined vocabulary $\mathcal{V}$, where each vector entry $x_i$ is one if the word occurred in the document, and zero if not.
+For example consider the vocabulary $\mathcal{V} = [ \text{i}, \text{magician}, \text{model}, \text{using}, \text{a}, \text{like}, \text{can} ]$ and the following document:
 \begin{verbatim}
-    I like using a ML model. I feel like I am using black magic.
+    I like using a ML model.
+I feel like I am using black magic.
 \end{verbatim}
 
-With One-Hot Encoding this would get translated into this vector (case insensitive): $[ 1, 0, 1, 1, 1, 1, 0 ]$. We set the positions corresponding to the vocabulary words that occur in the document to $1$, and the ones that do not occur to $0$ \cite{murphy_machine_2013}.
+With One-Hot Encoding this would get translated into this vector (case insensitive): $[ 1, 0, 1, 1, 1, 1, 0 ]$.
+We set the positions corresponding to the vocabulary words that occur in the document to $1$, and the ones that do not occur to $0$ \cite{murphy_machine_2013}.
 
-Bag-Of-Words (BOW) is similar except that we do not just encode in the vector whether a vocabulary token occurs in the document or not, but rather how often it occurs. BOW would generate the following vector for our example document and vocabulary: $[3, 0, 1, 2, 1, 2, 0]$ \cite{murphy_machine_2013}.
+\acf{bow} is similar except that we do not just encode in the vector whether a vocabulary token occurs in the document or not, but rather how often it occurs.
+\ac{bow} would generate the following vector for our example document and vocabulary: $[3, 0, 1, 2, 1, 2, 0]$ \cite{murphy_machine_2013}.
 
-\subsubsection{TF-IDF}
+\subsubsection{\acf{tfidf}}
 
-One major problem with BOW is that we want our features to more uniquely describe their respective documents and their attributes. Consider for example the use case of sentiment analysis on movie reviews. This can be implemented as a binary document classification task. While BOW would capture all the words contained in each document (that we know from training), most of these words are not relevant at all to the sentiment of the review. The amount of occurrences of stop words like "a" or "to" for example is very inconclusive for determining the documents sentiment, or most other classification tasks for that matter.
+One major problem with \ac{bow} is that we want our features to more uniquely describe their respective documents and their attributes.
+Consider for example the use case of sentiment analysis on movie reviews.
+This can be implemented as a binary document classification task.
+While \ac{bow} would capture all the words contained in each document (that we know from training), most of these words are not relevant at all to the sentiment of the review.
+The amount of occurrences of stop words like "a" or "to" for example is very inconclusive for determining the documents sentiment, or most other classification tasks for that matter.
 
-The "Term Frequency - Inverse Document Frequency" (TF-IDF) technique solves this by weighting the frequency of a term inside the document (like we use in BOW) against the frequency of other documents where this term also occurs. This means that for our features to become large a token from our vocabulary not only has to occur often in the given document, but it also must occur seldom in other documents. More formally:
+The \acf{tfidf} technique solves this by weighting the frequency of a term inside the document (like we use in \ac{bow}) against the frequency of other documents where this term also occurs.
+This means that for our features to become large a token from our vocabulary not only has to occur often in the given document, but it also must occur seldom in other documents.
+More formally:
 
 \begin{equation}
     \begin{aligned}
@@ -473,8 +657,14 @@ Where $t$ is our term, $d$ our document, $N$ the total number of documents, $\ma
 
 \subsubsection{Semantic Word Embeddings}
 
-In general a main goal of vectorization is to generate vectors that bring similar data samples close to each other in the resulting vector space, e.g. in classification we would like to have feature vectors to have a high cosine similarity to other vectors of the same output class. The previous approaches solely relied on frequencies of our terms in the documents which works well for simple document classification tasks. Other more complex tasks however require our model to gain an intricate understanding of the semantics of any given word and thus it's positional relation to other words in a sentence.
+In general a main goal of vectorization is to generate vectors that bring similar data samples close to each other in the resulting vector space, e.g. in classification we would like to have feature vectors to have a high cosine similarity to other vectors of the same output class.
+The previous approaches solely relied on frequencies of our terms in the documents which works well for simple document classification tasks.
+Other more complex tasks however require our model to gain an intricate understanding of the semantics of any given word and thus it's positional relation to other words in a sentence.
 
-For this we want to generate semantic word embeddings for each word. These vectors should be similar to one another if and only if they appear in very similar contexts to one another. For example if two words can be interchanged in most sentences without drastically changing the sentence's meaning or correctness, we would expect the embeddings of these two words to have a very high cosine similarity. This will not only capture semantic meaning for our model but also automatically deal with synonyms but also homographs (e.g. the "like" in our document example above).
+For this we want to generate semantic word embeddings for each word.
+These vectors should be similar to one another if and only if they appear in very similar contexts to one another.
+For example if two words can be interchanged in most sentences without drastically changing the sentence's meaning or correctness, we would expect the embeddings of these two words to have a very high cosine similarity.
+This will not only capture semantic meaning for our model but also automatically deal with synonyms but also homographs (e.g. the "like" in our document example above).
 
-Semantic embeddings are generated by a model specifically trained for this task, like a Word2Vec model or, more commonly nowadays and with much improved results, transformer based models like Bert. We will not explain the details of these models but refer to a good source instead that covers the topic of textual embeddings more deeply: \cite{jurafsky_speech_2025}.
+Semantic embeddings are generated by a model specifically trained for this task, like a Word2Vec model or, more commonly nowadays and with much improved results, transformer based models like Bert.
+We will not explain the details of these models but refer to a good source instead that covers the topic of textual embeddings more deeply: \cite{jurafsky_speech_2025}.
