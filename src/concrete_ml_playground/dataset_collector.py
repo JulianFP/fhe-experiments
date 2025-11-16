@@ -24,8 +24,8 @@ def get_dataset_loaders() -> dict[str, tuple[Callable, str]]:
     return {
         "xor": (load_xor_split_dataset, "XOR problem"),
         "iris": (load_iris_dataset, "Iris"),
-        "digits": (load_digits_dataset, "Digits"),
         "cancer": (load_breast_cancer_dataset, "Breast Cancer"),
+        "digits": (load_digits_dataset, "Digits"),
         "synth_50": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 50),
         "synth_100": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 100),
         "synth_250": get_dataset_loader_entry(load_synthetic_dataset, "Synthetic", 250),
