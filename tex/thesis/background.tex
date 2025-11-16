@@ -175,7 +175,7 @@ With the bootstrapping algorithm at disposal, constructing an \ac{fhe} scheme be
 To achieve this Gentry not only tried to increase the maximum circuit depth the encryption scheme could evaluate, but also to decrease the required depth to evaluate the decryption circuit of the scheme.
 For \ac{fhe}, the decryption of the underlying encryption scheme must be as computationally efficient as possible, and thus the scheme should also be compact.
 Gentry achieved this by not only choosing an encryption scheme that inherently has cheap decryption, but also by squashing the decryption circuit even further at the cost of higher encryption times.
-Because of this even modern bootstrappable \ac{fhe} schemes feature very cheap decryption, especially compared to traditional encryption schemes like \acused{rsa}\ac{rsa} \cite{gentry_fully_2009}.
+Because of this even modern bootstrappable \ac{fhe} schemes feature very cheap decryption, especially compared to traditional encryption schemes like \acuse{rsa}\ac{rsa} \cite{gentry_fully_2009}.
 
 \subsection{The Path to Modern \acs{fhe} Schemes}
 
@@ -205,7 +205,7 @@ These schemes are also not defined on bit operations, but on integer and (approx
 \end{figure}
 
 In \cref{DGHV} we built a simple homomorphic encryption scheme based on the \ac{agcd} problem.
-Most other schemes however (with the \acused{ntru}\ac{ntru} branch being a notable exception) are based on some kind of lattice problem.
+Most other schemes however (with the \acuse{ntru}\ac{ntru} branch being a notable exception) are based on some kind of lattice problem.
 For example the original \ac{fhe} scheme described by Gentry used ideal lattices, though his construction has since been shown to be insecure \cite{gentry_fully_2009} \cite{smart_final_2022}.
 Most other modern schemes are based in some way on the \ac{lwe} problem which we will explain in \cref{LWE}, or its polynomial ring version, the \ac{rlwe} problem \cite{smart_final_2022}.
 The first scheme to use \ac{lwe} was the \ac{bgv} scheme in 2011 \cite{brakerski_leveled_2012}.
@@ -214,7 +214,7 @@ Because we nowadays also know some possible attacks against \ac{ntru}, \ac{lwe}-
 
 Another notable mention is the \ac{gsw} scheme introduced by \citetitle*{gentry_homomorphic_2013} in 2013 \cite{gentry_homomorphic_2013}, since the modern \ac{tfhe} scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the \ac{rgsw} ciphertext which is a polynomial ring variation of the \ac{gsw} ciphertext.
 
-\subsection{The \acf{lwe} Problem}\label{LWE}
+\subsection{The \acl{lwe} Problem}\label{LWE}
 
 \ac{lwe} was first introduced by Oded Regev in 2005 \cite{regev_lattices_2005}, and is defined as follows:
 
@@ -266,15 +266,15 @@ For much higher dimensionality and a more suited base this would indeed become v
 Our definition of the \ac{lwe} problem shares a lot of similarities with the \ac{cvp} problem: The given vectors $a_i$ of each equation can be viewed as one matrix $A$ that would be the basis of our lattice.
 The $b_i$ is the given vector $t$ that contains the error and as such is not part of the lattice, and the problem would become to find the vector $c$ (or $s$), that generates the lattice point closest to this vector.
 
-\subsection{\acf{tfhe}}\label{TFHE}
+\subsection{\acl{tfhe}}\label{TFHE}
 
 We will know have a closer look at the \ac{tfhe} scheme because all our experiments in the later chapters will be utilizing \ac{tfhe} in some way.
-The paper \citetitle*{chillotti_tfhe_2020} was originally introduced in 2016 by the authors \citeauthor{chillotti_tfhe_2020} (hence this scheme is sometimes also called \acused{cggi}\ac{cggi}) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
+The paper \citetitle*{chillotti_tfhe_2020} was originally introduced in 2016 by the authors \citeauthor{chillotti_tfhe_2020} (hence this scheme is sometimes also called \acuse{cggi}\ac{cggi}) and describes an improved version of the FHEW scheme, most notably regarding performance and functionality \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021} \cite{noauthor_continuing_nodate}.
 
 On a high level, \ac{tfhe} consists of three different types of ciphertexts, and defines a broad set of operations within and across these three ciphertexts.
 We will not explain all these operations exhaustively, but just give a broad overview to give some understanding why mapping arbitrary computations to the most efficient set of \ac{fhe} operations might be challenging.
 
-\subsubsection{\ac{lwe} ciphertexts}
+\subsubsection{\acs{lwe} ciphertexts}
 
 First of we will start with \ac{lwe} ciphertexts: These use the \ac{lwe} problem as explained in \cref{LWE}, and encode the message $m$ from a message space $\mathcal{M}$ in what was before the error of the \ac{lwe} equations.
 This guarantees that the message cannot be obtained if only the $b_i$ and $a_i$ are known, because if that where possible one could also easily obtain $s$, the hardness of which is guaranteed by \ac{lwe} and the underlying \ac{cvp} on lattices.
@@ -344,7 +344,7 @@ Why these are equivalent and still correct after decryption can easily be seen i
     \end{aligned}
 \end{equation}
 
-\subsubsection{\ac{rlwe} ciphertext}
+\subsubsection{\acs{rlwe} ciphertext}
 
 This ciphertext works equivalently to the \ac{lwe} ciphertext, with the only difference being that instead of having integers modulo $p$, we know work with polynomials modulo $X^N + 1$.
 The message, secret, our factors, and the error now become polynomials: $M(X), S(X), A(X), B(X), E(X)$, encoding $N$ coefficients.
@@ -361,7 +361,7 @@ Decoding also stays the same, just that the process has to be repeated $N$ times
 On this ciphertext we can also perform addition and multiplication by a constant, except that our constant is a constant polynomial $\Gamma(X)$ this time.
 The proofs for why this works are equivalent to the ones we already did for \ac{lwe} ciphertexts \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\subsubsection{\ac{rgsw} ciphertext}
+\subsubsection{\acs{rgsw} ciphertext}
 
 The \ac{rgsw} ciphertext essentially consists of a multitude of \ac{rlwe} encryptions with additional terms in them, arranged in a 3-dimensional matrix.
 Because of it's complex structure we will not explain it in detail and just give a high level overview.
@@ -375,7 +375,7 @@ This multiplication works by first decomposing the four polynomials of one of ou
 The second step is to perform a matrix multiplication with this decomposition matrix with the right-hand site of our multiplication, returning us a $2\times2$ matrix.
 These two steps then have to be repeated $l$ times for every $2\times2$ matrix on the left hand site, combining all $l$ results into one matrix which will then again be a valid \ac{rgsw} ciphertext encrypting $m_1 \cdot m_2$ \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-\subsubsection{Additional \ac{tfhe} building blocks}\label{TFHE_building_blocks}
+\subsubsection{Additional \acs{tfhe} building blocks}\label{TFHE_building_blocks}
 
 \ac{tfhe} defines more operations than just addition and multiplication that allow for greater flexibility when implementing arbitrary circuits over ciphertexts, especially when switching between the three different kinds of ciphertexts in \ac{tfhe}.
 We give a non-exhaustive list of the most important ones.
@@ -384,7 +384,7 @@ The \textbf{External Product} also allows for multiplication between two ciphert
 The algorithm works otherwise quite similar to multiplication over two \ac{rgsw} ciphertexts however it works with $1\times2$ matrices instead of $2\times2$ and does not require the $l$ repetitions thus being more efficient.
 The result is an \ac{rlwe} ciphertext \cite{chillotti_tfhe_2020} \cite{chillotti_tfhe_2021}.
 
-The \textbf{\ac{cmux}} is a common binary gate with three inputs $d_0, d_1, b$ and one output $d_b$.
+The \textbf{\ac{cmux}} is a common binary gate with three inputs $d_0, d_1, b$ and one output $d_b$.\label{cmux}
 It's function is quite simple:
 
 \begin{equation}
@@ -454,6 +454,52 @@ Compiling an algorithm for \ac{tfhe} ciphertexts becomes the task of combining t
 \ac{tfhe} has some helpful attributes to help with this, for example it allows for constant monitoring of the noise so that the \ac{tfhe} framework in use can dynamically know when it is best to perform the Bootstrapping.
 However this abundance of building blocks and their different characteristics make building an optimized \ac{tfhe} circuit a lot more challenging than one might think, and the efficiency and evaluation overhead introduced by \ac{tfhe} compared to regular clear evaluation is quite dependent on the specific application and algorithm and how well it can be or has been optimized for \ac{tfhe}.
 
+\subsection{Some Inherent Limitations of \acs{tfhe}}
+
+We will now briefly look at some inherent limitations that come with the described construction of \ac{tfhe}.
+These limitations may also be applicable to other \ac{fhe} schemes however we will focus on \ac{tfhe} here.
+
+\subsubsection{Only over Integers and Booleans - Quantization}\label{quantization}
+
+Our construction of \ac{lwe} and \ac{rlwe} ciphertexts only allow for a discrete message space with relatively small size which prohibits the usage of floating point numbers.
+Furthermore even when only using integers, this limits the size of the integer space we can use and thus the integer precision available to us \cite{chillotti_tfhe_2020}.
+Even intermediate values in the \ac{fhe} circuit must be integers as well, intermediate values can only be floating point numbers if they are intermediates of a singular \ac{fhe} operations.
+For example $(60 * np.sin(x).astype(np.int64)$ can be turned into a single look-up table operation with \ac{pbs}, with $np.sin(x)$ being an allowed floating point intermediate.
+However after multiplication with the constant $60$ the result needs to casted into an integer again since that would need be written inside the \ac{pbs} look-up table \cite{noauthor_concrete_2025-1}.
+
+This necessitates a client-side pre-processing procedure of our encrypted inputs before they can be properly used in an \ac{fhe} circuit, called quantization.
+Quantization turns floating point numbers and integers into a specific predefined integer range that can be encrypted and homomorphically computed on.
+How large that range differs is in \ac{tfhe} heavily dependent on for example the nature and depth of the \ac{fhe} circuit. For example an FHE circuit that includes non-linear operations implemented with \ac{pbs} requires a much higher degree of quantization since the look-up tables used during \ac{pbs} would explode in size if we where to build them for large and high-precision input and output integers.
+The size of the integer range is defined by a $p$ which describes the amount of bits we have to represent an integer in this range.
+We will call $p$ the bit-width from now on.
+First of we need to define a step size $\Delta$ that describes the distance between two adjacent values in our target integer range:
+\begin{equation}
+    \Delta = \frac{\max(X) - \min(X)}{2^p - 1}
+\end{equation}
+This means that larger differences between the minimum and maximum of the set of possible values $X$ as well as smaller bit-widths make the necessary step size larger, resulting in a higher loss of accuracy during quantization \cite{frery_privacy-preserving_2023}.
+Now the actual quantization can be performed on a new value from our input space $x \in X$:
+\begin{equation}
+    q(x) = \left\lfloor \frac{x}{\Delta} \right\rceil + z
+\end{equation}
+Here $z$ is chosen such that $q(\min(X)) = 0$ so that the bit-width is maximally utilized \cite{frery_privacy-preserving_2023}.
+
+Here we can also see how quantization can severely reduce the inputs precision due to the rounding, and thus also reduce the accuracy of the computations coming after.
+For larger step sizes this rounding might change the input values quite a bit, making our FHE computations on these rounded values effectively only approximations of the clear equivalent.
+
+\subsubsection{No Support for Control-Flow Statements}\label{no_control-flow}
+
+We have introduced the \ac{cmux} gate in \cref{cmux} that enables conditional assignment of one of two input values to an output.
+However while the \ac{cmux} gate may look like an if-statement we want to point out that it can only be used for assignments, i.e. situations where we choose between two already computed values.
+It cannot be used to change the control-flow of our \ac{fhe} circuit, i.e. to dynamically change the set of computations applied on the input depending on the encrypted input value.
+In fact, \emph{no \acs{fhe} scheme supports control-flow statements that depend on the encrypted input} \cite{frery_privacy-preserving_2023}.
+
+Intuitively, this makes sense since otherwise one could construct an \ac{fhe} program that decrypts the input value through the use of control-flow statements.
+For example if the message space is binary, one could build a program that terminates if the encrypted bit is $1$ but stays in an infinite loop if it is $0$.
+The adversary could then find out the encrypted bit by just observing the termination behavior of the program.
+
+One result of this is that, if a program introduces branching, in \ac{fhe} we would need to compute every possible branch of the program, and then select the correct execution after the fact using, for example, the \ac{cmux} block to return the output of the correct branch.
+Depending on the specific use case this can significantly increase the execution time of our \ac{fhe} circuit, however it should be noted that this can partially be remedied by parallelization since all the possible branches can be computed in parallel \cite{frery_privacy-preserving_2023}.
+
 \section{Machine Learning Concepts and Model Types}
 
 We will now switch over to introduce some concepts of machine learning that we specifically depended on in our later experiments.
@@ -498,7 +544,7 @@ The main takeaway for this thesis is that all these models perform the same oper
 For example in scikit-learn, the LogisticRegression, SGDClassifier, and Perceptron classes all perform this step during inference while employing different training techniques.
 The Perceptron class is even a wrapper over the SGDClassifier class that just changes the loss function from the hinge-loss to the perceptron-loss and sets the learning rate to be constant \cite{noauthor_api_nodate}.
 
-\subsection{\acf{cart}}\label{CART}
+\subsection{\acl{cart}}\label{CART}
 
 A \acf{cart}, or a decision tree is a type of model that splits the training data recursively into regions that belong to the same label.
 This can be represented by a binary tree, where the leafs contain output labels, and each node makes a comparison between one of our features $x_i$ to a threshold $t_i$.
@@ -528,7 +574,7 @@ Fitting such a model perfectly, i.e. finding the optimal partitioning for the tr
 One such algorithm is called Boosting, and it applies a weak learner to weighted versions of the training data sequentially, where the weights are higher for samples that the model mispredicted during the last iteration.
 In 1998, Leo Breiman called a shallow decision tree combined with the Boosting algorithm the "best off-the-shelf classifier in the world" \cite{murphy_machine_2013}.
 
-\subsection{\acf{fnn}}\label{FNN}
+\subsection{\acl{fnn}}\label{FNN}
 
 The \acf{fnn}, also called \acf{mlp} is essentially just a series of Perceptron/Logistic Regression models.
 The output of each layer is weighted by a weight matrix and passed through an activation function (also called transfer function) before given to the next layer.
@@ -565,7 +611,7 @@ A very common and very simple activation function is the \acf{relu} function, th
 
 Other possible activation functions are the logistic sigmoid function (as already defined in \cref{eq:sigmoid}), or the hyperbolic tan function ($\tanh$) \cite{noauthor_api_nodate}.
 
-\subsection{\acf{knn}}\label{KNN}
+\subsection{\acl{knn}}\label{KNN}
 
 The \acf{knn} is the last type of model that we will have a look at in this thesis.
 In contrary to the previous models it is a non-parametric model.
@@ -615,7 +661,7 @@ We will not cover most of these steps, e.g. we will assume that the text has bee
 We will however look a bit closer at some vectorization techniques, i.e. processes that turn pre-processed tokens (list of strings) into feature vectors (list of integers/floats).
 Some of these techniques can be applied to whole documents (i.e. larger excerpts of text), some only for shorter token sequences or just individual tokens.
 
-\subsubsection{One-Hot Encoding and \acf{bow}}
+\subsubsection{One-Hot Encoding and \acl{bow}}
 
 These very simple vectorization techniques generate a vector of dimensionality $|\mathcal{V}|$ for a document and a pre-defined vocabulary $\mathcal{V}$, where each vector entry $x_i$ is one if the word occurred in the document, and zero if not.
 For example consider the vocabulary $\mathcal{V} = [ \text{i}, \text{magician}, \text{model}, \text{using}, \text{a}, \text{like}, \text{can} ]$ and the following document:
@@ -630,7 +676,7 @@ We set the positions corresponding to the vocabulary words that occur in the doc
 \acf{bow} is similar except that we do not just encode in the vector whether a vocabulary token occurs in the document or not, but rather how often it occurs.
 \ac{bow} would generate the following vector for our example document and vocabulary: $[3, 0, 1, 2, 1, 2, 0]$ \cite{murphy_machine_2013}.
 
-\subsubsection{\acf{tfidf}}
+\subsubsection{\acl{tfidf}}
 
 One major problem with \ac{bow} is that we want our features to more uniquely describe their respective documents and their attributes.
 Consider for example the use case of sentiment analysis on movie reviews.

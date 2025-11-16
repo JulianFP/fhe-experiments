@@ -1,47 +1,171 @@
-\chapter*{List of Acronyms}
-\addcontentsline{toc}{chapter}{List of Acronyms}
-
-\begin{acronym}[fdoptpa]
-    \acro{he}[HE]{Homomorphic Encryption}
-    \acro{fhe}[FHE]{Fully Homomorphic Encryption}
-    \acro{tm}[TM]{Turing Machine}
-    \acro{ptm}[PTM]{Probabilistic \acs{tm}}
-    \acro{dghv}[DGHV]{\acroextra{An \acs{fhe} scheme named by the authors of the paper: }\citeauthor{van_dijk_fully_2010}}
-    \acro{gcd}[GCD]{Greatest Common Divisor}
-    \acro{agcd}[AGCD]{Approximate \acs{gcd}}
-    \acro{rsa}[RSA]{\acroextra{A family of public-key cryptosystems}}
-    \acro{ntru}[NTRU]{\acroextra{A public-key cryptosystem}}
-    \acro{lwe}[LWE]{Learning With Errors}
-    \acro{rlwe}[RLWE]{Ring \acs{lwe}}
-    \acro{bgv}[BGV]{\acroextra{An \acs{fhe} scheme named by the authors of the paper: }\citeauthor{brakerski_leveled_2012}}
-    \acro{bfv}[BFV]{\acroextra{An \acs{fhe} scheme named by the authors of the paper and the paper it is based on (\acs{bgv}): }Brakerski, \citeauthor{fan_somewhat_2012}}
-    \acro{gsw}[GSW]{\acroextra{An \acs{fhe} scheme named by the authors of the paper: }\citeauthor{gentry_homomorphic_2013}}
-    \acro{tfhe}[TFHE]{\acs{fhe} Over the Torus}
-    \acro{cggi}[CGGI]{\acroextra{An alternative name for the \acs{tfhe} scheme derived from the author names of the paper: }\citeauthor{chillotti_tfhe_2020}}
-    \acro{rgsw}[RGSW]{Ring \acs{gsw}}
-    \acro{cvp}[CVP]{Closest Vector Problem}
-    \acro{cmux}[CMux]{Controlled Multiplexer}
-    \acroplural{cmux}[CMuxes]{Controlled Multiplexers}
-    \acro{pbs}[PBS]{Programmable Bootstrapping}
-    \acro{sgd}[SGD]{Stochastic Gradient Descent}
-    \acro{cart}[CART]{Classification and Regression Tree}
-    \acroplural{cart}[CARTs]{Classification and Regression Trees}
-    \acro{fnn}[FNN]{Feedforward Neural Network}
-    \acroplural{fnn}[FNNs]{Feedforward Neural Networks}
-    \acro{mlp}[MLP]{Multi-Layer Perceptron\acroextra{ (also known as a \acs{fnn})}}
-    \acro{rnn}[RNN]{Recurrent Neural Network}
-    \acro{relu}[ReLu]{Rectified Linear unit}
-    \acro{knn}[KNN]{K-Nearest Neighbors}
-    \acro{nlp}[NLP]{Natural Language Processing}
-    \acro{bow}[BOW]{Bag-Of-Words}
-    \acro{tfidf}[TF-IDF]{Term Frequency - Inverse Document Frequency}
-    \acro{cli}[CLI]{Command Line Interface}
-    \acro{ml}[ML]{Machine Learning}
-    \acro{onnx}[ONNX]{Open Neural Network Exchange\acroextra{ (a \ac{ml} ecosystem)}}
-    \acro{llm}[LLM]{Large Language Model}
-    \acro{gpt}[GPT]{Generative Pre-trained Transformer}
-    \acro{ptq}[PTQ]{Post-Training Quantization}
-    \acro{qat}[QAT]{Quantization-Aware Training}
-    \acro{pca}[PCA]{Principal Component Analysis}
-    \acro{ner}[NER]{Named Entity Recognition}
-\end{acronym}
+\DeclareAcronym{he}{
+    short = HE ,
+    long = Homomorphic Encryption
+}
+\DeclareAcronym{fhe}{
+    short = FHE ,
+    long = Fully Homomorphic Encryption
+}
+\DeclareAcronym{tm}{
+    short = TM ,
+    long = Turing Machine
+}
+\DeclareAcronym{ptm}{
+    short = PTM ,
+    long = Probabilistic \acs{tm}
+}
+\DeclareAcronym{dghv}{
+    short = DGHV ,
+    long = \citeauthor{van_dijk_fully_2010} ,
+    extra = An \acs{fhe} scheme named after the authors of the paper
+}
+\DeclareAcronym{gcd}{
+    short = GCD ,
+    long = Greatest Common Divisor
+}
+\DeclareAcronym{agcd}{
+    short = AGCD ,
+    long = Approximate \acs{gcd}
+}
+\DeclareAcronym{rsa}{
+    short = RSA ,
+    long = {Ron Rivest, Adi Shamir and Leonard Adleman} ,
+    extra = {A family of public-key cryptosystems, named after the authors of the original algorithm}
+}
+\DeclareAcronym{ntru}{
+    short = NTRU ,
+    long =  ,
+    extra = A public-key cryptosystem
+}
+\DeclareAcronym{lwe}{
+    short = LWE ,
+    long = Learning With Errors
+}
+\DeclareAcronym{rlwe}{
+    short = RLWE ,
+    long = Ring \acs{lwe}
+}
+\DeclareAcronym{bgv}{
+    short = BGV ,
+    long = \citeauthor{brakerski_leveled_2012} ,
+    extra = An \acs{fhe} scheme named after the authors of the paper
+}
+\DeclareAcronym{bfv}{
+    short = BFV ,
+    long = {Brakerski, \citeauthor{fan_somewhat_2012}} ,
+    extra = An \acs{fhe} scheme named after the authors of the paper and the first author of the \acs{bgv} paper on which it is based on
+}
+\DeclareAcronym{gsw}{
+    short = GSW ,
+    long = \citeauthor{gentry_homomorphic_2013} ,
+    extra = An \acs{fhe} scheme named after the authors of the paper
+}
+\DeclareAcronym{tfhe}{
+    short = TFHE ,
+    long = FHE Over the Torus
+}
+\DeclareAcronym{cggi}{
+    short = CGGI ,
+    long = \citeauthor{chillotti_tfhe_2020} ,
+    extra = An alternative name for the \acs{tfhe} scheme derived from the author names of the paper
+}
+\DeclareAcronym{rgsw}{
+    short = RGSW ,
+    long = Ring \acs{gsw}
+}
+\DeclareAcronym{cvp}{
+    short = CVP ,
+    long = Closest Vector Problem
+}
+\DeclareAcronym{cmux}{
+    short = CMux ,
+    long = Controlled Multiplexer ,
+    short-plural = CMuxes ,
+    long-plural = Controlled Multiplexers
+}
+\DeclareAcronym{pbs}{
+    short = PBS ,
+    long = Programmable Bootstrapping
+}
+\DeclareAcronym{sgd}{
+    short = SGD ,
+    long = Stochastic Gradient Descent
+}
+\DeclareAcronym{cart}{
+    short = CART ,
+    long = Classification and Regression Tree ,
+    short-plural = CARTs ,
+    long-plural = Classification and Regression Trees
+}
+\DeclareAcronym{fnn}{
+    short = FNN ,
+    long = Feedforward Neural Network ,
+    short-plural = FNNs ,
+    long-plural = Feedforward Neural Networks
+}
+\DeclareAcronym{mlp}{
+    short = MLP ,
+    long = Multi-Layer Perceptron ,
+    extra = Also known as a \acs{fnn}
+}
+\DeclareAcronym{rnn}{
+    short = RNN ,
+    long = Recurrent Neural Network
+}
+\DeclareAcronym{relu}{
+    short = ReLu ,
+    long = Rectified Linear unit
+}
+\DeclareAcronym{knn}{
+    short = KNN ,
+    long = K-Nearest Neighbors
+}
+\DeclareAcronym{nlp}{
+    short = NLP ,
+    long = Natural Language Processing
+}
+\DeclareAcronym{bow}{
+    short = BOW ,
+    long = Bag-Of-Words
+}
+\DeclareAcronym{tfidf}{
+    short = TF-IDF ,
+    long = Term Frequency - Inverse Document Frequency
+}
+\DeclareAcronym{cli}{
+    short = CLI ,
+    long = Command Line Interface
+}
+\DeclareAcronym{ml}{
+    short = ML ,
+    long = Machine Learning
+}
+\DeclareAcronym{onnx}{
+    short = ONNX ,
+    long = Open Neural Network Exchange ,
+    extra = A \ac{ml} ecosystem
+}
+\DeclareAcronym{llm}{
+    short = LLM ,
+    long = Large Language Model
+}
+\DeclareAcronym{gpt}{
+    short = GPT ,
+    long = Generative Pre-trained Transformer
+}
+\DeclareAcronym{ptq}{
+    short = PTQ ,
+    long = Post-Training Quantization
+}
+\DeclareAcronym{qat}{
+    short = QAT ,
+    long = Quantization-Aware Training
+}
+\DeclareAcronym{pca}{
+    short = PCA ,
+    long = Principal Component Analysis
+}
+\DeclareAcronym{ner}{
+    short = NER ,
+    long = Named Entity Recognition
+}

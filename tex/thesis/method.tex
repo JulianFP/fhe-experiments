@@ -20,7 +20,7 @@ The graph generation runs independently from the experiment execution which allo
 
 The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add an easy-to-use \acs{cli} to be able to adjust parameters like execution repetitions, which experiment-dataset combinations should be executed, or which graphs should be generated.
 
-\section{The Examined \ac{fhe} Framework: concrete-ml}
+\section{The Examined \acs{fhe} Framework: concrete-ml}
 
 We chose the \emph{concrete-ml} framework to implement a variety of machine learning models in \ac{fhe} \cite{noauthor_concrete_2025}.
 It is built on top of the \ac{tfhe} compiler \emph{concrete} which turns Python programs into \ac{tfhe} circuit-equivalents \cite{noauthor_concrete_2025-1}.
@@ -68,22 +68,13 @@ We introduced this terminology to capture all operations that need to be execute
 This of course includes encryption of the inputs during pre-processing, and decryption of the output during post-processing.
 However it also includes a couple of other operations as well, most notably quantization and serialization during pre-processing, and dequantization and deserialization during post-processing which we will explain in the following.
 
-Concrete (and thus also concrete-ml) introduces a major restriction to our plaintext inputs: It only supports integers (and booleans).
-This means that floating point data (which unfortunately are very common in \ac{ml} applications) have to be turned into integers before they can be encrypted using a technique called quantization.
-Concrete does support floating point data for intermediate values of \ac{fhe} operations, as long as the input and output of any look-up table are integers.
-For example when turning $(60 * np.sin(x).astype(np.int64)$ into a single look-up table operation, $np.sin(x)$ is an allowed floating point intermediate, however after multiplication with the constant $60$ the result needs to casted into an integer again \cite{noauthor_concrete_2025-1}.
-
-Quantization works by observing the range of possible values that any input variable can have, and then mapping this floating point range to a suitable integer range.
-Every new input value will then be mapped to this integer space and rounded to the closest integer within it.
-For example if our input variable would contain some kind of probability, it's values would always be between $0.0$ and $1.0$.
-We could then quantize it to a 6-bit integer (i.e. the range $0$ to $64$) by mapping $0.0$ to $0$, and $1.0$ to $64$, and similarly for everything in between.
-As you can see this means that we loose precision because of the rounding to the next integer.
-Specifically for machine learning applications, this has to be done with both inputs and model weights since they all are almost always floating point values.
+We already covered quantization in \cref{quantization}.
+Specifically for \ac{ml} applications and in concrete-ml, quantization has to be done with both inputs and model weights since they all are almost always floating point values.
 The good aspect of this however is that in \ac{ml} the lost precision does often not result in false computations, but just in minor differences in output probabilities.
 However if we already are close to the decision boundary, for classification problems this can mean more false classifications, and also regression models will have more inaccuracies due to quantization.
 How much a model accuracy is affected by quantization heavily depends on the type of model in use and how the input data is shaped.
 For example linear models tend to suffer a lot less from quantization because the error introduced by it is not accumulated across many operations or model layers.
-In concrete-ml specifically, quantization is also a lot less aggressive for linear models since these do not use look-up tables which cannot work with high prevision integers since they would drastically increase the size of these look-up tables \cite{noauthor_concrete_2025} \cite{noauthor_concrete_2025-1}.
+In concrete-ml, quantization is also a lot less aggressive for linear models since these do not use look-up tables which cannot work with high prevision integers since they would drastically increase the size of these look-up tables (we already mentioned the effect of \ac{pbs} on quantization bit-width in \cref{quantization}) \cite{noauthor_concrete_2025} \cite{noauthor_concrete_2025-1}.
 
 Specifically for neural networks, concrete-ml offers two types of quantization: \ac{ptq}, and \ac{qat}.
 We will not explain these quantization algorithms in detail, it is however important to point out that, as the name suggests, \ac{ptq} can be applied after training while \ac{qat} executes during training introducing the requirement of re-training any given model from scratch.
@@ -187,7 +178,20 @@ We train the XGBoost model together with a standard scaler and \ac{pca} for dime
 This is something that probably would not be necessary if executed in clear, but we found that it also did not change the models accuracy much so we chose to follow this recommendation which just improves \ac{fhe} execution times.
 We then again compiled the model into the \ac{fhe} equivalent using the \texttt{from\_sklearn\_model} method \cite{noauthor_concrete_2025}.
 
-\ac{fhe} runtime? See paper for implementation details
+As mentioned in \cref{no_control-flow}, \ac{tfhe} (and \ac{fhe} schemes in general) do not allow control flow statements that depend on the input, and thus the implementation of a decision tree where every node in the tree introduces a new branch becomes anything else than trivial.
+The strategy for implementing \ac{cart} models used by Zama in concrete-ml is outlined in \citetitle*{frery_privacy-preserving_2023} \cite{frery_privacy-preserving_2023}.
+The core strategy comes down to replacing conditions with a parallel evaluation of all branches, and to retrieve the correct result by looking up the decision path afterwards.
+While this sounds very inefficient, it actually is not that uncommon even outside the \ac{fhe} space.
+This is because the way this parallelized execution of all branches is achieved is by computing all branching decisions simultaneously using tensor operations.
+This allows for acceleration with GPUs which in turn can significantly boost performance.
+There are libraries like Microsoft's Hummingbird that aim to do exactly this in order to be able to accelerate these more classical machine learning models with tensor operations on GPUs \cite{noauthor_microsofthummingbird_2025}.
+
+In addition to this parallel branch execution it is also required to train the \ac{cart} model using already quantized data so that it can learn the decisions for the correct integers.
+Since this model also includes a mix of linear and non-linear operations implemented with \ac{pbs}, it also requires carefully chosen (partially through benchmarking) cryptographic parameters to reduce the quantization error to a minimum \cite{frery_privacy-preserving_2023}.
+
+Since we are running our experiments on CPU, we expect this to how a significant impact on performance, much more than with Logistic Regression.
+On the other hand we also expect the \ac{cart} model to significantly outperform Logistic Regression since it is able to separate non-linearly, as long as the data is still clustered by class.
+Due to the non-linear operations we expect some measurable decreases in accuracy, however still to a relatively low level compared since this model should not require very deep circuits.
 
 \subsubsection{Neural Network Classifier}
 

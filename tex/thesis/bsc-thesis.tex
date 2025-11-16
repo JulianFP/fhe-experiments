@@ -64,10 +64,7 @@
 % hyperrefs in the documents and cleveref
 \usepackage[bookmarks=true,colorlinks,pdfpagelabels,pdfstartview = FitH,bookmarksopen = true,bookmarksnumbered = true,linkcolor = black,plainpages = false,hypertexnames = false,citecolor = black,urlcolor=black]{hyperref}
 %\usepackage{hyperref}
-\usepackage[noabbrev]{cleveref}
-
-% acronyms
-\usepackage[printonlyused]{acronym}
+\usepackage[noabbrev,nameinlink]{cleveref}
 
 % code listings
 \usepackage{listings}
@@ -100,6 +97,13 @@
 \lstset{style=mystyle}
 \crefname{lstlisting}{listing}{listings}
 \Crefname{lstlisting}{Listing}{Listings}
+
+% acronyms
+\usepackage{acro}
+\acsetup{
+  make-links = true
+}
+\input{acronyms}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -184,7 +188,14 @@ Submission Date: & December 02, 2025
 % List of tables (Tabellenverzeichnis):
 %\listoftables
 
-\include{acronyms}
+% List of acronyms
+\printacronyms[
+    name=List of Acronyms,
+    heading=chapter*,
+    display=used,
+    sort=true
+]
+\addcontentsline{toc}{chapter}{List of Acronyms}
 
 % References (Literaturverzeichnis):
 % a) Style (with abbreviations: use alpha):
