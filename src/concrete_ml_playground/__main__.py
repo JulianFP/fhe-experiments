@@ -14,6 +14,7 @@ from .experiment_collector import (
     get_ner_experiments,
 )
 from .statistics_handler import (
+    dataset_attribute_calculator,
     experiment_output_processor,
     evaluate_experiment_results,
 )
@@ -203,7 +204,9 @@ def main(
             )
 
     for dset_name_dict, (dset_loader, dset_name) in scheduled_dataset_loaders.items():
+        logger.info(f"Loading '{dset_name}' dataset...")
         X_train, X_test, y_train, y_test = dset_loader()
+        dataset_attribute_calculator(X_train, X_test, y_train, y_test)
         if draw_all or draw_cheap or redraw:
             draw_dataset(results_dir, dset_name, X_train, X_test, y_train, y_test)
         for exp_name_dict, (exp_func, exp_name) in scheduled_exps.items():

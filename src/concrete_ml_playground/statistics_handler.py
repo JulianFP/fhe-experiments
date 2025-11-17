@@ -3,8 +3,29 @@ import numpy.typing as npt
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from .interfaces import ExperimentOutput, ExperimentResult, ExperimentResultFinal
+from . import logger
 
 field_names = ExperimentResult.model_fields.keys()
+
+
+def dataset_attribute_calculator(X_train, X_test, y_train, y_test):
+    feature_dims = X_train.shape[1]
+    max_train_feature_spread = np.max(np.max(X_train, axis=0) - np.min(X_train, axis=0))
+    num_train_samples = X_train.shape[0]
+    num_test_samples = X_test.shape[0]
+    num_classes = len(np.unique(y_train))
+    y = np.concatenate([y_train, y_test])
+    full_classes, full_counts = np.unique(y, return_counts=True)
+    percentages = full_counts / full_counts.sum()
+    class_distribution = {int(cls): float(p) for cls, p in zip(full_classes, percentages)}
+    message = f"""===== Dataset attributes =====
+Dimensionality of feature vectors: {feature_dims}
+Maximal feature spread in training dset: {max_train_feature_spread}
+Number of training samples: {num_train_samples}
+Number of testing samples: {num_test_samples}
+Number of classes: {num_classes}
+Class distribution: {class_distribution}"""
+    logger.info(message)
 
 
 def experiment_output_processor(y_true: npt.NDArray, exp_out: ExperimentOutput) -> ExperimentResult:

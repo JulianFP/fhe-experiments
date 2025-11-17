@@ -53,7 +53,7 @@ def draw_decision_boundary_from_pickle_files(
         cmap = plt.cm.get_cmap(label_cmap, labels.size)
 
         plt.figure(figsize=figsize)
-        plt.title(clear_title)
+        # plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.5, cmap=cmap)
         for label in labels:
             plt.scatter(
@@ -69,7 +69,7 @@ def draw_decision_boundary_from_pickle_files(
         logger.info(f"Saved decision boundary to {png_path}")
 
         plt.figure(figsize=figsize)
-        plt.title(fhe_title)
+        # plt.title(fhe_title)
         plt.contourf(xx, yy, Z_fhe, alpha=0.5, cmap=cmap)
         for label in labels:
             plt.scatter(
@@ -183,7 +183,7 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
         title += " - with PCA applied"
 
     plt.figure(figsize=figsize)
-    plt.title(title)
+    # plt.title(title)
     labels = np.unique(y_test)
     cmap = plt.cm.get_cmap(label_cmap, labels.size)
     for label in labels:
@@ -240,7 +240,7 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
                 y_post_stdev.append(result.fhe_duration_postprocessing_stdev)
 
         plt.figure(figsize=figsize)
-        plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
+        # plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
         plt.xlabel("Dim of feature vectors")
         plt.ylabel("Runtime (in seconds)")
         plt.errorbar(x, y_clear, y_clear_stdev, fmt="bo-", label="clear")
