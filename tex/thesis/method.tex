@@ -159,14 +159,13 @@ For every model/dataset combination in this category we follow the same basic st
 
 These steps are then repeated 10 times for each model/dataset combination (including the model training), and we compute the average values as well as standard deviations for all of the returned metrics across these 10 executions.
 
-\subsubsection{Logistic Regression}
+\subsubsection{Logistic Regression}\label{LogisticRegressionExp}
 
 This model represents the set of linear models that concrete-ml has built-in support for.
 We trained it using the LogisticRegression model from scikit-learn, and then used the \texttt{from\_sklearn\_model} method of the concrete-ml object to turn the trained model into it's \ac{fhe} equivalent, using a relatively high bit-width of 8.
 This is possible because this  model is linear and does not require table look-ups.
 In fact it is even implemented in a leveled way, meaning it should not require Bootstrapping at all.
-The operations that are executed inside \ac{fhe} are just one matrix multiplication with the model weights and an addition with the model bias (see \cref{LogisticRegression} for a full explanation).
-The pre-processing includes an argmax to choose the class with the highest probability as the output \cite{noauthor_concrete_2025}.
+The operations that are executed inside \ac{fhe} are just one matrix multiplication with the model weights and an addition with the model bias (see \cref{LogisticRegression} for a full explanation) \cite{noauthor_concrete_2025}.
 
 Because of this we expect the runtime overheads to be relatively low compared to the other models, and the accuracy loss due to quantization almost non-existent.
 However with it being a very simple and only a linear model, we also expect it to perform quite poorly on more complex problems that require non-linearity to solve them.
@@ -188,6 +187,8 @@ There are libraries like Microsoft's Hummingbird that aim to do exactly this in 
 
 In addition to this parallel branch execution it is also required to train the \ac{cart} model using already quantized data so that it can learn the decisions for the correct integers.
 Since this model also includes a mix of linear and non-linear operations implemented with \ac{pbs}, it also requires carefully chosen (partially through benchmarking) cryptographic parameters to reduce the quantization error to a minimum \cite{frery_privacy-preserving_2023}.
+Nevertheless we were still able to perform the quantization with a bit-width of 8 bit, the same as used for Logistic Regression.
+This high bit-width was probably only achievable by using the PCA and scaler operations that reduce the input dimensionality and thus the required FHE circuit depth. Both low quantization bit-width and aggressive usage of PCA reduce model accuracy, balancing the two might proof to be an interesting optimization opportunity.
 
 Since we are running our experiments on CPU, we expect this to how a significant impact on performance, much more than with Logistic Regression.
 On the other hand we also expect the \ac{cart} model to significantly outperform Logistic Regression since it is able to separate non-linearly, as long as the data is still clustered by class.
@@ -195,12 +196,26 @@ Due to the non-linear operations we expect some measurable decreases in accuracy
 
 \subsubsection{Neural Network Classifier}
 
+The NeuralNetClassifier class implements a \ac{fnn} mimicking the scikit-learn class (as described in \cref{FNN}) and interface with the same name while in reality it's implemented with PyTorch.
+For hyperparameters we used 3 hidden layers with the same dimensionality as the input features, the \ac{relu} activation functions, and 100 training epochs with a learning rate of $0.01$.
+For this builtin-in model concrete-ml requires training of the FHE model instead of compiling a trained clear model \cite{noauthor_concrete_2025}.
+For this we used the \texttt{fit\_benchmark} method that trains the FHE model together with the equivalent clear model for direct comparison between the two.
+
+For quantization we left the bit-width on the default which is 3 bits for both model weights inputs/activations.
+Concrete-ml also includes some model specific quantization optimizations like \texttt{power\_of\_two\_scaling} which sets the quantization scale to a power two, making some operations more efficient by turning them into a simple bit-shift. Coupled with the \ac{relu} activation function, this speeds up inference.
+Quantization is also further optimized with the use of \ac{qat} which is the main reason why this model has to be trained from scratch \cite{noauthor_concrete_2025}.
+
+Nevertheless this bit-width is still much lower than what we used with the previous two models which is why we expect some noteworthy accuracy reductions of the FHE model compared to the clear model here.
+The required computations are also significantly higher than for the previous models and include applying matrix products as well as the non-linear \ac{relu} function for each of the 3+1 layers.
+Therefore we expect this neural network model to both have the highest inference times in general as well as the highest relative increase of inference time in FHE compared to the clear model.
+
 \subsection{Encrypted Training with Built-In Model}
 
 This second experiment group tests the use case of encrypted training.
 Here instead of training a model on clear data and then performing inference on encrypted data we already perform the training on encrypted data.
-This might be interesting in fields where training data is very sparse and the only available data is confidential and cannot shared with the entity performing the model training or machine learning service.
-It allows a training-as-a-service deployment, where e.g. people working in medicine can train models on confidential patient data on external infrastructure without exposing this data to this infrastructure provider.
+This might be interesting in fields where training data is very sparse and the only available data is confidential and cannot be shared with the entity performing the model training or machine learning service.
+It allows a training-as-a-service deployment, where e.g. people working in medical fields can train models on confidential patient data on external infrastructure without exposing this data to this infrastructure provider.
+Of course using non-sensitive training data should always be preferred over this FHE approach, but the nature of some applications preclude the existence of non-sensitive training (e.g. a model to find brain tumor needs to be trained on brain scans which cannot be anonymized).
 This will be tested on the same datasets and thus use cases as \cref{encrypted_inference}, however the experiment steps and the measured attributes differ slightly:
 
 \begin{enumerate}
@@ -213,9 +228,81 @@ This will be tested on the same datasets and thus use cases as \cref{encrypted_i
     \item Return the four measured timings as well as accuracy and F1 scores for both models
 \end{enumerate}
 
-\subsection{Encrypted Inference with custom approaches for the Named-Entity Recognition task}
+\subsubsection{\acs{sgd} Classifier}
+
+Currently the only model that support being trained on encrypted data in the concrete-ml framework is the \acl{sgd} Classifier/Regressor. As described in \cref{LogisticRegression}, this is just a Logistic Regression model with a different training algorithm.
+
+We fitted the FHE circuit with some randomly generated sample data so that it learns the boundaries of the input values for proper quantization.
+Thus the model only ever saw the real training data in encrypted form.
+We also limited the model to $50$ training iterations, initialized the weights and bias with zeros, and used a batch size of $8$.
+Each batch as well as the start weights and bias got encrypted and passed to the model separately which means that FHE does not break the online learning properties of \ac{sgd}.
+After training we decrypt the resulting weights and bias, and initialize a new SGDClassifier from scikit-learn with these weights and bias.
+
+As with the Logistic Regression experiment (see \cref{LogisticRegressionExp}) we used a very high bit-width of $8$ for quantization.
+We expect some accuracy loss due to the use of \ac{sgd} with limited iterations in training which might result in a model that is only approximately fitted optimally on the training data.
+Accuracy losses due to quantization on the other hand should be very low.
+Computing and applying gradients is a computationally quite heavy operation compared to the previous inference tasks.
+Also this needs to be done on the training data set and not on the test data set which in our experiment suite usually contains five times as many samples (see \cref{datasets}).
+As a result we expect the runtimes of this encrypted training experiment to be very high even though the resulting model architecture is very simple.
+
+\subsection{Encrypted Inference with custom approaches for the \acl{ner} task}
+
+Our third and final experiment group aims to push the boundaries of what is possible with \ac{ml} in \ac{fhe}.
+While our previous experiments used relatively simple classification problems as use cases while mainly focusing on how \ac{fhe} impacts runtime performance and model accuracy, these experiments will try to scout out if \ac{fhe} is practical for more demanding use cases as well.
+
+For this we chose the \ac{nlp} task \acf{ner} as a representative for a more demanding task requiring more complex model architectures.
+As described in \cref{ner}, \ac{ner} can be a quite demanding task requiring the model to learn the semantics of the input as well as many different rules regarding the context of a token which necessitates a certain parameter size of the model.
+At the same time \ac{ner} is not nearly as demanding as more currently relevant tasks like large language modeling done by \acp{llm} while still being somewhat similar since both tasks require modeling language to some extend.
+
+The experiment steps are equivalent to the ones in \cref{encrypted_inference} yet with much more flexibility in difference in the details since we implemented two approaches that try to solve the \ac{ner} task very differently.
 
 \subsubsection{Custom PyTorch model with Embedding layer}
+
+At the core of this approach we coined the \ac{ner} task into a classification problem by hiding the semantic complexities behind a semantic word embedding (see \cref{semantic_embed}), and then solving this classification problem using a simple \ac{fnn}.
+We solved the problem of context with the sliding window approach:
+The model has to classify one token at a time, and receives a fixed number of tokens before and after this token. We settled with a window size of $5$, meaning the model receives the token that it should classify and two tokens before and after respectively.
+
+To be able to feed our text input to a model, we turned each token into an index by first regularizing the tokens and then assigning integers to them in order of appearance in the training data.
+The regularization step is necessary to avoid situations where the same token gets assigned two different integers because of slight differences (e.g. different capitalization, additional spacings, ...).
+Because of this the regularization includes making all characters lower-case.
+We did not need to perform tokenization since the dataset in use was already tokenized. Refer to \cref{conll} for more information about the dataset we used.
+
+For cases where our model encounters a token it has never seen during training we created the '<UNK>' token. All unknown tokens in a sample will be replaced with this token before the sample gets converted to token indices.
+To help the model learn how to handle samples that include his '<UNK>' token we randomly replaced input tokens with our unknown token during training (with probability $0.05$ for each token such that different tokens would get masked in every epoch).
+
+To turn the training data into sliding window samples we also introduced the '<PAD>' token to the model.
+If the entity in question is one of the first or last two tokens in a sample we still feed the token that should be classified as the center token and replace the empty positions with '<PAD>'.
+For example if our input is "Paris is the capital of France." (our example from \cref{ner}), and the model should classify 'Paris', it gets the sliding window "<PAD> <PAD> Paris is the" as input.
+We can already see some deficiencies with this sliding window approach here since the model often does not get enough context (the quite important "capital of France" is cut out).
+Nevertheless we still wanted to start of with a relatively small window size of 5 to keep model complexity low for the \ac{fhe} execution, with the option to increase it in the future.
+
+Since we converted all tokens to lower-case, and since we the model only receives token indices and not the actual tokens, we added two auxiliary features to give the model some attributes of each of the tokens in addition to their indices: Capitalization information and token lengths.
+The capitalization information can distinguish between a token
+\begin{itemize}
+    \item which exclusively consists of capital letters
+    \item which starts with a capital letter
+    \item which contains a capital letter somewhere
+    \item having no capital letters
+\end{itemize}
+, resulting in 4 capitalization classes.
+The word length is just the number of characters in the token, capped at $20$ for regularization.
+
+Our PyTorch model architecture looks like this:
+The 15-dimensional feature vector (token index, capitalization class, and token length for each of the 5 tokens in our sliding window) then gets passed through an embedding layer that generates a 128-dimensional embedding vector.
+This then gets passed through a regular \ac{fnn} with 3 hidden layers with the following dimensions: 128, 128, and 64.
+After each of these layers we used the \ac{relu} activation function as well as a dropout layer with a dropout rate of $0.2$ to reduce overfitting during training.
+
+When only looking at the PyTorch features in use, this custom model only differs from the built-in model in two points:
+It utilizes the PyTorch Embedding and Dropout layers.
+While concrete-ml does not support all PyTorch layers and features, it does support these two.
+Good support for the Embedding layer is especially very crucial since it is by far the most essential layer in our model design and is also a very elementary building block for more complex model architectures like transformer models.
+The Dropout layer is only active during training and thus has only a chance to cause problems in \ac{fhe} conversion when \ac{qat} is being used.
+
+We implemented the conversion of the model to \ac{fhe} using both \ac{ptq} and \ac{qat} with a quantization bit-width of 5.
+We performed \ac{ptq} by first training the PyTorch model in clear and then using the \texttt{compile\_torch\_model} function of concrete-ml on it.
+For this we used some randomly generated sample data with the same minimal and maximal bounds as the actual dataset.
+For the \ac{qat} variant of this experiment we used the Brevitas \cite{noauthor_xilinxbrevitas_2025} library to replace all PyTorch layers of the model with Brevitas equivalents, as well as an additional \texttt{QuantLinear} layer at the beginning.
+However we were not able to get this \ac{qat} variant to run at all for reasons we will explain in our results.
 
 \subsubsection{Transformer Embeddings with \acs{knn} Classifier}
 
@@ -329,4 +416,4 @@ Like with the 'Synthetic' dataset we also performed a 60/40 train/test set split
 The result can be seen in \cref{fig:sms_spam_plot}.
 The same limitation regarding \ac{pca} as mentioned for the 'Synthetic' dataset applies here as well.
 
-\subsection{CleanCoNLL}
+\subsection{CleanCoNLL}\label{conll}
