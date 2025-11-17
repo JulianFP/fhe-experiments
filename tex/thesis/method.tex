@@ -194,7 +194,7 @@ Since we are running our experiments on CPU, we expect this to how a significant
 On the other hand we also expect the \ac{cart} model to significantly outperform Logistic Regression since it is able to separate non-linearly, as long as the data is still clustered by class.
 Due to the non-linear operations we expect some measurable decreases in accuracy, however still to a relatively low level compared since this model should not require very deep circuits.
 
-\subsubsection{Neural Network Classifier}
+\subsubsection{Neural Network Classifier}\label{neural_net_exp}
 
 The NeuralNetClassifier class implements a \ac{fnn} mimicking the scikit-learn class (as described in \cref{FNN}) and interface with the same name while in reality it's implemented with PyTorch.
 For hyperparameters we used 3 hidden layers with the same dimensionality as the input features, the \ac{relu} activation functions, and 100 training epochs with a learning rate of $0.01$.
@@ -242,10 +242,10 @@ As with the Logistic Regression experiment (see \cref{LogisticRegressionExp}) we
 We expect some accuracy loss due to the use of \ac{sgd} with limited iterations in training which might result in a model that is only approximately fitted optimally on the training data.
 Accuracy losses due to quantization on the other hand should be very low.
 Computing and applying gradients is a computationally quite heavy operation compared to the previous inference tasks.
-Also this needs to be done on the training data set and not on the test data set which in our experiment suite usually contains five times as many samples (see \cref{datasets}).
+Also this needs to be done on the training data set and not on the test data set which in our experiment suite usually contains four times as many samples (see \cref{datasets}).
 As a result we expect the runtimes of this encrypted training experiment to be very high even though the resulting model architecture is very simple.
 
-\subsection{Encrypted Inference with custom approaches for the \acl{ner} task}
+\subsection{Encrypted Inference with custom approaches for the \acl{ner} task}\label{ner_exps}
 
 Our third and final experiment group aims to push the boundaries of what is possible with \ac{ml} in \ac{fhe}.
 While our previous experiments used relatively simple classification problems as use cases while mainly focusing on how \ac{fhe} impacts runtime performance and model accuracy, these experiments will try to scout out if \ac{fhe} is practical for more demanding use cases as well.
@@ -265,7 +265,7 @@ The model has to classify one token at a time, and receives a fixed number of to
 To be able to feed our text input to a model, we turned each token into an index by first regularizing the tokens and then assigning integers to them in order of appearance in the training data.
 The regularization step is necessary to avoid situations where the same token gets assigned two different integers because of slight differences (e.g. different capitalization, additional spacings, ...).
 Because of this the regularization includes making all characters lower-case.
-We did not need to perform tokenization since the dataset in use was already tokenized. Refer to \cref{conll} for more information about the dataset we used.
+We did not need to perform tokenization since the dataset in use was already tokenized. Refer to \cref{cconll} for more information about the dataset we used.
 
 For cases where our model encounters a token it has never seen during training we created the '<UNK>' token. All unknown tokens in a sample will be replaced with this token before the sample gets converted to token indices.
 To help the model learn how to handle samples that include his '<UNK>' token we randomly replaced input tokens with our unknown token during training (with probability $0.05$ for each token such that different tokens would get masked in every epoch).
@@ -304,7 +304,36 @@ For this we used some randomly generated sample data with the same minimal and m
 For the \ac{qat} variant of this experiment we used the Brevitas \cite{noauthor_xilinxbrevitas_2025} library to replace all PyTorch layers of the model with Brevitas equivalents, as well as an additional \texttt{QuantLinear} layer at the beginning.
 However we were not able to get this \ac{qat} variant to run at all for reasons we will explain in our results.
 
+We intentionally pushed the bit-width for this model to it's limit (the fhe compilation would fail for anything higher than 5) since pushing the boundaries of \ac{fhe} was our goal here.
+Because of this we expect even higher runtimes then for our \ac{fnn} experiment (see \cref{neural_net_exp}) while suffering from less performance degradation.
+We will see if this trade-off will be worth it.
+We expect the Embedding layer to cause a measurable but manageable runtime increase since during inference it can be collapsed into look-up tables.
+
 \subsubsection{Transformer Embeddings with \acs{knn} Classifier}
+
+Our second approach for solving \ac{ner} was inspired by how Apple implemented \ac{fhe} for image recognition on iPhones \cite{noauthor_combining_nodate}.
+Their application is recognition of prominent landmarks or other points of interest in the pictures taken by the user, so that the user can search their photo library by picture contents.
+For this the iPhone has an on-device \ac{ml} model that detects if there is any landmark on any given picture, and if yes computes a visual embedding for that picture.
+This embedding then gets quantized using a bit-width of 8 bits, encrypted (Apple's \ac{fhe} approach also requires quantization), and sent to an Apple server.
+The server then looks up this vector in a large database of visual embeddings of pictures of landmarks using a \ac{knn} algorithm and returns encrypted matches, all computed homomorphically (see \cref{KNN}).
+The iPhone receives these matches and decrypts them for sorting and categorizing the users local image library.
+While Apple uses their own implementation of the \ac{bfv} scheme (see \cref{path_to_modern_schemes}) and thus a very different tech-stack than the \ac{tfhe}-based concrete-ml library we use for our experiments, we wanted to test a similar setup \cite{noauthor_combining_nodate}.
+The idea behind this was that if this approach works so well that Apple chose to build a service around it and roll it out to their customers, it must be viable and work very well in practice.
+It also cannot be too inefficient since otherwise Apple would not be able to offer this feature for free to all their iPhone customers (even if the feature is only opt-in).
+
+So we transferred the basic idea of computing high-quality embeddings in clear client-side and then only perform a \ac{knn} search homomorphically on the server to the realm of \ac{nlp} and specifically \ac{ner} by computing semantic word embeddings instead of visual embeddings (see \cref{semantic_embed}).
+For this we used the \ac{bert} model (the 'base-cased' variant) \cite{devlin_bert_2019} to generate word embeddings for the token that we want to classify in our \ac{ner} setting, capturing the whole context of the input sample.
+Using a transformer encoder model like \ac{bert} should produce high-quality semantic embeddings and is possible in this setting since this happens client-side and we are thus not restricted by limitations of \ac{fhe} execution here.
+Similar to Apple's approach, these embedding vectors then get quantized and encrypted for homomorphic a \ac{knn} search using concrete-ml's built-in \ac{knn} model.
+
+As already described in \cref{KNN}, \ac{knn} suffers from the curse of dimensionality.
+Apple approached this by clustering the vectors of landmarks into multiple smaller vector databases while having the iPhone tell the server which cluster to use for the \ac{knn} search \cite{noauthor_combining_nodate}.
+This comes at the cost of slightly reduced privacy since the server now learns the broad category of the landmark that the image contains, as well as additional required client-side computations.
+We did not implement any such mechanism for our experiment which might result in it performing poorly.
+\ac{bert} generates embedding vectors with 768 dimensions \cite{devlin_bert_2019}, and the \ac{knn} would need to be performed on order of magnitude of ${\sim}10,000$ training samples to be effective for the \ac{ner} task.
+This might be challenging for a \ac{knn} search on it's own, and even more so in an \ac{fhe} environment.
+Because of this we added a dimensionality reduction with \ac{pca} so that we could freely change the embedding vectors dimension.
+There is however a limit how far the vector's dimensionality can be reduced while still keeping it's functionality as a semantic embedding intact.
 
 \section{Datasets}\label{datasets}
 
@@ -314,15 +343,40 @@ Some of these datasets are synthetic for maximum control over their characterist
 All datasets use single-precision floating point numbers to store feature vectors to make them compatible with all concrete-ml models since some of these models don't support double-precision for their training data.
 We made this choice to increase comparability both between \ac{fhe} and non-\ac{fhe} executions as well as across different model architectures and since the accuracy trade-off should be almost non-existing.
 
+\begin{table}[h]
+    \centering
+    \begin{tabularx}{\textwidth}{Y||Y|Y|Y|Y|Y|Y|Y}
+        & \textbf{XOR} & \textbf{Iris} & \textbf{Cancer} & \textbf{Digits} & \textbf{Synth} & \textbf{Spam} & \textbf{\aca{cconll}} \\
+        \hline
+        \hline
+        \textbf{feature dims} & 2 & 4 & 30 & 64 & 50--2500 & 50--2500 & - \\
+        \hline
+        \textbf{feature spread} & 0.921 & 5.7 & 4030.4 & 16.0 & 9.578--67.912 & 1.0 & - \\
+        \hline
+        \textbf{\#train samples} & 40 & 120 & 455 & 1437 & 200 & 4459 & 59388 \\
+        \hline
+        \textbf{\#test samples} & 40 & 30 & 114 & 360 & 50 & 1115 & 100 \\
+        \hline
+        \textbf{\#classes} & 2 & 3 & 2 & 10 & 2 & 2 & 5 \\
+        \hline
+        \textbf{class distribution} & 0.5\slash 0.5 & 0.333\slash 0.333\slash 0.333 & 0.373\slash 0.627 & ${\approx}0.1$ each & 0.496\slash 0.504 & 0.866\slash 0.134 & 0.318\slash 0.15\slash 0.204\slash 0.237\slash 0.09 \\
+    \end{tabularx}
+    \caption{Quick overview of core attributes of all our datasets}\label{table:all_datasets}
+\end{table}
+
+You can see a the core attributes of all our datasets in \cref{table:all_datasets}. This includes the dimensionality of the input feature vectors (feature dims), the maximal spread between features of each dimension in the training set (feature spread), the total amount of training and testing samples (\# train samples, \# test samples), the amount of classes that the model has to classify the samples into (\# samples), and finally the distribution of the samples across the classes for the whole dataset (class distribution).
+Also as you can see we used a 80/20 train/test split for all datasets except for the 'XOR problem' and the \acs{cconll} datasets.
+We will now continue to describe each of these datasets in more detail.
+
 \subsection{XOR problem}
 
 We handcrafted this tiny dataset for code testing with faster iterations as well as quick experiment runs, however it proofed to also be a good metric for how a model handles non-linearity in a dataset, and if a model is able to fit to problem with a very small training set.
 
 \begin{figure}[h]
     \begin{center}
-        \includegraphics[width=0.65\textwidth]{../figures/'XOR problem' dataset.png}
+        \includegraphics[width=0.5\textwidth]{../figures/'XOR problem' dataset.png}
     \end{center}
-    \caption{A plot of the feature space of the 'XOR problem' dataset, including both train and test sets}
+    \caption{A plot of the feature space of the 'XOR problem' dataset}
     \label{fig:xor_problem_plot}
 \end{figure}
 
@@ -339,14 +393,59 @@ This makes this dataset great in ensuring that more complex non-linear model act
 
 \subsection{Iris}
 
-\subsection{Digits}
+The iris plants dataset is a very classical \ac{ml} dataset and is often used as a baseline in benchmarks and experiments.
+It's small amount of features and samples make it a great for quick testing and evaluation of \ac{ml} models.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{../figures/'Iris' dataset - with PCA applied.png}
+    \end{center}
+    \caption{A plot of the feature space of the 'Iris' dataset, \ac{pca}-reduced}
+    \label{fig:iris_plot}
+\end{figure}
+
+The task at hand is to classify iris flowers into three different species using the length and width of their sepal and petal as features.
+This means that the dataset contains three classes, two of which are linearly separable and the other two are not (this can be seen well in \cref{fig:iris_plot}).
+We used scikit-learn's \texttt{load\_iris} function to obtain the dataset \cite{fisher_use_1936} \cite{noauthor_api_nodate}.
 
 \subsection{Breast Cancer}
 
+This dataset is about diagnosing breast cancer by supplying a \ac{ml} model with a set of 30 properties of a patients breasts (e.g. radius, concavity, etc.).
+Hence this dataset contains only two output classes, cancer and no cancer.
+We used scikit-learn's \texttt{load\_breast\_cancer} function to obtain the dataset \cite{wolberg_multisurface_1990} \cite{noauthor_api_nodate}.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{../figures/'Breast Cancer' dataset - with PCA applied.png}
+    \end{center}
+    \caption{A plot of the feature space of the 'Breast Cancer' dataset, \ac{pca}-reduced}
+    \label{fig:breast-cancer_plot}
+\end{figure}
+
+This dataset is especially interesting for our experiments for two reasons:
+First, it represents a real world use case that could very well benefit from the use of \ac{fhe} since this kind of medical data of patients might be considered sensitive.
+Second, the features spread quite heavily and much more than in our other datasets, with a maximum feature spread of $4030.4$.
+This can be challenging for our \ac{fhe} setting because a high range between the minimum and maximum feature means much coarser quantization which could very negatively impact model accuracy in the \ac{fhe} setting.
+
+\subsection{Digits}
+
+The digits dataset is the representative for image recognition tasks in our experiment suite.
+It contains $8\times8$ integer (range 0-16) pixel images of handwritten digits, resulting in 10 output classes (one for each digit).
+We used scikit-learn's \texttt{load\_digits} function to obtain the dataset \cite{xu_methods_1992} \cite{noauthor_api_nodate}.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{../figures/'Digits' dataset - with PCA applied.png}
+    \end{center}
+    \caption{A plot of the feature space of the 'Digits' dataset, \ac{pca}-reduced}
+    \label{fig:digits_plot}
+\end{figure}
+
+Not only is this the only dataset in our experiments that comes from the space of visual computing, but it also is the dataset with the highest amount of output classes.
+
 \subsection{Synthetic}
 
-This dataset is a generated at random using scikit-learn's \emph{make\_classification} function.
-It includes 250 samples, of which 150 are used for training, and 100 for testing.
+This binary classification dataset is a generated at random using scikit-learn's \emph{make\_classification} function.
 Both classes have only one cluster, making it linearly separable and thus even very simple models should have no problem achieving high accuracy scores on this dataset.
 
 \begin{figure}[h]
@@ -354,24 +453,24 @@ Both classes have only one cluster, making it linearly separable and thus even v
     \begin{subfigure}[t]{0.32\textwidth}
         \centering
         \includegraphics[width=0.95\textwidth]{../figures/'Synthetic, 50 features' dataset - with PCA applied.png}
-        \caption{50-dim}
+        \caption{'Synthetic, 50 features' dataset - with \ac{pca} applied}
     \end{subfigure}
     \begin{subfigure}[t]{0.32\textwidth}
         \centering
         \includegraphics[width=0.95\textwidth]{../figures/'Synthetic, 500 features' dataset - with PCA applied.png}
-        \caption{500-dim}
+        \caption{'Synthetic, 500 features' dataset - with \ac{pca} applied}
     \end{subfigure}
     \begin{subfigure}[t]{0.32\textwidth}
         \centering
-        \includegraphics[width=0.95\textwidth]{../figures/'Synthetic, 5000 features' dataset - with PCA applied.png}
-        \caption{5000-dim}
+        \includegraphics[width=0.95\textwidth]{../figures/'Synthetic, 2500 features' dataset - with PCA applied.png}
+        \caption{'Synthetic, 2500 features' dataset - with \ac{pca} applied}
     \end{subfigure}
-    \caption{Plots showing the feature space of three of our seven variations of the 'Synthetic' dataset, \ac{pca}-reduced.}
+    \caption{Plots showing the feature space of three of our six variations of the 'Synthetic' dataset, \ac{pca}-reduced.}
     \label{fig:synthetic_plot}
 \end{figure}
 
 The amount of features in this dataset is variable which allows us to specifically isolate the impact of feature size on model runtime and performance.
-We start with 50-dimensional features, and gradually increase the dimensionality up to 5000, resulting in a total of 7 different variations of this dataset.
+We start with 50-dimensional features, and gradually increase the dimensionality up to 2500, resulting in a total of 6 different variations of this dataset.
 For each variation, only 10\% of the features are actually informative of the sample's label, while the other 90\% are just generated at random independently from the true labels.
 This mainly tests a models resistance to overfitting.
 
@@ -391,29 +490,49 @@ The SMS Spam dataset was developed by \citeauthor{almeida_contributions_2011} \c
     \begin{subfigure}[t]{0.32\textwidth}
         \centering
         \includegraphics[width=0.95\textwidth]{../figures/'SMS Spam, 50 features' dataset - with PCA applied.png}
-        \caption{50-dim}
+        \caption{'SMS Spam, 50 features' dataset - with \ac{pca} applied}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=0.95\textwidth]{../figures/'SMS Spam, 500 features' dataset - with PCA applied.png}
+        \caption{'SMS Spam, 500 features' dataset - with \ac{pca} applied}
     \end{subfigure}
     \begin{subfigure}[t]{0.32\textwidth}
         \centering
         \includegraphics[width=0.95\textwidth]{../figures/'SMS Spam, 2500 features' dataset - with PCA applied.png}
-        \caption{2500-dim}
+        \caption{'SMS Spam, 2500 features' dataset - with \ac{pca} applied}
     \end{subfigure}
-    \begin{subfigure}[t]{0.32\textwidth}
-        \centering
-        \includegraphics[width=0.95\textwidth]{../figures/'SMS Spam, all features' dataset - with PCA applied.png}
-        \caption{All features}
-    \end{subfigure}
-    \caption{Plots showing the feature space of three of our eight variations of the 'SMS Spam' dataset, \ac{pca}-reduced.}
+    \caption{Plots showing the feature space of three of our six variations of the 'SMS Spam' dataset, \ac{pca}-reduced.}
     \label{fig:sms_spam_plot}
 \end{figure}
 
 To extract feature vectors from the documents we use scikit-learn's \ac{tfidf} Vectorizer while filtering English stop words.
-Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 5000, as well as one variation which includes all 7463 features.
+Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 2500.
 Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x.
-
-Like with the 'Synthetic' dataset we also performed a 60/40 train/test set split which resulted in a dataset size of 3344 and 2230 samples for the training and testing sets respectively.
 
 The result can be seen in \cref{fig:sms_spam_plot}.
 The same limitation regarding \ac{pca} as mentioned for the 'Synthetic' dataset applies here as well.
 
-\subsection{CleanCoNLL}\label{conll}
+\subsection{\acs{cconll}}\label{cconll}
+
+The \ac{cconll} dataset has to viewed a bit separate from the others since we included it specifically for our third group of experiments that try to solve the \ac{ner} problem homomorphically (see \cref{ner_exps}).
+It is a cleaned up variant of the \ac{conll} dataset that removes some labeling mistakes and consistency issues of the original \cite{rucker_cleanconll_2023}.
+
+\ac{cconll} comes with already tokenized sentences (and shorter text excerpts like e.g. sport results) and labels each of the tokens into one of the following classes:
+\begin{itemize}
+    \item 'O': other, i.e. this token is not part of a named entity. We map this to class '0'.
+    \item 'B-LOC' and 'I-LOC': the first/an intermediate token of a location entity. We map both of these to class '1'.
+    \item 'B-ORG' and 'I-ORG': the first/an intermediate token of an organization entity. We map both of these to class '2'.
+    \item 'B-PER' and 'I-PER': the first/an intermediate token of a person entity. We map both of these to class '3'.
+    \item 'B-MISC' and 'I-MISC': the first/an intermediate token of a miscellaneous entity, i.e. a named entity that is neither of the above. We map both of these to class '4'.
+\end{itemize}
+
+In other words we simplified the \ac{ner} task here by reducing the amount of classes such that our models do not need to recognize whether a token is the beginning of an entity or not.
+
+Since our \ac{ner} approaches look at one token (and it's context) at a time, we had to decrease the size of the dataset and balance it a bit.
+Otherwise we would have had as many samples as there are tokens in \ac{cconll}, and since by far the most tokens do not belong to any named entity we would also have an extremely unbalanced dataset.
+Instead we chose to include all tokens that are part of an entity, plus an equal amount of non-entity tokens (if the sample had enough non-entity tokens, otherwise less).
+This way we did not cut out any entities from the dataset while not flooding our models with too many non-entity training tokens.
+
+The \ac{cconll} also comes already split into a train, dev, and test dataset.
+We used the whole training dataset, ignored the dev set, and only chose $100$ samples from the test dataset at random since \ac{fhe} evaluation on this test set would otherwise have taken much too long.

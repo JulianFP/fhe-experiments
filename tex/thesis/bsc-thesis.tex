@@ -31,6 +31,9 @@
 % Include Graphic-files:
 \usepackage{graphicx}
 % Include doc++ generated tex-files:
+% improved tables with automatic table widths
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
 %\usepackage{docxx}
 % Include PDF links
 %\usepackage[pdftex, bookmarks=true]{hyperref}
@@ -95,6 +98,7 @@
     tabsize=4
 }
 \lstset{style=mystyle}
+\renewcommand{\lstlistlistingname}{List of Listings}
 \crefname{lstlisting}{listing}{listings}
 \Crefname{lstlisting}{Listing}{Listings}
 
@@ -186,7 +190,10 @@ Submission Date: & December 02, 2025
 \listoffigures
 
 % List of tables (Tabellenverzeichnis):
-%\listoftables
+\listoftables
+
+% List of code listings
+\lstlistoflistings
 
 % List of acronyms
 \printacronyms[
