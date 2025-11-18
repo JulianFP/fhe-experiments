@@ -14,6 +14,7 @@ from .experiment_collector import (
     get_ner_experiments,
 )
 from .statistics_handler import (
+    calculate_runtime_ratios,
     dataset_attribute_calculator,
     experiment_output_processor,
     evaluate_experiment_results,
@@ -22,6 +23,8 @@ from .draw_plots import (
     draw_dataset,
     draw_decision_boundary,
     draw_feature_dim_runtime_plot,
+    draw_runtime_plot_ner,
+    draw_runtime_plots_per_exp_non_ner,
     redraw_decision_boundary,
 )
 from .csv_handler import init_csv, append_result_to_csv, read_csv
@@ -167,7 +170,7 @@ def main(
         done_exps = []
 
     ner_dset_name = "CleanCoNLL (NER)"
-    ner_dset_name_dict = "ner"
+    ner_dset_name_dict = "cconll"
     for ner_exp_name_dict, (ner_exp_func, ner_exp_name) in scheduled_ner_exps.items():
         skip = False
         for done_exp in done_exps:
@@ -194,8 +197,9 @@ def main(
             logger.info(
                 f"Mean result of {execs} executions of '{ner_exp_name}' experiment on '{ner_dset_name}' dataset: {final_result}"
             )
+            ratios_final = calculate_runtime_ratios(final_result)
             logger.info(
-                f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
+                f"The main processing with FHE was {ratios_final.fhe_proc_to_clear_proc} times slower (±{ratios_final.fhe_proc_to_clear_proc_stdev}) than normal processing on clear data"
             )
             append_result_to_csv(results_dir, final_result)
         else:
@@ -237,8 +241,9 @@ def main(
                 logger.info(
                     f"Mean result of {execs} executions of '{exp_name}' experiment on '{dset_name}' dataset: {final_result}"
                 )
+                ratios_final = calculate_runtime_ratios(final_result)
                 logger.info(
-                    f"The main processing with FHE was {final_result.fhe_duration_processing / final_result.clear_duration} times slower than normal processing on clear data"
+                    f"The main processing with FHE was {ratios_final.fhe_proc_to_clear_proc} times slower (±{ratios_final.fhe_proc_to_clear_proc_stdev}) than normal processing on clear data"
                 )
                 append_result_to_csv(results_dir, final_result)
                 if draw_all:
@@ -250,7 +255,9 @@ def main(
                     f"Found existing '{exp_name}' experiment on '{dset_name}' dataset in results, skipping..."
                 )
 
-    if (all_exps or all_inference_exps) and (draw_all or draw_cheap or redraw):
+    if draw_all or draw_cheap or redraw:
+        draw_runtime_plots_per_exp_non_ner(results_dir)
+        draw_runtime_plot_ner(results_dir)
         draw_feature_dim_runtime_plot(results_dir, "synth_")
         draw_feature_dim_runtime_plot(results_dir, "spam_")
 

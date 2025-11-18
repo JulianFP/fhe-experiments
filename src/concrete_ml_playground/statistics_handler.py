@@ -1,7 +1,9 @@
 import statistics
 import numpy.typing as npt
 import numpy as np
+import math
 from sklearn.metrics import accuracy_score, f1_score
+from pydantic import BaseModel
 from .interfaces import ExperimentOutput, ExperimentResult, ExperimentResultFinal
 from . import logger
 
@@ -74,4 +76,56 @@ def evaluate_experiment_results(
         exp_name=exp_name,
         exp_name_dict=exp_name_dict,
         **final_dict,
+    )
+
+
+class RatioResult(BaseModel):
+    exp_name: str
+    exp_name_dict: str
+    dset_name: str
+    dset_name_dict: str
+    fhe_proc_to_clear_proc: float
+    fhe_proc_to_clear_proc_stdev: float
+    fhe_pre_and_post_to_clear_proc: float
+    fhe_pre_and_post_to_clear_proc_stdev: float
+
+
+def calculate_runtime_ratios(result: ExperimentResultFinal) -> RatioResult:
+    clear_squared_under_one = 1 / (result.clear_duration**2)
+    clear_stdev_squared = result.clear_duration_stdev**2
+
+    # for fhe_proc / clear_proc
+    fhe_proc_to_clear_proc = result.fhe_duration_processing / result.clear_duration
+    fhe_proc_to_clear_proc_stdev = math.sqrt(
+        clear_squared_under_one
+        * (
+            (result.fhe_duration_processing_stdev**2)
+            + clear_squared_under_one * (result.fhe_duration_processing**2) * clear_stdev_squared
+        )
+    )
+
+    # for fhe_pre + fhe_post / clear_proc
+    fhe_pre_and_post_to_clear_proc = (
+        result.fhe_duration_preprocessing + result.fhe_duration_postprocessing
+    ) / result.clear_duration
+    fhe_pre_and_post_to_clear_proc_stdev = math.sqrt(
+        clear_squared_under_one
+        * (
+            (result.fhe_duration_preprocessing_stdev**2)
+            + (result.fhe_duration_postprocessing_stdev**2)
+            + clear_squared_under_one
+            * ((result.fhe_duration_preprocessing + result.fhe_duration_postprocessing) ** 2)
+            * clear_stdev_squared
+        )
+    )
+
+    return RatioResult(
+        exp_name=result.exp_name,
+        exp_name_dict=result.exp_name_dict,
+        dset_name=result.dset_name,
+        dset_name_dict=result.dset_name_dict,
+        fhe_proc_to_clear_proc=fhe_proc_to_clear_proc,
+        fhe_proc_to_clear_proc_stdev=fhe_proc_to_clear_proc_stdev,
+        fhe_pre_and_post_to_clear_proc=fhe_pre_and_post_to_clear_proc,
+        fhe_pre_and_post_to_clear_proc_stdev=fhe_pre_and_post_to_clear_proc_stdev,
     )

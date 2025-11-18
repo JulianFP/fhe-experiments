@@ -10,8 +10,10 @@ from sklearn.decomposition import PCA
 
 from . import logger
 from .dataset_collector import get_dataset_loaders
-from .interfaces import ExperimentOutput
+from .experiment_collector import get_inference_experiments, get_training_experiments
+from .interfaces import ExperimentOutput, ExperimentResultFinal
 from .csv_handler import read_csv
+from .statistics_handler import RatioResult, calculate_runtime_ratios
 
 
 plt.rcParams.update({"font.size": 16})
@@ -66,6 +68,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.figlegend()
         png_path = f"{results_dir}/{clear_title}.png"
         plt.savefig(png_path)
+        plt.close()
         logger.info(f"Saved decision boundary to {png_path}")
 
         plt.figure(figsize=figsize)
@@ -82,6 +85,7 @@ def draw_decision_boundary_from_pickle_files(
         plt.figlegend()
         png_path = f"{results_dir}/{fhe_title}.png"
         plt.savefig(png_path)
+        plt.close()
         logger.info(f"Saved decision boundary to {png_path}")
 
 
@@ -206,13 +210,15 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
     plt.figlegend()
     png_path = f"{results_dir}/{title}.png"
     plt.savefig(png_path)
+    plt.close()
     logger.info(f"Saved dataset plot to {png_path}")
 
 
 def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
     dataset_loaders = get_dataset_loaders()
+    experiment_loaders = {**get_inference_experiments(), **get_training_experiments()}
     results = read_csv(results_dir)
-    experiments = set([d.exp_name for d in results])
+    experiments = set([d.exp_name for d in results if d.exp_name_dict in experiment_loaders])
     for exp_name in experiments:
         logger.info(
             f"Drawing feature_dim_runtime plot for experiment '{exp_name}' and datasets with prefix '{dset_prefix}'..."
@@ -241,14 +247,238 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
 
         plt.figure(figsize=figsize)
         # plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
-        plt.xlabel("Dim of feature vectors")
-        plt.ylabel("Runtime (in seconds)")
-        plt.errorbar(x, y_clear, y_clear_stdev, fmt="bo-", label="clear")
-        plt.errorbar(x, y_pre, y_pre_stdev, fmt="yo-", label="FHE pre")
-        plt.errorbar(x, y_fhe, y_fhe_stdev, fmt="ro-", label="FHE")
-        plt.errorbar(x, y_post, y_post_stdev, fmt="mo-", label="FHE post")
-        plt.figlegend()
+        plt.errorbar(
+            x, y_clear, y_clear_stdev, fmt="o-", color="tab:green", label="clear", capsize=4
+        )
+        plt.errorbar(
+            x, y_pre, y_pre_stdev, fmt="o-", color="tab:orange", label="FHE pre", capsize=4
+        )
+        plt.errorbar(x, y_fhe, y_fhe_stdev, fmt="o-", color="tab:red", label="FHE", capsize=4)
+        plt.errorbar(
+            x, y_post, y_post_stdev, fmt="o-", color="tab:pink", label="FHE post", capsize=4
+        )
+        plt.yscale("log")
+        plt.xlabel("Dimensionality of feature vectors", fontweight="bold")
+        plt.ylabel("Avg. Runtime (in seconds)", fontweight="bold")
+        plt.tight_layout()
 
+        plt.figlegend()
         png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
         plt.savefig(png_path)
+        plt.close()
         logger.info(f"Saved feature-runtime plot to {png_path}")
+
+
+def draw_runtime_plot(
+    png_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
+):
+    barWidth = 0.25
+    groupSpacing = 0.125
+
+    result_names = []
+    clear_dur = []
+    clear_dur_stdev = []
+    pre_dur = []
+    pre_dur_stdev = []
+    fhe_dur = []
+    fhe_dur_stdev = []
+    post_dur = []
+    post_dur_stdev = []
+    for r in results:
+        result_names.append(getattr(r, result_attr_name))
+        clear_dur.append(r.clear_duration)
+        clear_dur_stdev.append(r.clear_duration_stdev)
+        pre_dur.append(r.fhe_duration_preprocessing)
+        pre_dur_stdev.append(r.fhe_duration_preprocessing_stdev)
+        fhe_dur.append(r.fhe_duration_processing)
+        fhe_dur_stdev.append(r.fhe_duration_processing_stdev)
+        post_dur.append(r.fhe_duration_postprocessing)
+        post_dur_stdev.append(r.fhe_duration_postprocessing_stdev)
+
+    br1 = np.arange(len(clear_dur)) * (barWidth * 4 + groupSpacing)
+    br2 = br1 + barWidth
+    br3 = br2 + barWidth
+    br4 = br3 + barWidth
+
+    plt.figure(figsize=figsize)
+    plt.bar(
+        br1,
+        clear_dur,
+        color="tab:green",
+        width=barWidth,
+        label="clear",
+        yerr=clear_dur_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br2,
+        pre_dur,
+        color="tab:orange",
+        width=barWidth,
+        label="FHE pre",
+        yerr=pre_dur_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br3,
+        fhe_dur,
+        color="tab:red",
+        width=barWidth,
+        label="FHE proc",
+        yerr=fhe_dur_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br4,
+        post_dur,
+        color="tab:pink",
+        width=barWidth,
+        label="FHE post",
+        yerr=post_dur_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.yscale("log")
+    plt.xlabel(xlabel, fontweight="bold")
+    plt.ylabel("Avg. Runtime (in seconds)", fontweight="bold")
+    if len(result_names) > 2:
+        rotation = 45
+    else:
+        rotation = 0
+    plt.xticks(br1 + 1.5 * barWidth, result_names, rotation=rotation)
+    plt.tight_layout()
+
+    plt.legend()
+    plt.savefig(png_path)
+    plt.close()
+    logger.info(f"Saved runtime plot to {png_path}")
+
+
+def draw_runtime_plot_with_ratios(
+    png_path: str, results: list[RatioResult], result_attr_name: str, xlabel: str
+):
+    logger.info(f"Drawing runtime plot with ratios with the following ratios: {results}")
+    barWidth = 0.25
+    groupSpacing = 0.125
+
+    result_names = []
+    fhe_proc = []
+    fhe_proc_stdev = []
+    fhe_pre_post = []
+    fhe_pre_post_stdev = []
+    for r in results:
+        result_names.append(getattr(r, result_attr_name))
+        fhe_proc.append(r.fhe_proc_to_clear_proc)
+        fhe_proc_stdev.append(r.fhe_proc_to_clear_proc_stdev)
+        fhe_pre_post.append(r.fhe_pre_and_post_to_clear_proc)
+        fhe_pre_post_stdev.append(r.fhe_pre_and_post_to_clear_proc_stdev)
+
+    br1 = np.arange(len(fhe_proc)) * (barWidth * 4 + groupSpacing)
+    br2 = br1 + barWidth
+
+    plt.figure(figsize=figsize)
+    proc_bars = plt.bar(
+        br1,
+        fhe_proc,
+        color="tab:red",
+        width=barWidth,
+        label="FHE proc",
+        yerr=fhe_proc_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    pre_post_bars = plt.bar(
+        br2,
+        fhe_pre_post,
+        color="tab:orange",
+        width=barWidth,
+        label="FHE pre + FHE post",
+        yerr=fhe_pre_post,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    for bar, ratio in zip(proc_bars + pre_post_bars, fhe_proc + fhe_pre_post):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height,
+            f"{round(ratio)}x slower",
+            ha="left",
+            va="bottom",
+            rotation=45,
+            fontsize=10,
+        )
+    plt.xlabel(xlabel, fontweight="bold")
+    plt.ylabel("Avg. Runtime relative to clear runtime", fontweight="bold")
+    if len(result_names) > 2:
+        rotation = 45
+    else:
+        rotation = 0
+    plt.xticks(br1 + 1.5 * barWidth, result_names, rotation=rotation)
+    plt.tight_layout()
+
+    plt.legend()
+    plt.savefig(png_path)
+    plt.close()
+    logger.info(f"Saved runtime plot with ratios to {png_path}")
+
+
+def draw_runtime_plots_per_exp_non_ner(results_dir: str):
+    results = read_csv(results_dir)
+    experiments = set([r.exp_name for r in results if "ner" not in r.exp_name_dict])
+    for exp_name in experiments:
+        logger.info(f"Drawing runtime plots for experiment '{exp_name}'...")
+        results_in_plot = []
+        ratio_results_in_plot = []
+        for r in results:
+            filter_dset = False
+            if r.dset_name_dict.startswith("synth_") or r.dset_name_dict.startswith("spam_"):
+                prefix, dim = r.dset_name_dict.split("_")
+                dim = int(dim)
+                other_dims = [
+                    int(re.dset_name_dict.split("_")[1])
+                    for re in results
+                    if re.exp_name == exp_name and re.dset_name_dict.startswith(prefix)
+                ]
+                if dim != min(other_dims) and dim != max(other_dims):
+                    filter_dset = True
+            if r.exp_name == exp_name and not filter_dset:
+                results_in_plot.append(r)
+                ratio_results_in_plot.append(calculate_runtime_ratios(r))
+        draw_runtime_plot(
+            f"{results_dir}/runtime-plot_{exp_name}.png",
+            results_in_plot,
+            "dset_name_dict",
+            "Datasets",
+        )
+        draw_runtime_plot_with_ratios(
+            f"{results_dir}/runtime-plot-with-ratio_{exp_name}.png",
+            ratio_results_in_plot,
+            "dset_name_dict",
+            "Datasets",
+        )
+
+
+def draw_runtime_plot_ner(results_dir: str):
+    results = read_csv(results_dir)
+    results_in_plot = [
+        r for r in results if "ner" in r.exp_name_dict and r.dset_name_dict == "cconll"
+    ]
+    ratio_results_in_plot = [calculate_runtime_ratios(r) for r in results_in_plot]
+    if len(results_in_plot) > 0:
+        logger.info("Drawing runtime plots for ner experiments...")
+        draw_runtime_plot(
+            f"{results_dir}/runtime-plot-ner.png",
+            results_in_plot,
+            "exp_name_dict",
+            "NER Experiments on CCoNLL",
+        )
+        draw_runtime_plot_with_ratios(
+            f"{results_dir}/runtime-plot-ner-with-ratio.png",
+            ratio_results_in_plot,
+            "exp_name_dict",
+            "NER Experiments on CCoNLL",
+        )
