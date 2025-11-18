@@ -675,7 +675,7 @@ We set the positions corresponding to the vocabulary words that occur in the doc
 \acf{bow} is similar except that we do not just encode in the vector whether a vocabulary token occurs in the document or not, but rather how often it occurs.
 \ac{bow} would generate the following vector for our example document and vocabulary: $[3, 0, 1, 2, 1, 2, 0]$ \cite{murphy_machine_2013}.
 
-\subsubsection{\acl{tfidf}}
+\subsubsection{\acl{tfidf}}\label{TFIDF}
 
 One major problem with \ac{bow} is that we want our features to more uniquely describe their respective documents and their attributes.
 Consider for example the use case of sentiment analysis on movie reviews.

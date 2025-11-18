@@ -506,9 +506,9 @@ The SMS Spam dataset was developed by \citeauthor{almeida_contributions_2011} \c
     \label{fig:sms_spam_plot}
 \end{figure}
 
-To extract feature vectors from the documents we use scikit-learn's \ac{tfidf} Vectorizer while filtering English stop words.
+To extract feature vectors from the documents we use scikit-learn's \ac{tfidf} Vectorizer while filtering English stop words (see \cref{TFIDF}).
 Similarly to the 'Synthetic' dataset we also have different variations of this dataset with different feature dimensions ranging from 50 to 2500.
-Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x.
+Limiting the amount of features was achieved by ordering the features by term frequency across the corpus and only considering the top x of the 7463-dimensional \ac{tfidf} vectors.
 
 The result can be seen in \cref{fig:sms_spam_plot}.
 The same limitation regarding \ac{pca} as mentioned for the 'Synthetic' dataset applies here as well.
