@@ -56,7 +56,17 @@ def draw_decision_boundary_from_pickle_files(
         labels = np.unique(y)
         cmap = plt.cm.get_cmap(label_cmap, labels.size)
 
-        plt.figure(figsize=figsize)
+        if len(labels) > 3:
+            ncol = 3
+            bbox_y = 1.5
+        elif len(labels) > 2:
+            ncol = 3
+            bbox_y = 1.15
+        else:
+            ncol = 2
+            bbox_y = 1.15
+
+        plt.figure(figsize=figsize, constrained_layout=True)
         # plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.5, cmap=cmap)
         for label in labels:
@@ -67,13 +77,14 @@ def draw_decision_boundary_from_pickle_files(
                 edgecolor="k",
                 label=f"test set - label '{label}'",
             )
-        plt.figlegend()
+        plt.legend(loc="upper center", bbox_to_anchor=(0.5, bbox_y), ncol=ncol)
+
         plot_path = f"{results_dir}/{clear_title}.pdf"
         plt.savefig(plot_path, format="pdf")
         plt.close()
         logger.info(f"Saved decision boundary to {plot_path}")
 
-        plt.figure(figsize=figsize)
+        plt.figure(figsize=figsize, constrained_layout=True)
         # plt.title(fhe_title)
         plt.contourf(xx, yy, Z_fhe, alpha=0.5, cmap=cmap)
         for label in labels:
@@ -84,7 +95,8 @@ def draw_decision_boundary_from_pickle_files(
                 edgecolor="k",
                 label=f"test set - label '{label}'",
             )
-        plt.figlegend()
+        plt.legend(loc="upper center", bbox_to_anchor=(0.5, bbox_y), ncol=ncol)
+
         plot_path = f"{results_dir}/{fhe_title}.pdf"
         plt.savefig(plot_path, format="pdf")
         plt.close()
@@ -188,7 +200,7 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
     if pca is not None:
         title += " - with PCA applied"
 
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, constrained_layout=True)
     # plt.title(title)
     labels = np.unique(y_test)
     cmap = plt.cm.get_cmap(label_cmap, labels.size)
@@ -209,7 +221,17 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
             marker="o",
             label=f"test set - label '{label}'",
         )
-    plt.figlegend()
+
+    if len(labels) > 3:
+        ncol = 3
+        bbox_y = 1.5
+    elif len(labels) > 2:
+        ncol = 3
+        bbox_y = 1.15
+    else:
+        ncol = 2
+        bbox_y = 1.15
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, bbox_y), ncol=ncol)
 
     plot_path = f"{results_dir}/{title}.pdf"
     plt.savefig(plot_path, format="pdf")
@@ -248,7 +270,7 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
                 y_post.append(result.fhe_duration_postprocessing)
                 y_post_stdev.append(result.fhe_duration_postprocessing_stdev)
 
-        plt.figure(figsize=figsize)
+        plt.figure(figsize=figsize, constrained_layout=True)
         # plt.title(f"Feature space dim - runtime: {exp_name}, {dset_prefix}")
         plt.errorbar(
             x, y_clear, y_clear_stdev, fmt="o-", color="tab:green", label="clear", capsize=4
@@ -263,8 +285,7 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
         plt.yscale("log")
         plt.xlabel("Dimensionality of feature vectors", fontweight="bold")
         plt.ylabel("Avg. Runtime (in seconds)", fontweight="bold")
-        plt.tight_layout()
-        plt.figlegend()
+        plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), ncol=2)
 
         plot_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.pdf"
         plt.savefig(plot_path, format="pdf")
@@ -300,7 +321,7 @@ def draw_runtime_plot(
     br3 = br2 + barWidth
     br4 = br3 + barWidth
 
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, constrained_layout=True)
     plt.bar(
         br1,
         clear_dur,
@@ -349,7 +370,6 @@ def draw_runtime_plot(
     else:
         rotation = 0
     plt.xticks(br1 + 1.5 * barWidth, result_names, rotation=rotation)
-    plt.tight_layout()
     plt.legend()
 
     plt.savefig(plot_path, format="pdf")
@@ -377,7 +397,7 @@ def draw_runtime_plot_with_ratios(
     br1 = np.arange(len(fhe_proc)) * (barWidth * 2 + groupSpacing)
     br2 = br1 + barWidth
 
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, constrained_layout=True)
     proc_bars = plt.bar(
         br1,
         fhe_proc,
@@ -418,7 +438,6 @@ def draw_runtime_plot_with_ratios(
     else:
         rotation = 0
     plt.xticks(br1 + 0.5 * barWidth, result_names, rotation=rotation)
-    plt.tight_layout()
     plt.legend()
 
     plt.savefig(plot_path, format="pdf")
@@ -452,7 +471,7 @@ def draw_acc_f1_plot(
     br3 = br2 + barWidth + subGroupSpacing
     br4 = br3 + barWidth
 
-    plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize, constrained_layout=True)
     plt.bar(
         br1,
         clear_acc,
@@ -501,7 +520,6 @@ def draw_acc_f1_plot(
     else:
         rotation = 0
     plt.xticks(br1 + 1.5 * barWidth + 0.5 * subGroupSpacing, result_names, rotation=rotation)
-    plt.tight_layout()
     plt.legend()
 
     plt.savefig(plot_path, format="pdf")
