@@ -56,9 +56,11 @@ def draw_decision_boundary_from_pickle_files(
         labels = np.unique(y)
         cmap = plt.cm.get_cmap(label_cmap, labels.size)
 
+        current_figsize = figsize
         if len(labels) > 3:
             ncol = 3
-            bbox_y = 1.5
+            bbox_y = 1.3
+            current_figsize = (figsize[0], figsize[1] + 3.6)
         elif len(labels) > 2:
             ncol = 3
             bbox_y = 1.15
@@ -66,7 +68,7 @@ def draw_decision_boundary_from_pickle_files(
             ncol = 2
             bbox_y = 1.15
 
-        plt.figure(figsize=figsize, constrained_layout=True)
+        plt.figure(figsize=current_figsize, constrained_layout=True)
         # plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.5, cmap=cmap)
         for label in labels:
@@ -199,10 +201,21 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
     title = f"'{dset_name}' dataset"
     if pca is not None:
         title += " - with PCA applied"
-
-    plt.figure(figsize=figsize, constrained_layout=True)
-    # plt.title(title)
     labels = np.unique(y_test)
+
+    current_figsize = figsize
+    if len(labels) > 3:
+        ncol = 3
+        bbox_y = 1.3
+        current_figsize = (figsize[0], figsize[1] + 3.6)
+    elif len(labels) > 2:
+        ncol = 3
+        bbox_y = 1.15
+    else:
+        ncol = 2
+        bbox_y = 1.15
+    plt.figure(figsize=current_figsize, constrained_layout=True)
+    # plt.title(title)
     cmap = plt.cm.get_cmap(label_cmap, labels.size)
     for label in labels:
         plt.scatter(
@@ -221,16 +234,6 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
             marker="o",
             label=f"test set - label '{label}'",
         )
-
-    if len(labels) > 3:
-        ncol = 3
-        bbox_y = 1.5
-    elif len(labels) > 2:
-        ncol = 3
-        bbox_y = 1.15
-    else:
-        ncol = 2
-        bbox_y = 1.15
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, bbox_y), ncol=ncol)
 
     plot_path = f"{results_dir}/{title}.pdf"
