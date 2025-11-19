@@ -45,7 +45,7 @@
             codespell = {
               enable = true;
               name = "codespell";
-              entry = "${pkgsFor.${system}.codespell}/bin/codespell -w --ignore-words-list=FitH --skip=tex/thesis/zusammenfassung.tex --skip=tex/references.bib";
+              entry = "${pkgsFor.${system}.codespell}/bin/codespell -w --ignore-words-list=FitH --skip=tex/thesis/zusammenfassung.tex --skip=tex/references.bib --skip=tex/figures/*";
             };
           };
         };

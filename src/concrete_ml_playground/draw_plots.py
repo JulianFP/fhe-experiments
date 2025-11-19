@@ -68,10 +68,10 @@ def draw_decision_boundary_from_pickle_files(
                 label=f"test set - label '{label}'",
             )
         plt.figlegend()
-        png_path = f"{results_dir}/{clear_title}.png"
-        plt.savefig(png_path)
+        plot_path = f"{results_dir}/{clear_title}.pdf"
+        plt.savefig(plot_path, format="pdf")
         plt.close()
-        logger.info(f"Saved decision boundary to {png_path}")
+        logger.info(f"Saved decision boundary to {plot_path}")
 
         plt.figure(figsize=figsize)
         # plt.title(fhe_title)
@@ -85,10 +85,10 @@ def draw_decision_boundary_from_pickle_files(
                 label=f"test set - label '{label}'",
             )
         plt.figlegend()
-        png_path = f"{results_dir}/{fhe_title}.png"
-        plt.savefig(png_path)
+        plot_path = f"{results_dir}/{fhe_title}.pdf"
+        plt.savefig(plot_path, format="pdf")
         plt.close()
-        logger.info(f"Saved decision boundary to {png_path}")
+        logger.info(f"Saved decision boundary to {plot_path}")
 
 
 def get_meshgrid(X_reduced):
@@ -211,10 +211,10 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
         )
     plt.figlegend()
 
-    png_path = f"{results_dir}/{title}.png"
-    plt.savefig(png_path)
+    plot_path = f"{results_dir}/{title}.pdf"
+    plt.savefig(plot_path, format="pdf")
     plt.close()
-    logger.info(f"Saved dataset plot to {png_path}")
+    logger.info(f"Saved dataset plot to {plot_path}")
 
 
 def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
@@ -266,14 +266,14 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
         plt.tight_layout()
         plt.figlegend()
 
-        png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
-        plt.savefig(png_path)
+        plot_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.pdf"
+        plt.savefig(plot_path, format="pdf")
         plt.close()
-        logger.info(f"Saved feature-runtime plot to {png_path}")
+        logger.info(f"Saved feature-runtime plot to {plot_path}")
 
 
 def draw_runtime_plot(
-    png_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
+    plot_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
 ):
     result_names = []
     clear_dur = []
@@ -352,13 +352,13 @@ def draw_runtime_plot(
     plt.tight_layout()
     plt.legend()
 
-    plt.savefig(png_path)
+    plt.savefig(plot_path, format="pdf")
     plt.close()
-    logger.info(f"Saved runtime plot to {png_path}")
+    logger.info(f"Saved runtime plot to {plot_path}")
 
 
 def draw_runtime_plot_with_ratios(
-    png_path: str, results: list[RatioResult], result_attr_name: str, xlabel: str
+    plot_path: str, results: list[RatioResult], result_attr_name: str, xlabel: str
 ):
     logger.info(f"Drawing runtime plot with ratios with the following ratios: {results}")
 
@@ -421,13 +421,13 @@ def draw_runtime_plot_with_ratios(
     plt.tight_layout()
     plt.legend()
 
-    plt.savefig(png_path)
+    plt.savefig(plot_path, format="pdf")
     plt.close()
-    logger.info(f"Saved runtime plot with ratios to {png_path}")
+    logger.info(f"Saved runtime plot with ratios to {plot_path}")
 
 
 def draw_acc_f1_plot(
-    png_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
+    plot_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
 ):
     result_names = []
     clear_acc, clear_acc_stdev = [], []
@@ -504,9 +504,9 @@ def draw_acc_f1_plot(
     plt.tight_layout()
     plt.legend()
 
-    plt.savefig(png_path)
+    plt.savefig(plot_path, format="pdf")
     plt.close()
-    logger.info(f"Saved accuracy/f1 plot to {png_path}")
+    logger.info(f"Saved accuracy/f1 plot to {plot_path}")
 
 
 def draw_runtime_plots_per_exp_non_ner(results_dir: str):
@@ -532,19 +532,19 @@ def draw_runtime_plots_per_exp_non_ner(results_dir: str):
                 results_in_plot.append(r)
                 ratio_results_in_plot.append(calculate_runtime_ratios(r))
         draw_runtime_plot(
-            f"{results_dir}/runtime-plot_{exp_name}.png",
+            f"{results_dir}/runtime-plot_{exp_name}.pdf",
             results_in_plot,
             "dset_name_dict",
             "Datasets",
         )
         draw_runtime_plot_with_ratios(
-            f"{results_dir}/runtime-plot-with-ratio_{exp_name}.png",
+            f"{results_dir}/runtime-plot-with-ratio_{exp_name}.pdf",
             ratio_results_in_plot,
             "dset_name_dict",
             "Datasets",
         )
         draw_acc_f1_plot(
-            f"{results_dir}/acc_f1-plot_{exp_name}.png",
+            f"{results_dir}/acc_f1-plot_{exp_name}.pdf",
             results_in_plot,
             "dset_name_dict",
             "Datasets",
@@ -560,19 +560,19 @@ def draw_runtime_plot_ner(results_dir: str):
     if len(results_in_plot) > 0:
         logger.info("Drawing runtime plots for ner experiments...")
         draw_runtime_plot(
-            f"{results_dir}/runtime-plot-ner.png",
+            f"{results_dir}/runtime-plot-ner.pdf",
             results_in_plot,
             "exp_name_dict",
             "NER Experiments on CCoNLL",
         )
         draw_runtime_plot_with_ratios(
-            f"{results_dir}/runtime-plot-ner-with-ratio.png",
+            f"{results_dir}/runtime-plot-ner-with-ratio.pdf",
             ratio_results_in_plot,
             "exp_name_dict",
             "NER Experiments on CCoNLL",
         )
         draw_acc_f1_plot(
-            f"{results_dir}/acc_f1-plot-ner.png",
+            f"{results_dir}/acc_f1-plot-ner.pdf",
             results_in_plot,
             "exp_name_dict",
             "NER Experiments on CCoNLL",
