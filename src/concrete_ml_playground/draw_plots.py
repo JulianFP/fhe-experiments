@@ -18,6 +18,8 @@ from .statistics_handler import RatioResult, calculate_runtime_ratios
 
 plt.rcParams.update({"font.size": 16})
 figsize = (10, 7.5)
+barWidth = 0.25
+groupSpacing = 0.25
 label_cmap = "brg"
 
 
@@ -208,6 +210,7 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
             label=f"test set - label '{label}'",
         )
     plt.figlegend()
+
     png_path = f"{results_dir}/{title}.png"
     plt.savefig(png_path)
     plt.close()
@@ -261,8 +264,8 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
         plt.xlabel("Dimensionality of feature vectors", fontweight="bold")
         plt.ylabel("Avg. Runtime (in seconds)", fontweight="bold")
         plt.tight_layout()
-
         plt.figlegend()
+
         png_path = f"{results_dir}/feature-runtime-plot_{exp_name}_{dset_prefix}.png"
         plt.savefig(png_path)
         plt.close()
@@ -272,9 +275,6 @@ def draw_feature_dim_runtime_plot(results_dir: str, dset_prefix: str):
 def draw_runtime_plot(
     png_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
 ):
-    barWidth = 0.25
-    groupSpacing = 0.125
-
     result_names = []
     clear_dur = []
     clear_dur_stdev = []
@@ -350,8 +350,8 @@ def draw_runtime_plot(
         rotation = 0
     plt.xticks(br1 + 1.5 * barWidth, result_names, rotation=rotation)
     plt.tight_layout()
-
     plt.legend()
+
     plt.savefig(png_path)
     plt.close()
     logger.info(f"Saved runtime plot to {png_path}")
@@ -361,8 +361,6 @@ def draw_runtime_plot_with_ratios(
     png_path: str, results: list[RatioResult], result_attr_name: str, xlabel: str
 ):
     logger.info(f"Drawing runtime plot with ratios with the following ratios: {results}")
-    barWidth = 0.25
-    groupSpacing = 0.125
 
     result_names = []
     fhe_proc = []
@@ -376,7 +374,7 @@ def draw_runtime_plot_with_ratios(
         fhe_pre_post.append(r.fhe_pre_and_post_to_clear_proc)
         fhe_pre_post_stdev.append(r.fhe_pre_and_post_to_clear_proc_stdev)
 
-    br1 = np.arange(len(fhe_proc)) * (barWidth * 4 + groupSpacing)
+    br1 = np.arange(len(fhe_proc)) * (barWidth * 2 + groupSpacing)
     br2 = br1 + barWidth
 
     plt.figure(figsize=figsize)
@@ -402,14 +400,16 @@ def draw_runtime_plot_with_ratios(
     )
     for bar, ratio in zip(proc_bars + pre_post_bars, fhe_proc + fhe_pre_post):
         height = bar.get_height()
+        factor = f"{round(ratio):,}"
         plt.text(
-            bar.get_x() + bar.get_width() / 2,
+            bar.get_x() + 3 / 4 * bar.get_width(),
             height,
-            f"{round(ratio)}x slower",
+            f"{factor}x slower",
             ha="left",
             va="bottom",
             rotation=45,
-            fontsize=10,
+            fontsize=11,
+            color="tab:blue",
         )
     plt.xlabel(xlabel, fontweight="bold")
     plt.ylabel("Avg. Runtime relative to clear runtime", fontweight="bold")
@@ -417,20 +417,103 @@ def draw_runtime_plot_with_ratios(
         rotation = 45
     else:
         rotation = 0
-    plt.xticks(br1 + 1.5 * barWidth, result_names, rotation=rotation)
+    plt.xticks(br1 + 0.5 * barWidth, result_names, rotation=rotation)
     plt.tight_layout()
-
     plt.legend()
+
     plt.savefig(png_path)
     plt.close()
     logger.info(f"Saved runtime plot with ratios to {png_path}")
+
+
+def draw_acc_f1_plot(
+    png_path: str, results: list[ExperimentResultFinal], result_attr_name: str, xlabel: str
+):
+    result_names = []
+    clear_acc, clear_acc_stdev = [], []
+    clear_f1, clear_f1_stdev = [], []
+    fhe_acc, fhe_acc_stdev = [], []
+    fhe_f1, fhe_f1_stdev = [], []
+
+    for r in results:
+        result_names.append(getattr(r, result_attr_name))
+        clear_acc.append(r.accuracy_clear)
+        clear_acc_stdev.append(r.accuracy_clear_stdev)
+        clear_f1.append(r.f1_score_clear)
+        clear_f1_stdev.append(r.f1_score_clear_stdev)
+        fhe_acc.append(r.accuracy_fhe)
+        fhe_acc_stdev.append(r.accuracy_fhe_stdev)
+        fhe_f1.append(r.f1_score_fhe)
+        fhe_f1_stdev.append(r.f1_score_fhe_stdev)
+
+    subGroupSpacing = 0.25 * groupSpacing
+    br1 = np.arange(len(clear_acc)) * (barWidth * 4 + groupSpacing + subGroupSpacing)
+    br2 = br1 + barWidth
+    br3 = br2 + barWidth + subGroupSpacing
+    br4 = br3 + barWidth
+
+    plt.figure(figsize=figsize)
+    plt.bar(
+        br1,
+        clear_acc,
+        color="tab:green",
+        alpha=0.55,
+        width=barWidth,
+        label="Accuracy clear",
+        yerr=clear_acc_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br2,
+        fhe_acc,
+        color="tab:red",
+        alpha=0.55,
+        width=barWidth,
+        label="Accuracy FHE",
+        yerr=fhe_acc_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br3,
+        clear_f1,
+        color="tab:green",
+        width=barWidth,
+        label="F1-Score clear",
+        yerr=clear_f1_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.bar(
+        br4,
+        fhe_f1,
+        color="tab:red",
+        width=barWidth,
+        label="F1-Score FHE",
+        yerr=fhe_f1_stdev,
+        error_kw=dict(capsize=4, capthick=2, elinewidth=2),
+        capsize=4,
+    )
+    plt.xlabel(xlabel, fontweight="bold")
+    if len(result_names) > 2:
+        rotation = 45
+    else:
+        rotation = 0
+    plt.xticks(br1 + 1.5 * barWidth + 0.5 * subGroupSpacing, result_names, rotation=rotation)
+    plt.tight_layout()
+    plt.legend()
+
+    plt.savefig(png_path)
+    plt.close()
+    logger.info(f"Saved accuracy/f1 plot to {png_path}")
 
 
 def draw_runtime_plots_per_exp_non_ner(results_dir: str):
     results = read_csv(results_dir)
     experiments = set([r.exp_name for r in results if "ner" not in r.exp_name_dict])
     for exp_name in experiments:
-        logger.info(f"Drawing runtime plots for experiment '{exp_name}'...")
+        logger.info(f"Drawing plots for experiment '{exp_name}'...")
         results_in_plot = []
         ratio_results_in_plot = []
         for r in results:
@@ -460,6 +543,12 @@ def draw_runtime_plots_per_exp_non_ner(results_dir: str):
             "dset_name_dict",
             "Datasets",
         )
+        draw_acc_f1_plot(
+            f"{results_dir}/acc_f1-plot_{exp_name}.png",
+            results_in_plot,
+            "dset_name_dict",
+            "Datasets",
+        )
 
 
 def draw_runtime_plot_ner(results_dir: str):
@@ -479,6 +568,12 @@ def draw_runtime_plot_ner(results_dir: str):
         draw_runtime_plot_with_ratios(
             f"{results_dir}/runtime-plot-ner-with-ratio.png",
             ratio_results_in_plot,
+            "exp_name_dict",
+            "NER Experiments on CCoNLL",
+        )
+        draw_acc_f1_plot(
+            f"{results_dir}/acc_f1-plot-ner.png",
+            results_in_plot,
             "exp_name_dict",
             "NER Experiments on CCoNLL",
         )
