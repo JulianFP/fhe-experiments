@@ -7,10 +7,10 @@ We executed the described experiment suite on two different machines to get a mo
 \end{itemize}
 
 A lot of \ac{fhe} operations in concrete are very well parallelized while our clear executions of the same models are not.
-Because of this we wanted to test the runtime on two configurations, one being more fair for the comparison between \ac{fhe} and clear executions since the \ac{fhe} execution cannot gain that much by parallelization on a small core-count CPU, and one representing a more realistic deployment for \ac{fhe} applications since server and cloud machines tend to have high core counts but smaller single core performance.
+Consequently we wanted to test the runtime on two configurations, one being more fair for the comparison between \ac{fhe} and clear executions since the \ac{fhe} execution cannot gain that much by parallelization on a small core-count CPU, and one representing a more realistic deployment for \ac{fhe} applications since server and cloud machines tend to have high core counts but smaller single core performance.
 We also want to point out that the cluster was being used by other people as well during the experiments, introducing a higher runtime variance between the executions.
 The personal computer on the other hand was a more controlled environment with no other users and as little processes as possible running at the same time.
-Because of this we expect the standard deviation (plotted as error bars in our plots) to be much lower on the PC runs.
+Due to this we expect the standard deviation (plotted as error bars in our plots) to be much lower on the PC runs.
 
 We executed every experiment 10 times and calculated the average of all values as well as their standard deviation.
 Note that the error bars in all plots represent this standard deviation.
@@ -58,7 +58,7 @@ While this was better than expected, we also have to note that the \ac{pca} that
 In fact it might have even been much too aggressive since in theory any \ac{cart} model must be at least equally as good and most of the time better than Logistic Regression.
 What we observed instead were changing improvements over Logistic Regression on some datasets (xor, most spam variants), but a worse performance than Logistic Regression on the others.
 As with most experiments we implemented them as close as the example code from the concrete-ml documentation.
-In this case however the recommended usage of \ac{pca} probably crippled the model quite a bit to the point were using it over Logistic Regression makes no sense considering it's increased runtimes.
+In this case however the recommended usage of \ac{pca} probably crippled the model quite a bit to the point were using it over Logistic Regression makes no sense considering its increased runtimes.
 
 For our \ac{fnn} model (see \cref{neural_net_exp}) experiments we did not use a fixed seed since it is not based on scikit-learn anymore and thus concrete-ml does not expose an attribute for doing this.
 As a result our accuracies and F1-scores were subject to variation from run to run which can be seen in the error bars.

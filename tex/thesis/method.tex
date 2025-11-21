@@ -1,6 +1,6 @@
 \chapter{Method}
 
-In this chapter we will describe the experiment setup used to measure various trade-offs of homomorphic encryption in different machine learning scenarios.
+In this chapter we will describe the experiment setup used to measure various trade-offs of homomorphic encryption in different \ac{ml} scenarios.
 We will describe the technologies and general methodology as well as all the different datasets and model architectures used.
 
 \section{Technological Overview}
@@ -10,7 +10,8 @@ The repository includes a README file with some basic instructions in how to run
 This means that the reader may generate every data point or graph in this thesis themselves.
 The absolute numbers will differ because of hardware and software environment differences, but the relative numbers as well as general findings should thus be reproducible by anyone.
 
-The experiments were implemented in Python, the de facto standard language in the field of machine learning.
+The experiments were implemented purely in Python, the de facto standard language in the field of \ac{ml}.
+Being able to stick with a high-level language as well as other industry standard tools like \emph{scikit-learn} and \emph{PyTorch} is not self-evident when implementing \ac{fhe} programs and is only possible due to the ease-of-use of the \ac{fhe} framework \emph{concrete-ml} (see \cref{concrete-ml}).
 We have added astral's \emph{uv} \cite{astral_uv_nodate} as a project and dependency management tool to make running the script with all necessary dependencies easier and to pinpoint all dependencies to a specific version to increase reproducibility.
 
 We defined common interfaces for all experiments as well as datasets to ease their implementation, reduce code duplication, and to ensure to only change desired attributes between different experiments to increase comparability.
@@ -18,26 +19,26 @@ We defined common interfaces for all experiments as well as datasets to ease the
 For generating result data we used Python's statistics and csv modules as well as \emph{matplotlib} \cite{noauthor_matplotlib_nodate} to generate all graphics.
 The graph generation runs independently from the experiment execution which allows redrawing graphs of existing experiment results to for example change the styling of graphs after the fact.
 
-The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add an easy-to-use \acs{cli} to be able to adjust parameters like execution repetitions, which experiment-dataset combinations should be executed, or which graphs should be generated.
+The python package also uses \emph{click} \cite{pallets_welcome_nodate} to add a convenient \acs{cli} to be able to adjust parameters like execution repetitions, which experiment-dataset combinations should be executed, or which graphs should be generated.
 
-\section{The Examined \acs{fhe} Framework: concrete-ml}
+\section{The Examined \acs{fhe} Framework: concrete-ml}\label{concrete-ml}
 
-We chose the \emph{concrete-ml} framework to implement a variety of machine learning models in \ac{fhe} \cite{noauthor_concrete_2025}.
+We chose the \emph{concrete-ml} framework to implement a variety of \ac{ml} models in \ac{fhe} \cite{noauthor_concrete_2025}.
 It is built on top of the \ac{tfhe} compiler \emph{concrete} which turns Python programs into \ac{tfhe} circuit-equivalents \cite{noauthor_concrete_2025-1}.
 Both projects are fully open-source and are being developed by the cryptography start-up Zama.
-While concrete-ml and Zama are not the only ones trying to implement \ac{fhe} for machine learning applications, from what we have seen concrete-ml seems to be by far the easiest, most complete, and most high-level solution at the time of writing.
-It's main selling points are support for a large variety of models, including custom models, while requiring very little or no cryptography knowledge from the developer implementing these models.
-This means that data scientists and in general people with some machine learning experience but no \ac{fhe} or cryptography knowledge should be able to build \ac{fhe} models with concrete-ml without leaving the comfort of Python and Pytorch or scikit-learn.
+While concrete-ml and Zama are not the only ones trying to implement \ac{fhe} for \ac{ml} applications, from what we have seen concrete-ml seems to be by far the easiest, most complete, and most high-level solution at the time of writing.
+Its main selling points are support for a large variety of models, including custom models, while requiring very little or no cryptography knowledge from the developer implementing these models.
+This means that data scientists and in general people with some \ac{ml} experience but no \ac{fhe} or cryptography knowledge should be able to build \ac{fhe} models with concrete-ml without leaving the comfort of Python and Pytorch or scikit-learn.
 We will look at some alternatives to concrete-ml later, but during our experiments we exclusively relied on concrete-ml.
 
 \subsection{Feature Overview}
 
 We already explained the \ac{tfhe} scheme to some extend in \cref{TFHE}.
-Concrete largely implements this scheme as described in that section, with some extensions to increase it's functionality and flexibility.
-It's main innovation was \emph{\acf{pbs}} (which we already mentioned in \cref{TFHE_building_blocks}) which allows to execute functions that can be expressed as a look-up table during the Bootstrapping process.
+Concrete largely implements this scheme as described in that section, with some extensions to increase its functionality and flexibility.
+Its main innovation was \emph{\acf{pbs}} (which we already mentioned in \cref{TFHE_building_blocks}) which allows to execute functions that can be expressed as a look-up table during the Bootstrapping process.
 This \ac{pbs} approach is used a lot by concrete and concrete-ml, in practice it implements most non-linear operations (i.e. everything that cannot be expressed as addition and multiplication with a constant).
 When looking at a neural network, many operations are linear like matrix multiplications with the model weights.
-However machine learning models have to incorporate non-linear functions to be able to separate non-linear data which means that in order to run these models homomorphically we need to be able to evaluate these non-linear functions in \ac{fhe} as well.
+However \ac{ml} models have to incorporate non-linear functions to be able to separate non-linear data which means that in order to run these models homomorphically we need to be able to evaluate these non-linear functions in \ac{fhe} as well.
 For neural networks, these functions mostly are the activation functions, and in concrete-ml they are mostly implemented using look-up tables during \ac{pbs} \cite{dolev_programmable_2021} \cite{noauthor_concrete_2025-1}.
 
 We will now describe the high-level feature set of concrete-ml and some real-world applications they might proof useful in:
@@ -84,7 +85,7 @@ This is why, as already mentioned, some model types is concrete-ml do not allow 
 It is worth noting that quantizing \ac{ml} models is a common practice even outside the \ac{fhe} space, mostly with the goal to reduce model sizes and thus hardware requirements for running them.
 concrete-ml uses the Brevitas library for performing \ac{qat} on neural networks which is not an \ac{fhe}-specific library \cite{noauthor_concrete_2025} \cite{noauthor_xilinxbrevitas_2025}.
 However in \ac{fhe} and for non-linear models like neural networks, this quantization must be quite aggressive since concrete also has limits to what bit-widths it can support.
-Because of this we will always measure accuracy and F1 scores during our experiments to see how big of an impact the quantization has on any given models accuracy on each dataset.
+Therefore we will always measure accuracy and F1 scores during our experiments to see how big of an impact the quantization has on any given models accuracy on each dataset.
 
 After quantization and encryption, the client has to also perform serialization.
 This is the step of encoding our data into a common format that can be send over the network to the server and includes all the required metadata so that the server can read and interpret the ciphertexts correctly.
@@ -95,7 +96,7 @@ These three steps also have to be reversed on the output returned by the server 
 The most prominent problem that concrete-ml tries to solve is encrypted inference, i.e. we deploy an already trained \ac{ml} model on a relatively powerful server machine, and users can encrypt inputs, send them to the server, and receive encrypted outputs of the model without the server being able to decipher either of them.
 For this we would use concrete-ml to compile a model into an \ac{fhe} equivalent model, and export that into two archives: A server.zip and a client.zip.
 The first one contains the model and everything the server needs to run it homomorphically.
-The second one contains cryptographic parameters and descriptions of all required pre-/post-processing that needs to be done by the client (but reveals no information about the model or it's weights).
+The second one contains cryptographic parameters and descriptions of all required pre-/post-processing that needs to be done by the client (but reveals no information about the model or its weights).
 An example for how this process looks can be seen in \cref{code:compile_model}.
 
 \begin{lstlisting}[language=Python, caption=Simple example of compiling an already trained logistic regression model into the FHE equivalent, label=code:compile_model]
@@ -162,12 +163,12 @@ These steps are then repeated 10 times for each model/dataset combination (inclu
 \subsubsection{Logistic Regression}\label{LogisticRegressionExp}
 
 This model represents the set of linear models that concrete-ml has built-in support for.
-We trained it using the LogisticRegression model from scikit-learn, and then used the \texttt{from\_sklearn\_model} method of the concrete-ml object to turn the trained model into it's \ac{fhe} equivalent, using a relatively high bit-width of 8.
+We trained it using the LogisticRegression model from scikit-learn, and then used the \texttt{from\_sklearn\_model} method of the concrete-ml object to turn the trained model into its \ac{fhe} equivalent, using a relatively high bit-width of 8.
 This is possible because this  model is linear and does not require table look-ups.
 In fact it is even implemented in a leveled way, meaning it should not require Bootstrapping at all.
 The operations that are executed inside \ac{fhe} are just one matrix multiplication with the model weights and an addition with the model bias (see \cref{LogisticRegression} for a full explanation) \cite{noauthor_concrete_2025}.
 
-Because of this we expect the runtime overheads to be relatively low compared to the other models, and the accuracy loss due to quantization almost non-existent.
+For this reason we expect the runtime overheads to be relatively low compared to the other models, and the accuracy loss due to quantization almost non-existent.
 However with it being a very simple and only a linear model, we also expect it to perform quite poorly on more complex problems that require non-linearity to solve them.
 
 \subsubsection{XGB Tree-based Classifier}\label{XGBExp}
@@ -183,7 +184,7 @@ The core strategy comes down to replacing conditions with a parallel evaluation 
 While this sounds very inefficient, it actually is not that uncommon even outside the \ac{fhe} space.
 This is because the way this parallelized execution of all branches is achieved is by computing all branching decisions simultaneously using tensor operations.
 This allows for acceleration with GPUs which in turn can significantly boost performance.
-There are libraries like Microsoft's Hummingbird that aim to do exactly this in order to be able to accelerate these more classical machine learning models with tensor operations on GPUs \cite{noauthor_microsofthummingbird_2025}.
+There are libraries like Microsoft's Hummingbird that aim to do exactly this in order to be able to accelerate these more classical \ac{ml} models with tensor operations on GPUs \cite{noauthor_microsofthummingbird_2025}.
 
 In addition to this parallel branch execution it is also required to train the \ac{cart} model using already quantized data so that it can learn the decisions for the correct integers.
 Since this model also includes a mix of linear and non-linear operations implemented with \ac{pbs}, it also requires carefully chosen (partially through benchmarking) cryptographic parameters to reduce the quantization error to a minimum \cite{frery_privacy-preserving_2023}.
@@ -196,7 +197,7 @@ Due to the non-linear operations we expect some measurable decreases in accuracy
 
 \subsubsection{Neural Network Classifier}\label{neural_net_exp}
 
-The NeuralNetClassifier class implements a \ac{fnn} mimicking the scikit-learn class (as described in \cref{FNN}) and interface with the same name while in reality it's implemented with PyTorch.
+The NeuralNetClassifier class implements a \ac{fnn} mimicking the scikit-learn class (as described in \cref{FNN}) and interface with the same name while in reality it is implemented with PyTorch.
 For hyperparameters we used 3 hidden layers with the same dimensionality as the input features, the \ac{relu} activation functions, and 100 training epochs with a learning rate of $0.01$.
 For this builtin-in model concrete-ml requires training of the FHE model instead of compiling a trained clear model \cite{noauthor_concrete_2025}.
 For this we used the \texttt{fit\_benchmark} method that trains the FHE model together with the equivalent clear model for direct comparison between the two.
@@ -213,7 +214,7 @@ Therefore we expect this neural network model to both have the highest inference
 
 This second experiment group tests the use case of encrypted training.
 Here instead of training a model on clear data and then performing inference on encrypted data we already perform the training on encrypted data.
-This might be interesting in fields where training data is very sparse and the only available data is confidential and cannot be shared with the entity performing the model training or machine learning service.
+This might be interesting in fields where training data is very sparse and the only available data is confidential and cannot be shared with the entity performing the model training or \ac{ml} service.
 It allows a training-as-a-service deployment, where e.g. people working in medical fields can train models on confidential patient data on external infrastructure without exposing this data to this infrastructure provider.
 Of course using non-sensitive training data should always be preferred over this FHE approach, but the nature of some applications preclude the existence of non-sensitive training (e.g. a model to find brain tumor needs to be trained on brain scans which cannot be anonymized).
 This will be tested on the same datasets and thus use cases as \cref{encrypted_inference}, however the experiment steps and the measured attributes differ slightly:
@@ -264,7 +265,7 @@ The model has to classify one token at a time, and receives a fixed number of to
 
 To be able to feed our text input to a model, we turned each token into an index by first regularizing the tokens and then assigning integers to them in order of appearance in the training data.
 The regularization step is necessary to avoid situations where the same token gets assigned two different integers because of slight differences (e.g. different capitalization, additional spacings, ...).
-Because of this the regularization includes making all characters lower-case.
+Therefore the regularization also includes converting all characters lowercase.
 We did not need to perform tokenization since the dataset in use was already tokenized. Refer to \cref{cconll} for more information about the dataset we used.
 
 For cases where our model encounters a token it has never seen during training we created the '<UNK>' token. All unknown tokens in a sample will be replaced with this token before the sample gets converted to token indices.
@@ -276,7 +277,7 @@ For example if our input is "Paris is the capital of France." (our example from 
 We can already see some deficiencies with this sliding window approach here since the model often does not get enough context (the quite important "capital of France" is cut out).
 Nevertheless we still wanted to start of with a relatively small window size of 5 to keep model complexity low for the \ac{fhe} execution, with the option to increase it in the future.
 
-Since we converted all tokens to lower-case, and since we the model only receives token indices and not the actual tokens, we added two auxiliary features to give the model some attributes of each of the tokens in addition to their indices: Capitalization information and token lengths.
+Since we converted all tokens to lowercase, and since we the model only receives token indices and not the actual tokens, we added two auxiliary features to give the model some attributes of each of the tokens in addition to their indices: Capitalization information and token lengths.
 The capitalization information can distinguish between a token
 \begin{itemize}
     \item which exclusively consists of capital letters
@@ -304,8 +305,8 @@ For this we used some randomly generated sample data with the same minimal and m
 For the \ac{qat} variant of this experiment we used the Brevitas \cite{noauthor_xilinxbrevitas_2025} library to replace all PyTorch layers of the model with Brevitas equivalents, as well as an additional \texttt{QuantLinear} layer at the beginning.
 However we were not able to get this \ac{qat} variant to run at all for reasons we will explain in our results.
 
-We intentionally pushed the bit-width for this model to it's limit (the fhe compilation would fail for anything higher than 5) since pushing the boundaries of \ac{fhe} was our goal here.
-Because of this we expect even higher runtimes then for our \ac{fnn} experiment (see \cref{neural_net_exp}) while suffering from less performance degradation.
+We intentionally pushed the bit-width for this model to its limit (the fhe compilation would fail for anything higher than 5) since pushing the boundaries of \ac{fhe} was our goal here.
+Therefore we expect even higher runtimes then for our \ac{fnn} experiment (see \cref{neural_net_exp}) while suffering from less performance degradation.
 We will see if this trade-off will be worth it.
 We expect the Embedding layer to cause a measurable but manageable runtime increase since during inference it can be collapsed into look-up tables.
 
@@ -331,14 +332,14 @@ Apple approached this by clustering the vectors of landmarks into multiple small
 This comes at the cost of slightly reduced privacy since the server now learns the broad category of the landmark that the image contains, as well as additional required client-side computations.
 We did not implement any such mechanism for our experiment which might result in it performing poorly.
 \ac{bert} generates embedding vectors with 768 dimensions \cite{devlin_bert_2019}, and the \ac{knn} would need to be performed on order of magnitude of ${\sim}10,000$ training samples to be effective for the \ac{ner} task.
-This might be challenging for a \ac{knn} search on it's own, and even more so in an \ac{fhe} environment.
-Because of this we added a dimensionality reduction with \ac{pca} so that we could freely change the embedding vectors dimension.
-There is however a limit how far the vector's dimensionality can be reduced while still keeping it's functionality as a semantic embedding intact.
+This might be challenging for a \ac{knn} search on its own, and even more so in an \ac{fhe} environment.
+Due to this we added a dimensionality reduction with \ac{pca} so that we could freely change the embedding vectors dimension.
+There is however a limit how far the vectors dimensionality can be reduced while still keeping its functionality as a semantic embedding intact.
 
 \section{Datasets}\label{datasets}
 
-We used a variation of datasets across different classification problems commonly solved with a machine learning approach.
-Some of these datasets are synthetic for maximum control over their characteristics to specifically measure a models behavior under certain conditions, while others are real-world datasets that we used to measure how well the models perform solving a variety of real-world problems, mimicking a production deployment of a homomorphic machine learning setup as much as possible.
+We used a variation of datasets across different classification problems commonly solved with a \ac{ml} approach.
+Some of these datasets are synthetic for maximum control over their characteristics to specifically measure a models behavior under certain conditions, while others are real-world datasets that we used to measure how well the models perform solving a variety of real-world problems, mimicking a production deployment of a homomorphic \ac{ml} setup as much as possible.
 
 All datasets use single-precision floating point numbers to store feature vectors to make them compatible with all concrete-ml models since some of these models don't support double-precision for their training data.
 We made this choice to increase comparability both between \ac{fhe} and non-\ac{fhe} executions as well as across different model architectures and since the accuracy trade-off should be almost non-existing.
@@ -380,7 +381,7 @@ We handcrafted this tiny dataset for code testing with faster iterations as well
     \label{fig:xor_problem_plot}
 \end{figure}
 
-The dataset's feature vectors are 2-dimensional.
+The datasets feature vectors are 2-dimensional.
 The label is 1 if and only if one of the features is closer to 0.75 than to 0.25 while the other is closer to 0.25 than to 0.75.
 Conversely if both features are approximately the same then the label is 0.
 
@@ -394,7 +395,7 @@ This makes this dataset great in ensuring that more complex non-linear model act
 \subsection{Iris}
 
 The iris plants dataset is a very classical \ac{ml} dataset and is often used as a baseline in benchmarks and experiments.
-It's small amount of features and samples make it great for quick testing and evaluation of \ac{ml} models.
+Its small amount of features and samples make it great for quick testing and evaluation of \ac{ml} models.
 
 \begin{figure}[h]
     \begin{center}
@@ -473,13 +474,13 @@ Both classes have only one cluster, making it linearly separable and thus even v
 
 The amount of features in this dataset is variable which allows us to specifically isolate the impact of feature size on model runtime and performance.
 We start with 50-dimensional features, and gradually increase the dimensionality up to 2500, resulting in a total of 6 different variations of this dataset.
-For each variation, only 10\% of the features are actually informative of the sample's label, while the other 90\% are just generated at random independently from the true labels.
+For each variation, only 10\% of the features are actually informative of the samples label, while the other 90\% are just generated at random independently from the true labels.
 This mainly tests a models resistance to overfitting.
 
 The result can be seen in \cref{fig:synthetic_plot}.
 Please note that in contrast to the 2-dimensional 'XOR problem' dataset we had to map these high dimensional features to 2 dimensions in order to plot them.
 For this we used scikit-learn's \acf{pca} implementation.
-Please note that by doing this, the visual representation of the dataset isn't accurate, for example in the plots it doesn't appear to be separable even though in reality it is.
+Please note that by doing this, the visual representation of the dataset isn't accurate, for example in the plots it does not appear to be separable even though in reality it is.
 The high amount of uninformative dimensions contributes to this effect.
 
 \subsection{SMS Spam}
@@ -533,7 +534,7 @@ It is a cleaned up variant of the \ac{conll} dataset that removes some labeling 
 
 In other words we simplified the \ac{ner} task here by reducing the amount of classes such that our models do not need to recognize whether a token is the beginning of an entity or not.
 
-Since our \ac{ner} approaches look at one token (and it's context) at a time, we had to decrease the size of the dataset and balance it a bit.
+Since our \ac{ner} approaches look at one token (and its context) at a time, we had to decrease the size of the dataset and balance it a bit.
 Otherwise we would have had as many samples as there are tokens in \ac{cconll}, and since by far the most tokens do not belong to any named entity we would also have an extremely unbalanced dataset.
 Instead we chose to include all tokens that are part of an entity, plus an equal amount of non-entity tokens (if the sample had enough non-entity tokens, otherwise less).
 This way we did not cut out any entities from the dataset while not flooding our models with too many non-entity training tokens.
