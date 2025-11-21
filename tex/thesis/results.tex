@@ -22,32 +22,32 @@ During reading the results please note that we did not execute the Neural Networ
 
 \subsection{Accuracy and F1-Score}
 
-In \cref{fig:inference_acc_f1} we can see an overview of the accuracy and F1-Scores of our three models.
+In \cref{fig:cluster_acc_f1} we can see an overview of the accuracy and F1-Scores of our three models.
 A full overview of all the data is available in \cref{table:inference_cluster_acc-f1}.
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_Logistic Regression.pdf}
         \end{center}
         \caption{Logistic Regression}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{XGB Tree-based}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_Neural Network Classifier.pdf}
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
     \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, drawn from the cluster run of the experiments}
-\end{figure}\label{fig:inference_acc_f1}
+\end{figure}\label{fig:cluster_acc_f1}
 
 As expected (see \cref{LogisticRegressionExp}) the Logistic Regression model quality did not suffer from compiling it to its \ac{fhe} equivalent.
 For all datasets, the accuracy and F1-scores stay exactly the same while also having a no standard deviation (since we fixed the seed for this experiment).
@@ -71,61 +71,89 @@ While the digits and spam datasets where barely affected, the \ac{fhe} model per
 
 \subsection{Runtime}
 
+See \cref{fig:cluster_runtime_logReg}, \cref{fig:cluster_runtime_xgb}, \cref{fig:cluster_runtime_neural_net}.
+
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_Logistic Regression.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_Logistic Regression.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Logistic Regression model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_logReg}
+    \caption{Runtimes of the Logistic Regression model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_logReg}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the XGB tree-based model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_xgb}
+    \caption{Runtimes of the XGB tree-based model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_xgb}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_Neural Network Classifier.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_Neural Network Classifier.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Neural Network model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_neural_net}
+    \caption{Runtimes of the Neural Network model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_neural_net}
 \end{figure}
 
 \subsection{How Runtime Grows with Feature Size}
+
+Since we executed our synthetic dataset with a variety of feature size, we can look at how runtimes grow with the dimensionality of the input features (see \cref{fig:cluster_feature-runtime}).
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Logistic Regression_synth_.pdf}
+        \end{center}
+        \caption{Logistic Regression}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_XGB Tree-based Classification_synth_.pdf}
+        \end{center}
+        \caption{XGB Tree-based}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Neural Network Classifier_synth_.pdf}
+        \end{center}
+        \caption{Neural Network}
+    \end{subfigure}
+    \caption{Runtimes plotted against feature size of the 'Synthetic' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, drawn from the cluster run of the experiments}\label{fig:cluster_feature-runtime}
+\end{figure}
 
 \subsection{Changes in the Decision Boundary}
 
