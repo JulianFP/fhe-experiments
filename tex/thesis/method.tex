@@ -170,7 +170,7 @@ The operations that are executed inside \ac{fhe} are just one matrix multiplicat
 Because of this we expect the runtime overheads to be relatively low compared to the other models, and the accuracy loss due to quantization almost non-existent.
 However with it being a very simple and only a linear model, we also expect it to perform quite poorly on more complex problems that require non-linearity to solve them.
 
-\subsubsection{XGB Tree-based Classifier}
+\subsubsection{XGB Tree-based Classifier}\label{XGBExp}
 
 This XGBClassifier class is our representative for \ac{cart} models, and it is concrete-ml's equivalent class to the XGBClassifier from the XGBoost library that implements the Boosting algorithm (see \cref{CART}).
 We train the XGBoost model together with a standard scaler and \ac{pca} for dimensionality reduction in a scikit-learn pipeline as recommended by the concrete-ml documentation.
@@ -209,7 +209,7 @@ Nevertheless this bit-width is still much lower than what we used with the previ
 The required computations are also significantly higher than for the previous models and include applying matrix products as well as the non-linear \ac{relu} function for each of the 3+1 layers.
 Therefore we expect this neural network model to both have the highest inference times in general as well as the highest relative increase of inference time in FHE compared to the clear model.
 
-\subsection{Encrypted Training with Built-In Model}
+\subsection{Encrypted Training with Built-In Model}\label{encrypted_training}
 
 This second experiment group tests the use case of encrypted training.
 Here instead of training a model on clear data and then performing inference on encrypted data we already perform the training on encrypted data.
@@ -394,7 +394,7 @@ This makes this dataset great in ensuring that more complex non-linear model act
 \subsection{Iris}
 
 The iris plants dataset is a very classical \ac{ml} dataset and is often used as a baseline in benchmarks and experiments.
-It's small amount of features and samples make it a great for quick testing and evaluation of \ac{ml} models.
+It's small amount of features and samples make it great for quick testing and evaluation of \ac{ml} models.
 
 \begin{figure}[h]
     \begin{center}
@@ -410,8 +410,8 @@ We used scikit-learn's \texttt{load\_iris} function to obtain the dataset \cite{
 
 \subsection{Breast Cancer}
 
-This dataset is about diagnosing breast cancer by supplying a \ac{ml} model with a set of 30 properties of a patients breasts (e.g. radius, concavity, etc.).
-Hence this dataset contains only two output classes, cancer and no cancer.
+This dataset is about telling the type of breast cancer by supplying a \ac{ml} model with a set of 30 properties of a fine needle aspirate of a patients breast mass (e.g. radius, texture, perimeter, etc.).
+All of the aspirate properties in the dataset are from breasts affected by cancer, however some are affected by malignant cancer (label '0'), and some by benign cancer (label '1').
 We used scikit-learn's \texttt{load\_breast\_cancer} function to obtain the dataset \cite{wolberg_multisurface_1990} \cite{noauthor_api_nodate}.
 
 \begin{figure}[h]
@@ -424,7 +424,7 @@ We used scikit-learn's \texttt{load\_breast\_cancer} function to obtain the data
 
 This dataset is especially interesting for our experiments for two reasons:
 First, it represents a real world use case that could very well benefit from the use of \ac{fhe} since this kind of medical data of patients might be considered sensitive.
-Second, the features spread quite heavily and much more than in our other datasets, with a maximum feature spread of $4030.4$.
+Second, the features (especially the ones for malignant cancer) spread quite heavily and much more than in our other datasets, with a maximum feature spread of $4030.4$.
 This can be challenging for our \ac{fhe} setting because a high range between the minimum and maximum feature means much coarser quantization which could very negatively impact model accuracy in the \ac{fhe} setting.
 
 \subsection{Digits}

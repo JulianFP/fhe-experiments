@@ -534,5 +534,5 @@ bsc-thesis.pdf
 *model_dir
 *.artifacts
 *.model
-*results*
+*results_*
 *CleanCoNLL_dataset-repo

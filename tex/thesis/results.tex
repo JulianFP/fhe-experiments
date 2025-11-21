@@ -1,0 +1,225 @@
+\chapter{Results}\label{chap:results}
+
+We executed the described experiment suite on two different machines to get a more complete picture of \ac{fhe} runtime behavior:
+\begin{itemize}
+    \item Our working groups cluster with 2x Intel Xeon Gold 6230R CPUs (in total 52 cores/104 threads @2.1GHz, up to 4.0GHz) with 192GB of memory, representing a machine with very high multi-core but lower single-core performance
+    \item A personal computer with 1x AMD Ryzen 5 7600 CPU (6 cores/12 threads @3.8GHz, up to 5.1GHz) with 32GB of memory, representing a machine with much lower multi-core but higher single-core performance
+\end{itemize}
+
+A lot of \ac{fhe} operations in concrete are very well parallelized while our clear executions of the same models are not.
+Because of this we wanted to test the runtime on two configurations, one being more fair for the comparison between \ac{fhe} and clear executions since the \ac{fhe} execution cannot gain that much by parallelization on a small core-count CPU, and one representing a more realistic deployment for \ac{fhe} applications since server and cloud machines tend to have high core counts but smaller single core performance.
+We also want to point out that the cluster was being used by other people as well during the experiments, introducing a higher runtime variance between the executions.
+The personal computer on the other hand was a more controlled environment with no other users and as little processes as possible running at the same time.
+Because of this we expect the standard deviation (plotted as error bars in our plots) to be much lower on the PC runs.
+
+We executed every experiment 10 times and calculated the average of all values as well as their standard deviation.
+Note that the error bars in all plots represent this standard deviation.
+
+\section{Encrypted Inference with Built-In Models}
+
+These are the results of our first group of experiments, described in \cref{encrypted_inference}.
+During reading the results please note that we did not execute the Neural Network experiment (see \cref{neural_net_exp}) on all variations of the SMS Spam dataset (only up to a feature size of 100) because of time constraints.
+
+\subsection{Accuracy and F1-Score}
+
+In \cref{fig:inference_acc_f1} we can see an overview of the accuracy and F1-Scores of our three models.
+A full overview of all the data is available in \cref{table:inference_cluster_acc-f1}.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_Logistic Regression.pdf}
+        \end{center}
+        \caption{Logistic Regression}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_XGB Tree-based Classification.pdf}
+        \end{center}
+        \caption{XGB Tree-based}
+    \end{subfigure}
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_acc_f1-plot_Neural Network Classifier.pdf}
+        \end{center}
+        \caption{Neural Network}
+    \end{subfigure}
+    \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, drawn from the cluster run of the experiments}
+\end{figure}\label{fig:inference_acc_f1}
+
+As expected (see \cref{LogisticRegressionExp}) the Logistic Regression model quality did not suffer from compiling it to its \ac{fhe} equivalent.
+For all datasets, the accuracy and F1-scores stay exactly the same while also having a no standard deviation (since we fixed the seed for this experiment).
+This proofs that with a high quantization bit-width and a very shallow \ac{fhe} inference circuit one can achieve perfect accuracy of the \ac{fhe} model.
+
+Our \ac{cart} model (see \cref{XGBExp}) only suffers from an extremely small accuracy loss due to quantization which is not viewable on the plot.
+While this was better than expected, we also have to note that the \ac{pca} that we used in this experiment might have helped a lot here.
+In fact it might have even been much too aggressive since in theory any \ac{cart} model must be at least equally as good and most of the time better than Logistic Regression.
+What we observed instead were changing improvements over Logistic Regression on some datasets (xor, most spam variants), but a worse performance than Logistic Regression on the others.
+As with most experiments we implemented them as close as the example code from the concrete-ml documentation.
+In this case however the recommended usage of \ac{pca} probably crippled the model quite a bit to the point were using it over Logistic Regression makes no sense considering it's increased runtimes.
+
+For our \ac{fnn} model (see \cref{neural_net_exp}) experiments we did not use a fixed seed since it is not based on scikit-learn anymore and thus concrete-ml does not expose an attribute for doing this.
+As a result our accuracies and F1-scores were subject to variation from run to run which can be seen in the error bars.
+The \ac{fnn} model has slightly better accuracies across the board, except for the spam and cancer datasets where it is slightly behind Logistic Regression.
+The differences are so small however that they are mostly insignificant hinting at the fact that our datasets are not challenging enough to show the differences in model performance well.
+Notably the neural network is the only model having acceptable accuracy in our XOR dataset.
+As expected the accuracy drops quite much after compiling the model to \ac{fhe}.
+How much was highly dependent on the dataset.
+While the digits and spam datasets where barely affected, the \ac{fhe} model performed much poorer than the clear model on the cancer and xor datasets which are very challenging for the quantization.
+
+\subsection{Runtime}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_Logistic Regression.pdf}
+        \end{center}
+        \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_Logistic Regression.pdf}
+        \end{center}
+        \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
+    \end{subfigure}
+    \caption{Runtimes of the Logistic Regression model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_logReg}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_XGB Tree-based Classification.pdf}
+        \end{center}
+        \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_XGB Tree-based Classification.pdf}
+        \end{center}
+        \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
+    \end{subfigure}
+    \caption{Runtimes of the XGB tree-based model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_xgb}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot_Neural Network Classifier.pdf}
+        \end{center}
+        \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/inference_runtime-plot-with-ratio_Neural Network Classifier.pdf}
+        \end{center}
+        \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
+    \end{subfigure}
+    \caption{Runtimes of the Neural Network model on various datasets, drawn from the cluster run of the experiments}\label{fig:inference_runtime_neural_net}
+\end{figure}
+
+\subsection{How Runtime Grows with Feature Size}
+
+\subsection{Changes in the Decision Boundary}
+
+\section{Encrypted Training with Built-In Model}
+
+These are the results of our second group of experiments, described in \cref{encrypted_training}.
+
+\subsection{Limitations of concrete-ml and Encountered Errors}
+
+\subsection{Accuracy and F1-Score}
+
+\subsection{Runtime}
+
+\subsection{How Runtime Grows with Feature Size}
+
+\subsection{Changes in the Decision Boundary}
+
+\section{Encrypted Inference with custom approaches for the \acl{ner} task}
+
+These are the results of our third and final group of experiments, described in \cref{ner_exps}.
+
+\subsection{Limitations of concrete-ml and Encountered Errors}
+
+\subsubsection{Imposed Restrictions to Model Design}
+
+\begin{lstlisting}[language=Python, caption=Original model design, label=code:original_model]
+class NERModel(nn.Module):
+    def __init__(<...>) -> None:
+        super().__init__()
+
+        self.window_size = window_size
+        self.token_embed = nn.Embedding(vocab_size, embedding_dim)
+        capit_embedding_dim = embedding_dim // 2
+        self.capit_embed = nn.Embedding(capit_classes, capit_embedding_dim)
+        input_dim = (embedding_dim + capit_embedding_dim + 1) * window_size
+
+        layers = []
+        prev_dim = input_dim
+        for h_dim in hidden_dims:
+            layers.append(nn.Linear(prev_dim, h_dim))
+            layers.append(nn.ReLU())
+            layers.append(nn.Dropout(dropout_rate))
+            prev_dim = h_dim
+        layers.append(nn.Linear(prev_dim, num_labels))  # Output layer
+
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        token_idxs = x[:, : self.window_size]
+        capits = x[:, self.window_size : 2 * self.window_size]
+        wlengths = x[:, 2 * self.window_size :]
+
+        token_embeds = self.token_embed(token_idxs)
+        capit_embeds = self.capit_embed(capits)
+        wlengths = wlengths.float().unsqueeze(
+            -1
+        )  # since the embeds are 3D, batches of lists of 5 128-dim vectors
+        features = torch.cat([token_embeds, capit_embeds, wlengths], dim=-1)
+        features_flattened = torch.flatten(features, start_dim=1, end_dim=-1)
+        return self.mlp(features_flattened)
+\end{lstlisting}
+
+In \cref{code:original_model} you can see our model design as we originally envisioned it.
+The goal was to have token indices (token\_idxs) as the main feature.
+These where generated by a simple vocabulary, where each token in the training set just got an index (after normalization).
+\ac{ner} requires the model to learn semantic information from the surrounding words of the token, i.e. the model needs to understand context.
+For this embeddings are a natural choice, specifically PyTorch's Embedding layer.
+
+In addition the these main features we also wanted to add some auxiliary features as well in order to give the model some information that got lost during the normalization and indexation steps.
+Some standard features for this are capitalization information and word lengths.
+For the capitalization we assigned every token to one of four categories: 0 if the token has no capital letters, 1 if any character in the token is a capital letter, 2 if the first character is a capital letter, and 3 if all characters (except for '-', '\_', '.') are capital letters.
+The word lengths are just integers between 1 and 20, where every token longer than 20 characters would also get the length 20 assigned to it.
+The capitalization should also go through an embedding of half of the dimensionality than the token embedding, while the word length would get passed to the model directly.
+
+\begin{lstlisting}[caption=Encountered Exception while compiling original model, label=code:original_model_exception]
+    File "<path to venv>/lib/python3.11/site-packages/concrete/ml/common/debugging/custom_assert.py", line 26, in _custom_assert
+    raise error_type(on_error_msg)
+AssertionError: Values must be float if value_is_float is set to True, got int64: <the features>
+\end{lstlisting}
+
+However while converting this model to a \ac{fhe} equivalent with the \verb|compile_torch_model| function we encountered the error shown in \cref{code:original_model_exception}.
+concrete-ml complained about the provided features being long values, even though that is what is required for an embedding.
+Changing the features to floats didn't work since then the PyTorch nn.Embedding would complain about it requiring floats.
+Since PyTorch nn.Embeddings were officially supported by concrete-ml, we suspected that the problem was that we split the features first before passing them to the embedding, not triggering a condition that would turn off this assertion for embeddings in the process.
+Passing the three different kind of features to the model in three separate variables also did not work and is seemingly not supported by concrete-ml.
+To work around this we had to simplify our model to remove the need to split the feature vector (TODO: insert new model).
+
+\begin{lstlisting}[caption=Another Exception encountered during the client preprocessing step, label=code:original_model_exception_2]
+    ValueError: Expected argument 0 to be EncryptedTensor<uint12, shape=(1, 5, 20995)> but it's EncryptedTensor<uint6, shape=(1, 5)>
+\end{lstlisting}
+
+Another error we encountered related to the PyTorch Embedding is shown in \cref{code:original_model_exception_2}.
+This error would only show up in a deployment scenario of the \ac{fhe} model (using the \verb|FHEModelDev|, \verb|FHEModelClient|, and \verb|FHEModelServer| components) that splits up the pre-processing (quantization, encryption, and serialization), processing (the actual inference), and post-processing (deserialization, decryption, and dequantization) into separate steps, and not while running the \verb|forward| method of the model that combines all this steps into one.
+
+\subsection{Accuracy and F1-Score}
+
+\subsection{Runtime}
