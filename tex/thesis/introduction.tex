@@ -1,15 +1,63 @@
 \chapter{Introduction}\label{intro}
 
-introduction stuff
-
 \section{Motivation}
 
-Why do we need FHE, especially in the context of machine learning?
+Especially in recent years, usage of \ac{ai} and other \ac{ml} tools has become more and more widespread across many industries and applications.
+\acp{llm} have become a very accepted by the general population as an alternative to search engines and are being used as a tool for a large variety of tasks, many of which necessitate users revealing a lot of sensitive information about themselves to a much larger scale than they had to when using search engines.
+Furthermore many industries that inherently deal with very sensitive data could highly benefit from the use of \ac{ml} tools to solve common problems.
+For example in many medical fields \ac{ml} tools could enhance a doctors diagnostics and treatment abilities, for which they would however require access to highly sensitive medical records of patients.
 
-\section{Introducing Fully Homomorphic Encryption}
+On the other hand, these \ac{ai} and \ac{ml} tools can be very computationally demanding and quite difficult to set up.
+As a result, for integrating with these tools into a new application there is currently a strong preference towards using existing setups by some external cloud provider through a public \acs{api}, or relying on some external service provider in some other way.
+This begs the question of how data privacy, especially for these more sensitive applications, can still be guaranteed.
+Since regulations rightfully prohibit the sharing of for example medical records with third party service providers, the result was often a lack of adoption of current \ac{ml} tools into these fields.
 
-What is FHE? What does it do?
+\section{Introducing \acl{fhe}}
+
+In this thesis we will discuss a possible solution to this problematic, called \acf{fhe}.
+\ac{fhe} allows a client to still use an external service provider or server for their compute or storage resources without having to entrust any of their data to this provider.
+This is achieved by encrypting the data on the client before sending it to the server with the server maintaining its ability to perform computations on this data.
+After applying the required computations, the server sends the still encrypted result back to the client who can then decrypt it.
+In essence, the encryption and decryption become homomorphic towards any function $f$ that the server applies on the ciphertext.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{../figures/fhe_sequence_diagram.pdf}
+    \end{center}
+    \caption{A sequence diagram showing a generic client-server \ac{fhe} interaction}\label{fig:fhe_sequence_diagram}
+\end{figure}
+
+A generic application of \ac{fhe} can be seen in \cref{fig:fhe_sequence_diagram}.
+Alice (the client) encrypts some sensitive input data $x$ (step 1), and sends it to Bob (the server) in step 2.
+Bob has no way to derive $x$ from its decryption however it can still apply a function $f$ on the encrypted message (step 3).
+Due to the homomorphic property of the encryption scheme this is equivalent to having an encryption of the result of $f$, and Bob also cannot learn anything about this result (or any intermediate value) of the computation he performed.
+Afterwards Bob sends the encrypted result back to Alice (step 4), without revealing anything about the nature of $f$ to Alice.
+Alice decrypts the received message, yielding the correct result $f(x)$ of the computation in step 5.
+During this whole interaction, Alice maintained her goal of not revealing $x$, $f(x)$, or any intermediate values to Bob at any point, while Bob maintained his goal of never revealing $f$ or any of its properties to Alice.
+
+Applied to \ac{ml}, this could allow us to benefit from the compute resources and ready-to-use deployments of cloud infrastructure without the drawbacks to data privacy that come with sharing our data with the cloud provider.
+
+We want to make sure to differentiate \ac{fhe} from some other privacy-improving innovations in the field of \ac{ml}:
+\begin{itemize}
+    \item \emph{\ac{dp}} is a technique employed to make sure that a \ac{ml} model does not learn private information that only occur ones in the training (e.g. names or phone numbers). The goal is to make sure that rare secrets in the training data cannot be leaked to users that are later-on using the model.
+    \item \emph{\ac{fl}} allows multiple parties a train one shared \ac{ml} model without having to reveal their respective training datasets to one another. The goal is to train a model on a larger, shared dataset my consolidating data from multiple parties without these parties having to reveal their data to each other.
+\end{itemize}
+While these are also very interesting technologies, it is important to note that they solve different problems than \ac{fhe}.
+
+Another use case is \emph{\ac{mcp}} which allows multiple parties to encrypt their respective inputs and compute a shared function on it.
+While this is often achieved by employing \ac{fhe}, we will ignore this use case in this thesis and solely focus on \ac{fhe} allowing us to use a third-party for compute without sharing our data with them and without this third-party having to share their model architecture and weights with us.
 
 \section{Goals}
 
-What we try to find out in this thesis and in our experiments
+The core concept of homomorphic encryption has been around for some time now, first introduced by the work \citetitle*{rivest_data_1978} by \citeauthor{rivest_data_1978} in 1978 \cite{rivest_data_1978}.
+While there have been some encryption schemes like \acs{rsa} that featured some kind of homomorphism (homomorphic in multiplication in the case of \acs{rsa}), it took until 2009 and the introduction of the Bootstrapping algorithm by \citeauthor{gentry_fully_2009} to truly deliver on the promise of \ac{fhe} \cite{gentry_fully_2009}.
+In the years after that many \ac{fhe} schemes have been introduced, with increasing improvements in runtime and general usability.
+
+As a result \ac{fhe} seems to have turned from a theoretical possibility into a practical solution for some real-world applications.
+A prominent examples for this is Apple adopting \ac{fhe} for image recognition tasks on the iPhone \cite{noauthor_combining_nodate}.
+Applying \ac{fhe} to \ac{ml} models has especially been a topic of interest in recent publications and research, some even achieving to run \acp{llm} homomorphically.
+
+In this thesis we want to investigate some of these promises and find out if and when \ac{fhe} can and should be used for real-world \ac{ml} tasks.
+For this we developed a suite of benchmarks to measure how \ac{fhe} execution impacts various \ac{ml} models running on a variety of datasets and solving a variety of tasks.
+We will mostly focus on the \emph{concrete-ml} \cite{noauthor_concrete_2025} framework that seems to be on the forefront of providing easy compilation of \ac{ml} models into \ac{fhe} equivalents.
+In contrary to the frameworks own benchmarks (provided as Jupyter Notebooks in their GitHub repository) we aim to get a more complete view of the frameworks practical usability and viability while focusing more on real-world usage scenarios.

@@ -1,0 +1,30 @@
+%%{init: {
+  "theme": "neutral",
+  "themeVariables": {
+    "actorBorder": "#666666",
+    "actorLineColor": "#333333"
+  },
+  "themeCSS": [
+    "rect { stroke: transparent; }"
+  ],
+  "sequence": {
+    "mirrorActors": false
+  }
+}}%%
+
+sequenceDiagram
+    autonumber
+    box Alice
+    actor (owns private x)
+    end
+    box Bob
+    actor (owns private function f)
+    end
+    (owns private x) ->> (owns private x): Encrypts x
+    (owns private x) ->> (owns private function f): Sends Encrypt(x)
+    activate (owns private function f)
+    (owns private function f) ->> (owns private function f): Applies f
+    Note over (owns private function f): f(Encrypt(x)) = Encrypt(f(x))<br>(homomorphic property)
+    (owns private function f) -->> (owns private x): Sends back Encrypt(f(x))
+    deactivate (owns private function f)
+    (owns private x) ->> (owns private x): Decrypts, yields f(x)
