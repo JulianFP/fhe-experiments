@@ -56,19 +56,17 @@ def draw_decision_boundary_from_pickle_files(
         labels = np.unique(y)
         cmap = plt.cm.get_cmap(label_cmap, labels.size)
 
-        current_figsize = figsize
         if len(labels) > 3:
             ncol = 3
-            bbox_y = 1.3
-            current_figsize = (figsize[0], figsize[1] + 3.6)
+            bbox_y = 1.27
         elif len(labels) > 2:
             ncol = 3
-            bbox_y = 1.15
+            bbox_y = 1.08
         else:
             ncol = 2
-            bbox_y = 1.15
+            bbox_y = 1.08
 
-        plt.figure(figsize=current_figsize, constrained_layout=True)
+        plt.figure(figsize=figsize, constrained_layout=True)
         # plt.title(clear_title)
         plt.contourf(xx, yy, Z_clear, alpha=0.5, cmap=cmap)
         for label in labels:
@@ -204,6 +202,8 @@ def draw_dataset(results_dir: str, dset_name: str, X_train, X_test, y_train, y_t
     labels = np.unique(y_test)
 
     current_figsize = figsize
+    # here the label set is double as large since we plot train&test dataset for each
+    # (in contrary to the decision boundaries)
     if len(labels) > 3:
         ncol = 3
         bbox_y = 1.3
