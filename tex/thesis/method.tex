@@ -257,7 +257,7 @@ At the same time \ac{ner} is not nearly as demanding as more currently relevant 
 
 The experiment steps are equivalent to the ones in \cref{encrypted_inference} yet with much more flexibility in difference in the details since we implemented two approaches that try to solve the \ac{ner} task very differently.
 
-\subsubsection{Custom PyTorch model with Embedding layer}
+\subsubsection{Custom PyTorch model with Embedding layer}\label{custom_pytorch_model}
 
 At the core of this approach we coined the \ac{ner} task into a classification problem by hiding the semantic complexities behind a semantic word embedding (see \cref{semantic_embed}), and then solving this classification problem using a simple \ac{fnn}.
 We solved the problem of context with the sliding window approach:
@@ -288,7 +288,7 @@ The capitalization information can distinguish between a token
 , resulting in 4 capitalization classes.
 The word length is just the number of characters in the token, capped at $20$ for regularization.
 
-Our PyTorch model architecture looks like this:
+Our PyTorch models full code can be seen in \cref{code:final_model}, but the general architecture looks like this:
 The 15-dimensional feature vector (token index, capitalization class, and token length for each of the 5 tokens in our sliding window) then gets passed through an embedding layer that generates a 128-dimensional embedding vector.
 This then gets passed through a regular \ac{fnn} with 3 hidden layers with the following dimensions: 128, 128, and 64.
 After each of these layers we used the \ac{relu} activation function as well as a dropout layer with a dropout rate of $0.2$ to reduce overfitting during training.
@@ -310,7 +310,7 @@ Therefore we expect even higher runtimes then for our \ac{fnn} experiment (see \
 We will see if this trade-off will be worth it.
 We expect the Embedding layer to cause a measurable but manageable runtime increase since during inference it can be collapsed into look-up tables.
 
-\subsubsection{Transformer Embeddings with \acs{knn} Classifier}
+\subsubsection{Transformer Embeddings with \acs{knn} Classifier}\label{ner_knn-approach}
 
 Our second approach for solving \ac{ner} was inspired by how Apple implemented \ac{fhe} for image recognition on iPhones \cite{noauthor_combining_nodate}.
 Their application is recognition of prominent landmarks or other points of interest in the pictures taken by the user, so that the user can search their photo library by picture contents.
