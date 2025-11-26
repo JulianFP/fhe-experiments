@@ -6,6 +6,30 @@ RELATIVE runtime of \ac{fhe} increases with deeper computation (e.g. deeper tree
 
 even pre+post ALWAYS more expensive than clear, so \ac{fhe} does not make sense even if we assume unlimited cloud compute and infinite speeds.
 
+does fhe have ANY use case for model training since circuit privacy does not apply here and training locally (e.g. wasm) is always faster?
+
 \section{Limitations}
 
+runtimes as a metric for amount of computation?
+
+standard deviation and compounds of it good for errors with low samples size of 10?
+
+not simulating actual client/server interaction, i.e. client was same machine as server
+
+shared cluster and unrepresentative PC
+
+only classification, no regression tasks
+
+how real-world are these datasets really? datasets also not challenging enough (for first two experiment groups), you cannot see benefit of neural net
+
+cart models not tested well enough, pca was way too aggressive. More testing needed here
+
+pre+post not tested in more representative environment, e.g. wasm
+
 \section{Future Work}
+
+more testing of cart models
+
+testing other frameworks, leveled schemas like ckks. Also other (more efficient) tfhe implementations like tfhe-rs.
+
+testing of proper client-server setups and comparing to client-side execution like running the model in clear in wasm

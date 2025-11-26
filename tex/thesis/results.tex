@@ -293,14 +293,88 @@ More decision boundaries of some of our datasets for these two models can be fou
 \section{Encrypted Training with Built-In Model}
 
 These are the results of our second group of experiments, described in \cref{encrypted_training}.
+Please note that we were not able to run encrypted training on the 'Breast Cancer' dataset or on the 'Synthetic' dataset for features with more than $250$ dimensions (see \cref{encrypted_training_limitations}).
+Like with encrypted inference on the \ac{fnn} model we also did not run this experiment on the 'SMS Spam' dataset for feature dimensions larger than $100$, again because of time restrictions.
+For the same reason we also only executed this experiment on the cluster and not on the PC.
 
-\subsection{Limitations of concrete-ml and Encountered Errors}
+\subsection{Limitations of concrete-ml and Encountered Errors}\label{encrypted_training_limitations}
+
+Encrypted \ac{sgd} training failed for some of our datasets due to two separate errors:
+
+\begin{lstlisting}[caption={The thrown Exception while training on the encrypted 'Synthetic, 500 features' dataset}, label=code:training_synth_error, escapeinside={[*}{*]}]
+RuntimeError: Unfeasible noise constraint encountered (see https://docs.zama.ai/concrete/compilation/common_errors#id-8.-unfeasible-noise-constraint): At location quantizers.py:717:0:
+[*$1\sigma^2Br[1] + 1\sigma^2Br[2] + 1\sigma^2K[1\rightarrow4] + 1\sigma^2FK[2\rightarrow1] + 1\sigma^2M[4] < (2^2)**-15.5$*] (12bits partition:4 count:500, dom=31).
+\end{lstlisting}
+
+For larger feature dimensions (in our experiment suite beginning at $500$) concrete-ml failed during model training (\cref{code:training_synth_error}).
+This was due to an unfeasible noise constraint which is a documented error in concrete complaining about a defined \ac{fhe} circuit that concrete cannot find cryptographic parameters for that are both secure and maintain correctness during decryption \cite{noauthor_concrete_2025-1}.
+The suggested fixes all require modifying the \ac{fhe} circuit which is why we suspect that concrete-ml compiled our training into an incorrect \ac{fhe} circuit suggesting an issue/bug in concrete-ml rather than in our usage of it.
+
+\begin{lstlisting}[caption={The thrown Exception while compiling the training circuit for the 'Breast Cancer' dataset}, label=code:training_cancer_error]
+RuntimeError: Function you are trying to compile cannot be compiled
+\end{lstlisting}
+
+For the 'Breast Cancer' dataset concrete-ml already failed to compile the training circuit with an unhelpful exception message (\cref{code:training_cancer_error}).
+This is probably due to the high spread of the features in the dataset, and we were also not able to remedy this by reducing the quantization bit-width.
+
+We can conclude that the encrypted training of concrete-ml cannot be executed on arbitrary datasets and for arbitrary tasks since we were only able to train on datasets that have certain feature properties.
 
 \subsection{Accuracy and F1-Score}
 
+In \cref{fig:cluster_acc_f1_training} we can see an overview of the accuracy and F1-Scores of the model that resulted from encrypted \ac{sgd} training compared to a model that was trained with \ac{sgd} on clear data.
+A full overview of all the data can be found in \cref{table:training_cluster_acc-f1}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{../figures/cluster_acc_f1-plot_SGD Classifier Training.pdf}
+    \caption{Accuracy and F1-Scores of all of encrypted \ac{sgd} training in both clear and FHE on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_acc_f1_training}
+\end{figure}
+
+Our experiment showed that \ac{fhe}-training had no impact on model accuracy during later inference, both models performed exactly the same on all our datasets.
+That being said, if we compare these values with our Logistic Regression model in \cref{fig:cluster_acc_f1} we can see a clear accuracy reduction.
+On our XOR dataset, these models even achieved an F1-Score of $0$.
+The reason for this is that while during inference these models are effectively the same, during training \ac{sgd} is only an approximate algorithm while the earlier Logistic Regression model is being fitted exactly on the training data.
+\ac{sgd} is however probably used here because of it allows online learning, thus our \ac{fhe} circuit only needs to consider the current model weights and the current sample for weight updates, not all training samples at once.
+However for larger datasets \ac{sgd} becomes a requirement anyway, making this an acceptable compromise for many use-cases.
+
 \subsection{Runtime}
 
+\Cref{fig:cluster_runtime_training} shows an overview of the runtimes of encrypted \ac{sgd} training.
+The full data is available in \cref{table:training_cluster_dur}.
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_SGD Classifier Training.pdf}
+        \end{center}
+        \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_SGD Classifier Training.pdf}
+        \end{center}
+        \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
+    \end{subfigure}
+    \caption{Runtimes of the encrypted \ac{sgd} training on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_training}
+\end{figure}
+
+As we can see the runtime increases are much greater for encrypted training than for the encrypted inference looked at before.
+How much it is exactly varied much and dependent on both the size of the training dataset and the dimensionality of the features.
+For anything more complex than XOR and Iris \ac{fhe} processing was around $500,000\times$ slower than clear execution, with the slowdown peaking at $1,585,672\times$ for the 'Synthetic' dataset with $250$ features.
+This is the largest slowdown that we have seen throughout this thesis, especially considering that this was executed on the cluster and not the PC.
+The plot shows a much exaggerated error for this data which is a result from the high standard deviation on the clear execution, not the \ac{fhe} execution.
+This is probably an outlier due to other users putting or removing from the server during this time in the experiment run.
+Since the clear execution time seems quite sensible compared to the other datasets its actual impact on the data was probably not nearly as large as shown in the plot.
+
+Again we observe that, even for a more computationally demanding task like model training, running the task locally would have resulted in less computational burden on the client because the pre-processing of the training samples and post-processing of the resulting weights were already slower than the model training itself.
+
 \subsection{How Runtime Grows with Feature Size}
+
+Because of the limitations discussed in \cref{encrypted_training_limitations} and runtime concerns we were not able to run encrypted training on too many variations of our 'Synthetic' and 'SMS Spam' datasets.
+From what we have seen though encrypted training runtime seems to grow linearly with the feature dimensionality like it did for the Logistic Regression and \ac{fnn} models in encrypted inference.
+The plots for this can be found in \cref{fig:cluster_training_synth_spam_feature-runtime}.
 
 \section{Encrypted Inference with custom approaches for the \acl{ner} task}
 
@@ -318,7 +392,12 @@ Essentially we tried to supply the \ac{fnn}-part of the model with our three typ
 This original model design can be seen in \cref{code:original_model}.
 In theory this should be a cleaner solution since between these three categories the inputs have drastically different meanings and their relation to one another (across these categories) does not matter at all.
 
-While our original approach worked well in clear (even better than our final approach), concrete-ml was not able to compile the model to its \ac{fhe} equivalent.
+\begin{lstlisting}[caption={The thrown Exception while compiling the inference circuit for our original \ac{ner} PyTorch model}, label=code:ner_original_model_error]
+AssertionError: Values must be float if value_is_float is set to True, got int64: <the torch inputset>
+\end{lstlisting}
+
+While our original approach worked well in clear (even better than our final approach), concrete-ml was not able to compile the model to its \ac{fhe} equivalent (\cref{code:ner_original_model_error}).
+The exception complains about the inputs not being floating point numbers even though integers are a requirement for PyTorch's Embedding layer (which is why casting the features into floats also would not work here).
 Concrete-ml does support the PyTorch Embedding layer, but only if it is the very first operation of the forward method.
 Since our approach required splitting the features into three separate vectors before passing them to the Embedding layer, it did not compile with an obscure error message.
 At the time of writing this restriction is not documented anywhere and we were only able to confirm that this is intended behavior and not a bug of the framework by conferring with a developer of concrete-ml on the FHE.org Discord server.
@@ -339,7 +418,7 @@ A second issue related to PyTorch Embeddings turned up after compiling the model
 Using the custom model in a deployment scenario failed while using the testing method of the model for inference worked.
 After consulting the FHE.org Discord server this turned out to be a bug, and was fixed in \href{https://github.com/zama-ai/concrete-ml/pull/1149}{this GitHub Pull Request}.
 
-\subsubsection{Concrete-ml's \ac{knn} Turning Out to be Useless in Practice}
+\subsubsection{Concrete-ml's \ac{knn} Turning Out to be Useless in Practice}\label{knn_limitation}
 
 Regarding our second \ac{ner} approach described in \cref{ner_knn-approach} we have to report that we were not able to implement it for parameters that are meaningful for real-world scenarios like our \ac{ner} problem in any way.
 Concrete-ml was only able to compile and train our model ones we reduced the training dataset to $13$ samples of $3$ dimensions each (using \ac{pca}).
@@ -360,13 +439,20 @@ Because of this and to still find out about the runtime performance of this \ac{
 \end{figure}
 
 While we expected quite a large decrease of accuracy due to the use of \ac{ptq}, the large drop from an F1-Score of $80.8\%$ to $46.6\%$ still came at a surprise.
-As a point reference, the \ac{knn} approach, which cannot really be better than random class selection with these parameters, had a score of $35.9\%$; only about $10\%$ worse then our custom PyTorch model in \ac{fhe}.
+As a reference point, the \ac{knn} approach, which cannot really be better than random class selection with these parameters (see \cref{knn_limitation}), had a score of $35.9\%$; only about $10\%$ worse then our custom PyTorch model in \ac{fhe}.
 This is quite the large gap in model accuracy between clear and \ac{fhe} and would have a considerable impact on the user experience if the \ac{fhe} model were deployed in a production environment.
 Since we actually used a larger bit-width than for the \ac{fnn} model experiment we largely contribute this to the usage of \ac{ptq} over \ac{qat} and maybe to \ac{ner} as a use case which might be more sensitive to smaller weight and input changes due to quantization.
 After all even smaller changes in the vocabulary index or in the embedding vector could mean a significant semantic distortion for the model.
 Our PC run also delivered similar results (see \cref{fig:PC_acc_f1}).
 
+While our \ac{knn} approach does not solve the \ac{ner} task at all (see \cref{knn_limitation}), it is worth to point out that the accuracy and F1-Score increased a bit in the homomorphic version of the model.
+From this does not follow that \ac{fhe} improved the model in some way but rather that due to quantization the geometric arrangement of the training points got slightly altered, notching the model towards a better accuracy by pure chance.
+However we suspect that for a much more complex \ac{knn} model that performs reasonably well on a given task quantization will less likely have a positive impact on model performance.
+For example if the vectors are embeddings (semantic word embeddings or also visual embeddings) quantization would then slightly change the meaning of the training data points and the inference sample in an unpredictable way which will most likely not benefit the model.
+
 \subsection{Runtime}
+
+\Cref{fig:cluster_runtime_ner} shows an overview of the runtimes of our two \ac{ner} approaches from the cluster run. The full data is available in \cref{table:ner_cluster_dur} (cluster run) and \cref{table:ner_PC_dur} (PC run).
 
 \begin{figure}[h]
     \centering
@@ -385,3 +471,24 @@ Our PC run also delivered similar results (see \cref{fig:PC_acc_f1}).
     \end{subfigure}
     \caption{Runtimes of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_ner}
 \end{figure}
+
+The relative slowdown for the processing step of our custom PyTorch model was in the same order of magnitude as that of the Built-In \ac{fnn} model in \cref{fig:cluster_runtime_neural_net}.
+The pre- and post-processing however took much longer, with both the absolute runtime and relative slowdown being of similar magnitude than the \ac{fhe} processing itself.
+This again raises the question of usability of this approach, because not only would it have meant almost $20,000\times$ less computation on the client-side if the client had just run the clear model itself, it also means that with the \ac{fhe} approach the client has to compute almost as long as the server.
+On the PC run, these runtime values exploded even by multiple orders of magnitude to a slowdown of over $1,000,000\times$ for both the processing and preprocessing compared to clear model execution.
+This significant difference between cluster and PC execution shows how much \ac{fhe} relies on performance improvements coming from parallelization for these larger and complexer models.
+Because of these long runtimes, especially during the preprocessing step, we had set the testing set to only include $100$ random samples.
+While this is not ideal for our accuracy measurements it was very much necessary to even being able to run these experiments since even for only $100$ samples these kind of slowdowns already meant multiple days of runtime for all $10$ executions of this experiment.
+If we divide the preprocessing time from the PC run by $100$ we can easily see that if this model were deployed in production the user would have to wait almost $2$ minutes for their input to be encrypted and sent to the server, and probably much longer if they are on a less powerful machine like a laptop or smartphone.
+If applied on a whole text snippet like an email this would have to be done for every word that the user wants the entity for (most of the time for every token in the text snippet).
+While the \ac{fhe} processing happens on the server where the user does not necessarily have to wait for its completion, this client-side preprocessing happens client-side were the user would have to for example keep the browser tab of our imaginary \ac{ner} service open the whole time.
+During this time the user machines CPU would also be burdened quite a lot which is especially problematic on mobile battery-powered devices.
+The inefficiency of the \ac{fhe} preprocessing step is especially puzzeling if we remember that each sample only consists of $15$ integers ($3$ for each of the $5$ window tokens).
+We do not know what causes quantization and encryption to take so long for such small input sizes, in particular because with the Built-In models the preprocessing runtime slowdowns were in completely different ranges.
+
+For the \ac{knn} model the processing slowdowns were a bit less significant both in relative and specifically in absolute numbers.
+The \ac{fhe} version of the \ac{knn} model actually performed better on the PC run which was surprising given that \ac{knn} usually involves a lot of branching which is implemented with parallelization in \ac{fhe}.
+Still, considering the extremely low amount of samples in dimensions that we used the model with a runtime of almost half an hour for the $100$ samples is still far away of what for example Apple would probably consider as acceptable for their \ac{fhe} \ac{knn} application \cite{noauthor_combining_nodate}.
+The solution used by Apple for \ac{fhe} was built using a very different \ac{fhe} scheme and a leveled approach.
+They also used clustering datasets to reduce the amount of samples and dimensions of each of their clusters to mitigate runtimes and the curse of dimensionality that \ac{knn} suffers from in general.
+Nevertheless it is still safe to conclude that concrete-ml's implementation of \ac{fhe} for \ac{knn} is far inferior to Apple's, even if we do not consider the low amount of samples and dimensions it supports.

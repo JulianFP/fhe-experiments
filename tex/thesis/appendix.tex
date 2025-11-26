@@ -155,6 +155,24 @@
 
 \begin{figure}[h]
     \centering
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_SGD Classifier Training_synth_.pdf}
+        \end{center}
+        \caption{'Synthetic' datasets}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \begin{center}
+            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_SGD Classifier Training_spam_.pdf}
+        \end{center}
+        \caption{'SMS Spam' datasets}
+    \end{subfigure}
+    \caption{Runtimes plotted against feature size of the 'Synthetic' and 'SMS Spam' dataset for encrypted and clear training with \ac{sgd}, plotted on a logarithmic scale, drawn from the cluster run of the experiments}\label{fig:cluster_training_synth_spam_feature-runtime}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
     \includegraphics[width=0.6\textwidth]{../figures/PC_acc_f1-plot-ner.pdf}
     \caption{Accuracy and F1-Scores of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the PC run of the experiments}\label{fig:PC_acc_f1_ner}
 \end{figure}
