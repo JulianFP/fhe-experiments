@@ -1,35 +1,124 @@
 \chapter{Discussion}\label{chap:discussion}
 
-We need to discuss things
+In this chapter we will draw some conclusions from our results laid out in \cref{chap:results} including some recommendations when and when not to use concrete-ml for \ac{ml} applications.
+We will also discuss how some flaws and limitations of our experiments and how they could be improved and extended in the future.
 
-RELATIVE runtime of \ac{fhe} increases with deeper computation (e.g. deeper trees, more complex models, etc.)
+\section{Lessons Learned for Real World Use}
 
-even pre+post ALWAYS more expensive than clear, so \ac{fhe} does not make sense even if we assume unlimited cloud compute and infinite speeds.
+The first important takeaway is that runtime increases due to \ac{fhe} compared to regular clear execution of a given task varies dramatically depending on what exactly is being computed in \ac{fhe}, some properties of our input data, and our desired cryptographic parameters like quantization accuracy.
+The deeper a computation is and the more non-linear operations it contains, the higher is the relative runtime slowdown compared to clear execution.
+While it would be very unsurprising that a more complex computation would take longer in \ac{fhe}, after all it also takes longer in clear, we want to emphasize that our lesson here is that the \ac{fhe} execution became dramatically slower (by orders of magnitude) \emph{relative to the clear execution} when increasing computation complexity.
+For \ac{ml} applications, this means that the more complex the models architecture or the deeper the \ac{fnn} or decision tree, the higher the slowdown of it becomes in \ac{fhe}.
 
-does fhe have ANY use case for model training since circuit privacy does not apply here and training locally (e.g. wasm) is always faster?
+The second lesson is that in addition to \ac{fhe} processing one also needs to consider the computational overhead introduced by pre- and post-processing.
+The runtimes of especially the pre-processing turned out to be quite significant in many cases, reaching or even surpassing the \ac{fhe} processing times in some cases.
+While these were outliers, in general we can state that we did not see a single example where \ac{fhe} pre-processing times were lower than clear processing of any given task.
+Unfortunately this removes a major \ac{fhe} use case:
+One of our main motivations for \ac{fhe} in the \ac{ml}-space was that we wanted to take advantage of third-party services for their superior compute resources.
+Because of the pre-processing, which would need to be executed on the client, concrete-ml completely fails to achieve this since it increased the client-side computation in all tested scenarios.
+So even if we were to assume that we had infinite computing resources in the cloud at our disposal, and thus \ac{fhe} processing would be instantaneous, using \ac{fhe} would still be many times slower than if we had not used any of these cloud resources and just executed the model locally on the client.
+It does not matter how powerful the remote machines computing is, with \ac{fhe} and because of its expensive client-side pre-processing we are not able to profit of it at all.
+While \ac{fhe} does a great job at protecting our input and output data from this remote machine, client-side execution provides even higher privacy since we do not expose our data in any form to anybody while also being faster in every case.
+An use case often mentioned for \ac{fhe} is when the client is not powerful enough to do the computation and thus the need arises to move it onto a remote machine.
+At least for concrete-ml this reasoning falls short however since if a client is not capable of running the given \ac{ml} model it would also not be able to run the required \ac{fhe} pre-processing.
+So it does not matter how powerful the remote machine or how powerless the client, concrete-ml does not make sense if the goal is to offload computation away from the client.
+
+Another reason why one might prefer using a third party over client side execution when it comes to \ac{ml} is ease of setup and use.
+Setting up and running \ac{ml} models can be an intricate task that requires a quite high degree of technical knowledge.
+Most real-world use cases however deal with users that would not be able or not want to deal with this, so for adopting \ac{ml} into these use cases its usage must be as straightforward as possible.
+\ac{fhe} allows this to be as easy as the user just visiting a website, entering their input, and getting the result, with the \ac{fhe} pre- and post-processing running in the browser using e.g. \ac{wasm}.
+While this is true, we would claim that the same ease-of-use could be achieved using client-side processing by just running the model in clear in \ac{wasm} as well.
+Whether the users browser downloads the concrete-ml \texttt{client.zip} archive and runs pre- and post-processing in \ac{wasm}, or if it downloads the model and runs it directly should not make that much of a difference.
+In fact client-side execution might even result in a much better user experience given that the user would not have to wait for the server-side \ac{fhe} processing in addition to the already long client-side pre-processing, and the in general much smaller amount of client-server network interactions.
+From the developers perspective, compiling a \ac{ml} to \ac{wasm} can be quite challenging, however running a \ac{ml} model in \ac{fhe}, was even with concrete-ml not a trivial process either and often requires modifying and training the model specifically with concrete-ml in mind.
+We often experienced errors and other difficulties when using concrete-ml and have to report that it is not a plug-and-play solution for turning arbitrary \ac{ml} models into \ac{fhe} equivalents.
+In case of doubt many use-cases would also allow for packaging the \ac{ml} model as a native client application for the users target platform instead of the platform which should be much easier to achieve.
+In any case client-side execution still seems the better option for both the user and developer experience.
+
+The last reason we could think of to prefer \ac{fhe} over client-side execution is its promise of circuit privacy.
+If a company is very protective about their intellectual property and does not want to run their \ac{ml} model on their users devices since that would risk exposing model design and weights, \ac{fhe} remains the only option when privacy is a high priority as well.
+While this is a valid use case, we would raise some doubt if a model so state-of-the-art and proprietary that it is worth protecting that much would even be supported by concrete-ml.
+The Built-In models supported by concrete-ml are textbook models and their design is known for decades now, and we struggled a lot implementing our just slightly more complex custom model into concrete-ml.
+Of course even for simple models the model weights could still be worth protecting, but only if the dataset the model was trained on is also not obtainable by others (e.g. if it was collected, curated and pre-processed by this company as well).
+So while protecting intellectual property might open up some valid use cases for \ac{fhe}, we think that these are quite rare.
+
+Apart from the severe runtime overheads \ac{fhe}-compiled \ac{ml} models additionally also suffers from a loss of accuracy which, depending on the model type, can be quite severe.
+For example in our use case of \ac{ner} the resulting model became so inaccurate due to \ac{fhe} that it was barely usable for this task anymore.
+This again speaks for client-side execution over the use of \ac{fhe}.
+
+Lastly we want to specifically look at the \ac{fhe} use case of encrypted training.
+In our opinion encrypted training, while undoubtedly an impressive technology, does not really have any merits in real-world.
+\ac{sgd} is very much not a proprietary algorithm and thus we do not profit of \ac{fhe}'s circuit privacy here.
+Furthermore most use cases that would require encrypted training could be solved with \ac{fl} much more effectively.
 
 \section{Limitations}
 
-runtimes as a metric for amount of computation?
+While our experiments give a good insight into \ac{fhe} with concrete-ml, they also come with some not insignificant shortcomings.
 
-standard deviation and compounds of it good for errors with low samples size of 10?
+First of all we only looked at classification models and tasks, completely ignoring regression.
+Classification is often easier regarding task definition (e.g. how we coined \ac{ner} as a classification task) and regarding evaluation (e.g. when calculating accuracy and in general model performance).
+We also think that most our findings will be translatable to regression models.
+Nevertheless a more complete experiment suite would still include regression models, and for example quantization could also have a different effect on regression models.
 
-not simulating actual client/server interaction, i.e. client was same machine as server
+The dataset choice could also deserves some critic.
+While they differ in class count, feature size spread and in general size and form, they are all quite easy to solve, not pushing concrete-ml's built-in models enough.
+Due to this we could not measure significant improvements in the use of the built-in \ac{fnn} model over linear models since these already separated the data quite well (except maybe on the XOR dataset).
+Additionally, and also quite contrary to our original goals of implementing real-world benchmarks, our only datasets that really resemble a real-world task are the 'SMS Spam' and the \ac{cconll} dataset for \ac{ner}.
+The others are more akin to toy and test datasets than to something that would be used to build a \ac{ml} model solving any real-world problems.
 
-shared cluster and unrepresentative PC
+Our testing of the \ac{cart} models supported by concrete-ml also was not exhaustive enough to draw a safe conclusion from.
+We followed the concrete-ml documentation too closely which lead us to implement \ac{pca} much too aggressively which hurt model accuracy a lot.
+While this probably helped with model runtimes in \ac{fhe}, it would have been better to evaluate the model as is to figure out what it limits are regarding feature dimensionality.
+This oversight is unfortunate because \ac{cart} models could present a nice middle ground in \ac{fhe} between performant but unimpressive linear models and powerful but slow neural networks.
 
-only classification, no regression tasks
+On a more architectural level we would also like to point out that any given experiment only ran on one machine (either the cluster or the PC).
+We never simulated any real client-server interactions, both client and server ran on the same machine sharing the same data.
+Therefore we did not measure runtime overheads due to network latencies which could turn out to be quite significant when evaluating viability of an \ac{fhe} setup.
+Also after finding out how long the \ac{fhe} pre- and post-processing times are it would also be interesting to run them in a more representative client environment, like e.g. in a browser using \ac{wasm} on a less powerful client machine like a laptop or smartphone.
+Regarding the server-side \ac{fhe} processing the experiments environment also could be improved since the cluster was shared by other users which impacted the runtimes, and the PC is not representative of server and cloud machines that \ac{fhe} processing would run on.
+The lack of testing with GPUs in our experiments also plays into this.
+While concrete-ml does support GPU execution, it states in its own documentation that the speedups are quite moderate, even with powerful enterprise GPUs like an A100 \cite{noauthor_concrete_2025} which is why we did not prioritize GPU testing.
+However it still could turn out to be interesting, a speedup of $10\times$ for example could change the viability for some of the models a bit.
 
-how real-world are these datasets really? datasets also not challenging enough (for first two experiment groups), you cannot see benefit of neural net
+We would also like to quickly point out that our error measurement was not ideal.
+We used the standard deviation to measure how much the values vary between $10$ executions of the same experiment/dataset combination.
+The standard deviation however is not the ideal metric for such a small sample count and thus often exaggerates the error quite a bit, especially when these standard deviations are then compounded in the runtime ratio plots.
+Could alternatives that should be more robust towards small sample counts and strong outliers are for example the median absolute deviation, or the interquartile range.
 
-cart models not tested well enough, pca was way too aggressive. More testing needed here
-
-pre+post not tested in more representative environment, e.g. wasm
+Lastly we also want to discuss whether runtimes are even a good metric to measure the quite abstract value of 'amount of computation'.
+It completely ignores how the measured algorithm taxes the CPU which includes aspects like
+\begin{itemize}
+    \item if the algorithm only taxes one core or if it is highly parallelized and runs on many or all cores
+    \item memory consumption
+    \item storage consumption and IO behavior
+    \item specs of the machine like core count and clock speed
+    \item if the runtime was spent with actual computation or with e.g. waiting for blocking system calls
+    \item how other processes/users are taxing the machine at the same time
+\end{itemize}
+Alternative metrics could be to measure the compounded CPU time across all cores.
+This would however be much more difficult to implement, especially given the many components and different libraries used by concrete-ml and its dependencies for parallelization which all spawn a large amount of separate processes instead of multiple threads.
+We already failed to limit the amount of CPU cores used by concrete-ml since there was no unified environment variable to set this for all multi-processing strategies of concrete-ml.
+Limiting it by giving hints to the Linux scheduler using the \texttt{taskset} \ac{cli} tool also did not yield satisfactory results since the experiment would still spawn a high amount of threads tailored to the total core count of the system which turned out to be a source of instability.
+Measuring the CPU time would probably be even more difficult since most tools only measure it on a per-process basis, so just measuring timings using Python's \texttt{time} module was a lot more straightforward.
+Yet we ended up relying on these runtime numbers a lot in our results especially when comparing clear and pre-processing runtimes, so this remains a major caveat of our experiments.
 
 \section{Future Work}
 
-more testing of cart models
+To begin with, future work could remedy some of the limitations described above, like testing regression models, additional datasets, adding more \ac{cart} model experiments, adding client-server interactions to the experiments, testing across varying experiment environments (e.g. \ac{wasm}) and adjusting the error and runtime metrics.
 
-testing other frameworks, leveled schemas like ckks. Also other (more efficient) tfhe implementations like tfhe-rs.
+After all that these experiments would still only evaluate \ac{fhe} specifically with the concrete-ml framework.
+To get a more complete picture of \ac{fhe} benchmarks for other \ac{fhe} schemes would be necessary.
+Especially interesting here would be to test \ac{ml} on top of one of the schemes from the leveled branch of \ac{fhe}, for example \ac{bfv} (which was used by Apple), or \ac{ckks} which is were a lot of research is currently happening.
+An example of this worth noting is the very recent work \citetitle{boneh_homomorphic_2025} which significantly improves \ac{ckks} evaluation of very large integers.
+This work compared against \ac{tfhe}, the \ac{fhe} scheme used by our experiments, and achieved significant performance improvements when dealing with large integer inputs.
+For our \ac{ml} tasks this could prove useful for cases with large feature spread that concrete-ml struggled with.
+Work like this could improve the viability of \ac{fhe} a lot in the future, raising the need to re-evaluate it in the space of \ac{ml} \cite{boneh_homomorphic_2025}.
 
-testing of proper client-server setups and comparing to client-side execution like running the model in clear in wasm
+Even if we limit ourselves to \ac{tfhe}, there also exists the \emph{TFHE-rs} library which was also developed by Zama \cite{noauthor_welcome_2025}.
+It aims to be a more efficient implementation of the \ac{tfhe} scheme written in Rust, and could also provide some performance improvements.
+We did not evaluate it because, at the time of writing, concrete-ml had only limited compatibility with the TFHE-rs ciphertext format which would have made some of our experiments impossible \cite{noauthor_concrete_2025}.
+An extension of our benchmark could however investigate the usage of TFHE-rs and possible performance improvements that come with it further.
+
+Finally some future work could also be done evaluating the viability of \ac{fhe} specifically if combined with accelerators like GPUs or others.
+There is a lot of research going into this aiming to substantially improve \ac{fhe} performance, as outlined in \cite{gong_practical_2024}.
+Testing how acceleration of concrete-ml, \aca{tfhe}, and other schemes and frameworks could play a major role in future evaluations of \ac{fhe}, especially in the field of \ac{ml} that even in clear execution already heavily benefits from GPU acceleration.

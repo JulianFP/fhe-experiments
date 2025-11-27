@@ -212,6 +212,7 @@ For example the original \ac{fhe} scheme described by Gentry used ideal lattices
 Most other modern schemes are based in some way on the \ac{lwe} problem which we will explain in \cref{LWE}, or its polynomial ring version, the \ac{rlwe} problem \cite{smart_final_2022}.
 The first scheme to use \ac{lwe} was the \ac{bgv} scheme in 2011 \cite{brakerski_leveled_2012}.
 Its improved version \ac{bfv} \cite{fan_somewhat_2012} which came out shortly after, is also considered to be the first truly practical \ac{fhe} scheme \cite{noauthor_continuing_nodate}.
+The \ac{ckks} scheme was a further advancement on this development branch and currently forms, together with \ac{tfhe}, the basis of most modern \ac{fhe} developments and research \cite{cheon_homomorphic_2017}.
 Because we nowadays also know some possible attacks against \ac{ntru}, \ac{lwe}- and \ac{rlwe}-based schemes are more or less the only secure and practical \ac{fhe} schemes in existence \cite{smart_final_2022}.
 
 Another notable mention is the \ac{gsw} scheme introduced by \citetitle*{gentry_homomorphic_2013} in 2013 \cite{gentry_homomorphic_2013}, since the modern \ac{tfhe} scheme that we will mostly focus on in this thesis originated from it and still incorporates design elements from it, like the \ac{rgsw} ciphertext which is a polynomial ring variation of the \ac{gsw} ciphertext.
