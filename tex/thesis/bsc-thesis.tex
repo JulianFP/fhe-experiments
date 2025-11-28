@@ -14,6 +14,9 @@
      openright
      ]{scrreprt}
 
+\DeclareTOCStyleEntry[numwidth=2.5em]{tocline}{figure}
+\DeclareTOCStyleEntry[numwidth=2.5em]{tocline}{table}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % PACKAGES:
@@ -69,7 +72,8 @@
 %\usepackage{hyperref}
 \usepackage[noabbrev,nameinlink]{cleveref}
 
-% for landscape appendix
+% for appendices
+\usepackage[page,title,titletoc,header]{appendix}
 \usepackage{pdflscape}
 
 % code listings
@@ -146,7 +150,7 @@
 
 \vspace{3cm}
 
-\textbf{\large Bachelor Thesis}
+\textbf{\large Bachelor's Thesis}
 
 \vspace{0.5\baselineskip}
 {\huge
@@ -157,12 +161,14 @@
 \vfill
 
 {\large
-\begin{tabular}[l]{ll}
-Name: & Julian Partanen\\
-Matriculation Number: & 4204806\\
-Supervisor: & Dr. Dominic Kempf\\
-Submission Date: & December 02, 2025
-\end{tabular}
+\begin{center}
+    \begin{tabular}{ll}
+        Name: & Julian Partanen\\
+        Matriculation Number: & 4204806\\
+        Supervisor: & Dr. Dominic Kempf\\
+        Date of Submission: & December 02, 2025
+    \end{tabular}
+\end{center}
 }
 
 \end{titlepage}
@@ -188,7 +194,10 @@ Submission Date: & December 02, 2025
 \include{results}
 \include{discussion}
 \include{conclusion}
-\include{appendix}
+
+\begin{appendices}
+    \include{appendix}
+\end{appendices}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % List of figures (Abbildungsverzeichnis):
