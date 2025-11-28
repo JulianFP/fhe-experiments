@@ -9,12 +9,22 @@
 \begin{flushleft}
 \setlength{\leftskip}{1cm}
 \setlength{\rightskip}{1cm}
-The abstract has to be given in German \textbf{and} English. It should
-be between half a page and one page in length. It should cover in a
-readable and comprehensive style the context of the thesis, the
-problem setting, the objectives, and the methods developed in this
-thesis as well as key insights and results.
+\ac{ml} and \ac{ai} are increasingly being adopted in a growing number of domains.
+For some settings, however, the integration of these technologies through third-party or cloud services raises significant data privacy concerns.
+\ac{fhe} enables \ac{ml} models to operate on encrypted inputs, potentially allowing sensitive workloads to be outsourced without exposing private data.
 
+This thesis evaluates whether \ac{fhe} fulfills this promise and whether it is currently viable for real-world \ac{ml} deployments.
+To this end, we implemented a suite of experiments comparing different \ac{fhe} models to each other and to their plaintext counterparts.
+We performed these comparisons across multiple datasets and classification tasks, both for encrypted inference and training.
+We also developed two custom approaches to solve the \ac{ner} task homomorphically, representing a more demanding use case.
+In addition, we provide an accessible introduction to the theoretical foundations of \ac{fhe} to support the understanding and explanation of our findings.
 
+Our results show that, although \ac{fhe} can be integrated into a range of \ac{ml} tasks such as spam detection, significant limitations remain.
+These include considerable runtime overhead on both the client and server, as well as reduced accuracy in some models.
+Given these constraints, we also discuss alternative approaches to ensure data privacy in \ac{ml}, such as client-side model execution.
+
+The goal of this thesis is both to introduce \ac{fhe} as a privacy-preserving technology and to support informed decisions on whether \ac{fhe} is appropriate for a given \ac{ml} application or whether alternative techniques may be more suitable.
 \end{flushleft}
 \vspace*{\fill}
+
+\acresetall

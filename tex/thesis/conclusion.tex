@@ -1,4 +1,19 @@
 \chapter{Conclusion}
 \label{chap:concl}
 
-mooore time
+Our work in this thesis allows for a more informed decision making about whether to adopt \ac{fhe} into a given domain, or whether alternative approaches to preserve data privacy in a \ac{ml} deployment should be pursued instead.
+
+We started by giving an introduction in the theory behind \ac{fhe} to help understand how \ac{fhe} is able to deliver its promise of computing on encrypted data, and also where its downsides come from.
+After also introducing the \ac{ml} concepts that we relied on later on, we laid out our suite of experiments that tested \ac{fhe} usage across various models, datasets, and tasks using the concrete-ml framework.
+These experiments were split into three groups, with the first testing simple classification problems using representatives for linear models, \ac{cart} models, as well as \acp{fnn}.
+Our second group evaluated encrypted training instead of encrypted inference on these same datasets, using a linear model with \ac{sgd}.
+Finally we evaluated the viability of using \ac{fhe} to build a solution for the \ac{ner} task, for which we built two custom approaches compatible with concrete-ml:
+A custom PyTorch model incorporating an embedding-layer, along with an attempt to apply \ac{knn} to \ac{bert} embeddings.
+
+While none of our models or approaches achieved groundbreaking performances on their given tasks, they showed that \ac{fhe} can in fact be adopted into a large variety of \ac{ml} applications to guarantee a high degree of data privacy, even including solving more complex \ac{nlp} problems like \ac{ner}.
+At the same time our experiments also revealed major discrepancies like significant runtime overheads not only on the server but also on the client, large accuracy losses of the \ac{ml} models, or compatibility problems with certain model architectures or training data distributions.
+Because of these issues we suggested running \ac{ml} models on the client in clear instead of adopting \ac{fhe} whenever possible, while also recognizing that this might not always be possible, leaving some rare \ac{ml} use cases that might be viable for \ac{fhe} even in its current state.
+
+However since our experiments were restricted to a specific \ac{fhe} scheme and framework, some of the discovered problems may be less substantial with other solutions, or may be reduced or solved in future research, possibly significantly expanding the viability of \ac{fhe} into more \ac{ml} use cases.
+In fact \ac{fhe} has already proofed useful in practice and has been adopted even by big companies like Apple for \ac{ml} applications and adjacent fields.
+This shows that our work is not necessarily representative of the whole \ac{fhe} space, and future work is needed to evaluate other emerging \ac{fhe} technologies and approaches for applying them to \ac{ml} solutions.

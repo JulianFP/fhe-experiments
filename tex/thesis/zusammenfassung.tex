@@ -9,13 +9,22 @@
 \begin{flushleft}
 \setlength{\leftskip}{1cm}
 \setlength{\rightskip}{1cm}
-Die Zusammenfassung muss auf Deutsch \textbf{und} auf Englisch geschrieben
-werden. Die Zusammenfassung sollte zwischen einer halben und einer
-ganzen Seite lang sein. Sie soll den Kontext der Arbeit, die
-Problemstellung, die Zielsetzung und die entwickelten Methods sowie
-Erkenntnisse bzw.~Ergebnisse übersichtlich und verständlich
-beschreiben.
+Maschinelles Lernen (\acs{ml}) and künstliche Intelligenz (KI) werden in immer mehr Anwendungsbereichen eingesetzt.
+In einigen Umgebungen wirft die Integration dieser Technologien über Dittanbieter- oder Cloud-Dienste jedoch erhebliche Bedenken hinsichtlich des Datenschutzes auf.
+Volle homomorphische Verschlüsselung (\acs{fhe}) ermöglicht es \acs{ml}-Modellen mit verschlüsselten Daten zu arbeiten, sodass sensible Nutzungen dieser Modelle ausgelagert werden können, ohne dass private Daten offengelegt werden.
 
+Diese Arbeit untersucht, ob \acs{fhe} dieses Versprechen erfüllt, und ob es derzeit für echte \acs{ml}-Anwendungen geeignet ist.
+Zu diesem Zweck haben wir eine Reihe von Experimenten durchgeführt, in denen verschiedene \acs{fhe}-Modelle miteinander, und mit ihren Klartext-Entsprechungen, verglichen wurden.
+Wir haben diese Vergleiche für mehrere Datensätze und Klassifizierungsaufgaben durchgeführt, sowohl für verschlüsselte Inferenz als auch Training.
+Als einen etwas anspruchsvolleren Anwendungsfall haben wir außerdem zwei maßgeschneiderte Ansätze entwickelt, um die Aufgabe der Erkennung benannter Entitäten (\acs{ner}) homomorph zu lösen.
+Darüber hinaus geben wir eine zugängliche Einführung in die theoretischen Grundlagen von \acs{fhe}, um das Verständnis und die Erklärung unserer Resultate zu unterstützen.
 
+Unsere Ergebnisse zeigen, dass \acs{fhe} zwar in eine Reihe von \acs{ml}-Aufgaben wie z.B. die Spam-Erkennung integriert werden kann, jedoch weiterhin erhebliche Limitierungen bestehen.
+Dazu gehören ein beträchtlicher Mehraufwand in der Laufzeit sowohl auf Client- als auch auf Serverseite, sowie eine verringerte Genauigkeit bei einigen Modellen.
+Angesichts dieser Einschränkungen diskutieren wir auch alternative Ansätze zur Gewährleistung des Datenschutzes im \acs{ml}, wie beispielsweise eine clientseitige Modellausführung.
+
+Das Ziel dieser Arbeit ist es, sowohl \acs{fhe} als Datenschutztechnologie einzuführen, als auch eine informierte Entscheidung darüber zu ermöglichen, ob \acs{fhe} für eine bestimme \acs{ml}-Anwendung geeignet ist, oder ob alternative Techniken möglicherweise eine passendere Lösung darstellen.
 \end{flushleft}
 \vspace*{\fill}
+
+\acresetall
