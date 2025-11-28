@@ -24,7 +24,7 @@
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, drawn from the PC run of the experiments}\label{fig:PC_acc_f1}
+    \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, obtained from the PC run of the experiments}\label{fig:PC_acc_f1}
 \end{figure}
 
 \begin{figure}[h]
@@ -42,7 +42,7 @@
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Logistic Regression model on various datasets, drawn from the PC run of the experiments}\label{fig:PC_runtime_logReg}
+    \caption{Runtimes of the Logistic Regression model on various datasets, obtained from the PC run of the experiments}\label{fig:PC_runtime_logReg}
 \end{figure}
 
 \begin{figure}[h]
@@ -60,7 +60,7 @@
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the XGB tree-based model on various datasets, drawn from the PC run of the experiments}\label{fig:PC_runtime_xgb}
+    \caption{Runtimes of the XGB tree-based model on various datasets, obtained from the PC run of the experiments}\label{fig:PC_runtime_xgb}
 \end{figure}
 
 \begin{figure}[h]
@@ -78,31 +78,31 @@
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Neural Network model on various datasets, drawn from the PC run of the experiments}\label{fig:PC_runtime_neural_net}
+    \caption{Runtimes of the Neural Network model on various datasets, obtained from the PC run of the experiments}\label{fig:PC_runtime_neural_net}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Logistic Regression_spam_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_Logistic Regression_spam_.pdf}
         \end{center}
         \caption{Logistic Regression}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_XGB Tree-based Classification_spam_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_XGB Tree-based Classification_spam_.pdf}
         \end{center}
         \caption{XGB Tree-based}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Neural Network Classifier_spam_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_Neural Network Classifier_spam_.pdf}
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Runtimes plotted against feature size of the 'SMS Spam' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, drawn from the cluster run of the experiments}\label{fig:cluster_spam_feature-runtime}
+    \caption{Runtimes plotted against feature size of the 'SMS Spam' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, obtained from the server run of the experiments}\label{fig:server_spam_feature-runtime}
 \end{figure}
 
 \begin{figure}[h]
@@ -126,7 +126,7 @@
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Runtimes plotted against feature size of the 'Synthetic' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, drawn from the PC run of the experiments}\label{fig:PC_synth_feature-runtime}
+    \caption{Runtimes plotted against feature size of the 'Synthetic' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, obtained from the PC run of the experiments}\label{fig:PC_synth_feature-runtime}
 \end{figure}
 
 \begin{figure}[h]
@@ -150,31 +150,31 @@
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Runtimes plotted against feature size of the 'SMS Spam' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, drawn from the PC run of the experiments}\label{fig:PC_spam_feature-runtime}
+    \caption{Runtimes plotted against feature size of the 'SMS Spam' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, obtained from the PC run of the experiments}\label{fig:PC_spam_feature-runtime}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_SGD Classifier Training_synth_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_SGD Classifier Training_synth_.pdf}
         \end{center}
         \caption{'Synthetic' datasets}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_SGD Classifier Training_spam_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_SGD Classifier Training_spam_.pdf}
         \end{center}
         \caption{'SMS Spam' datasets}
     \end{subfigure}
-    \caption{Runtimes plotted against feature size of the 'Synthetic' and 'SMS Spam' dataset for encrypted and clear training with \ac{sgd}, plotted on a logarithmic scale, drawn from the cluster run of the experiments}\label{fig:cluster_training_synth_spam_feature-runtime}
+    \caption{Runtimes plotted against feature size of the 'Synthetic' and 'SMS Spam' dataset for encrypted and clear training with \ac{sgd}, plotted on a logarithmic scale, obtained from the server run of the experiments}\label{fig:server_training_synth_spam_feature-runtime}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\textwidth]{../figures/PC_acc_f1-plot-ner.pdf}
-    \caption{Accuracy and F1-Scores of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the PC run of the experiments}\label{fig:PC_acc_f1_ner}
+    \caption{Accuracy and F1-Scores of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, obtained from the PC run of the experiments}\label{fig:PC_acc_f1_ner}
 \end{figure}
 
 \begin{figure}[h]
@@ -192,7 +192,7 @@
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the PC run of the experiments}\label{fig:PC_runtime_ner}
+    \caption{Runtimes of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, obtained from the PC run of the experiments}\label{fig:PC_runtime_ner}
 \end{figure}
 
 \section{Additional Decision Boundaries}\label{add_dec_bound}
@@ -325,8 +325,8 @@
                 spam\_2500 & xgb & 0.97 & 0 & 0.967 & 0 & 0.897 & 0 & 0.875 & 0 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Accuracy and F1-Score results of the encrypted inference experiment group from the cluster run}
-        \label{table:inference_cluster_acc-f1}
+        \caption{Accuracy and F1-Score results of the encrypted inference experiment group from the server run}
+        \label{table:inference_server_acc-f1}
     \end{table}
     \begin{table}[!ht]
         \centering
@@ -380,8 +380,8 @@
                 spam\_2500 & xgb & 1.548 & 0.043 & 5.199 & 0.058 & 3859.91 & 4.491 & 2.067 & 0.026 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Runtime results of the encrypted inference experiment group from the cluster run (in seconds)}
-        \label{table:inference_cluster_dur}
+        \caption{Runtime results of the encrypted inference experiment group from the server run (in seconds)}
+        \label{table:inference_server_dur}
     \end{table}
 
     \begin{table}[!ht]
@@ -511,8 +511,8 @@
                 spam\_100 & sgd\_class\_train & 0.955 & 0 & 0.955 & 0 & 0.842 & 0 & 0.842 & 0 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Accuracy and F1-Score results of the encrypted training experiment group from the cluster run}
-        \label{table:training_cluster_acc-f1}
+        \caption{Accuracy and F1-Score results of the encrypted training experiment group from the server run}
+        \label{table:training_server_acc-f1}
     \end{table}
     \begin{table}[!ht]
         \centering
@@ -530,8 +530,8 @@
                 spam\_100 & sgd\_class\_train & 0.016 & 0.001 & 57.005 & 0.398 & 15622.067 & 68.52 & 0.012 & 0.002 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Runtime results of the encrypted training results experiment group from the cluster run}
-        \label{table:training_cluster_dur}
+        \caption{Runtime results of the encrypted training results experiment group from the server run}
+        \label{table:training_server_dur}
     \end{table}
 
     \begin{table}[!ht]
@@ -544,8 +544,8 @@
                 cconll & ner\_neighbors & 0.332 & 0.045 & 0.359 & 0.053 & 0.332 & 0.045 & 0.359 & 0.053 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Accuracy and F1-Score results of the encrypted \ac{ner} experiment group from the cluster run}
-        \label{table:ner_cluster_acc-f1}
+        \caption{Accuracy and F1-Score results of the encrypted \ac{ner} experiment group from the server run}
+        \label{table:ner_server_acc-f1}
     \end{table}
 
     \begin{table}[!ht]
@@ -558,8 +558,8 @@
                 cconll & ner\_neighbors & 0.095 & 0.007 & 0.390 & 0.024 & 2489.730 & 11.094 & 0.116 & 0.009 \\ \hline
             \end{tabular}
         \medskip
-        \caption{Runtime results of the encrypted \ac{ner} results experiment group from the cluster run (in seconds)}
-        \label{table:ner_cluster_dur}
+        \caption{Runtime results of the encrypted \ac{ner} results experiment group from the server run (in seconds)}
+        \label{table:ner_server_dur}
     \end{table}
 
     \begin{table}[!ht]

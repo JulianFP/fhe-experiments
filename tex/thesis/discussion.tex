@@ -71,11 +71,11 @@ We followed the concrete-ml documentation too closely which lead us to implement
 While this probably helped with model runtimes in \ac{fhe}, it would have been better to evaluate the model as is to figure out what it limits are regarding feature dimensionality.
 This oversight is unfortunate because \ac{cart} models could present a nice middle ground in \ac{fhe} between performant but unimpressive linear models and powerful but slow neural networks.
 
-On a more architectural level we would also like to point out that any given experiment only ran on one machine (either the cluster or the PC).
+On a more architectural level we would also like to point out that any given experiment only ran on one machine (either the server or the PC).
 We never simulated any real client-server interactions, both client and server ran on the same machine sharing the same data.
 Therefore we did not measure runtime overheads due to network latencies which could turn out to be quite significant when evaluating viability of an \ac{fhe} setup.
 Also after finding out how long the \ac{fhe} pre- and post-processing times are it would also be interesting to run them in a more representative client environment, like e.g. in a browser using \ac{wasm} on a less powerful client machine like a laptop or smartphone.
-Regarding the server-side \ac{fhe} processing the experiments environment also could be improved since the cluster was shared by other users which impacted the runtimes, and the PC is not representative of server and cloud machines that \ac{fhe} processing would run on.
+Regarding the server-side \ac{fhe} processing the experiments environment also could be improved since the server was shared with other users which impacted the runtimes, and the PC is not representative of server and cloud machines that \ac{fhe} processing would run on.
 The lack of testing with GPUs in our experiments also plays into this.
 While concrete-ml does support GPU execution, it states in its own documentation that the speedups are quite moderate, even with powerful enterprise GPUs like an A100 \cite{noauthor_concrete_2025} which is why we did not prioritize GPU testing.
 However it still could turn out to be interesting, a speedup of $10\times$ for example could change the viability for some of the models a bit.

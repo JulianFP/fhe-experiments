@@ -1,129 +1,130 @@
 \chapter{Results}\label{chap:results}
 
-We executed the described experiment suite on two different machines to get a more complete picture of \ac{fhe} runtime behavior:
+We executed all our experiments $10$ times and calculated the average as well as the standard deviation between these executions.
+Note that the error bars in all plots represent this standard deviation.
+
+We also performed these experiments on two different machines to get a more complete picture of \ac{fhe} runtime behavior:
 \begin{itemize}
-    \item Our working groups cluster with 2x Intel Xeon Gold 6230R CPUs (in total 52 cores/104 threads @2.1GHz, up to 4.0GHz) with 192GB of memory, representing a machine with very high multi-core but lower single-core performance
-    \item A personal computer with 1x AMD Ryzen 5 7600 CPU (6 cores/12 threads @3.8GHz, up to 5.1GHz) with 32GB of memory, representing a machine with much lower multi-core but higher single-core performance
+    \item Our working groups compute server with 2x Intel Xeon Gold 6230R CPUs (in total 52 cores/104 threads @2.1GHz, up to 4.0GHz) with 192GB of memory, representing a machine with a high core count but a lower per core performance
+    \item A personal computer with 1x AMD Ryzen 5 7600 CPU (6 cores/12 threads @3.8GHz, up to 5.1GHz) with 32GB of memory, representing a machine with a low core count but a higher per core performance
 \end{itemize}
 
 A lot of \ac{fhe} operations in concrete are very well parallelized while our clear executions of the same models are not.
-Consequently we wanted to test the runtime on two configurations, one being more fair for the comparison between \ac{fhe} and clear executions since the \ac{fhe} execution cannot gain that much by parallelization on a small core-count CPU, and one representing a more realistic deployment for \ac{fhe} applications since server and cloud machines tend to have high core counts but smaller single core performance.
-We also want to point out that the cluster was being used by other people as well during the experiments, introducing a higher runtime variance between the executions.
-The personal computer on the other hand was a more controlled environment with no other users and as little processes as possible running at the same time.
-Due to this we expect the standard deviation (plotted as error bars in our plots) to be much lower on the PC runs.
-
-We executed every experiment 10 times and calculated the average of all values as well as their standard deviation.
-Note that the error bars in all plots represent this standard deviation.
+Consequently we wanted to obtain runtime results from two separate configurations.
+The PC environment is fairer towards the comparison between \ac{fhe} and clear executions since the \ac{fhe} execution cannot gain that much of a performance benefit by parallelization on a CPU with a small core count.
+On the other hand the server environment represents a more realistic deployment for \ac{fhe} applications since enterprise servers and cloud machines tend to have high core counts but a lower per core performance.
+We also want to point out that the server was being used by other people as well during the experiments, introducing a higher runtime variance between the executions.
+The personal computer on the other hand was a more controlled environment with no other users and as little processes as possible running concurrently.
+Due to this we expect the measured standard deviation to be much lower on the PC runs.
 
 \section{Encrypted Inference with Built-In Models}
 
-These are the results of our first group of experiments, described in \cref{encrypted_inference}.
-During reading the results please note that we did not execute the Neural Network experiment (see \cref{neural_net_exp}) on all variations of the SMS Spam dataset (only up to a feature size of 100) because of time constraints.
+These are the results from our first group of experiments, described in \cref{encrypted_inference}.
+Note that because of time constraints we did not execute the Neural Network experiment (see \cref{neural_net_exp}) on all variations of the 'SMS Spam' dataset, namely only up to a feature size of $100$.
 
 \subsection{Accuracy and F1-Score}
 
-In \cref{fig:cluster_acc_f1} we can see an overview of the accuracy and F1-Scores of our three models from the cluster run.
-A full overview of all the data is available in \cref{table:inference_cluster_acc-f1} (cluster run) and \cref{table:inference_PC_acc-f1} (PC run).
+\Cref{fig:server_acc_f1} provides an overview of the accuracy and F1-Scores of our three models evaluated on the server.
+The comprehensive data these graphs are generated from can be found in \cref{table:inference_server_acc-f1} (server run) and \cref{table:inference_PC_acc-f1} (PC run).
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_acc_f1-plot_Logistic Regression.pdf}
         \end{center}
         \caption{Logistic Regression}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_acc_f1-plot_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{XGB Tree-based}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_acc_f1-plot_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_acc_f1-plot_Neural Network Classifier.pdf}
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_acc_f1}
+    \caption{Accuracy and F1-Scores of all of our three models in both clear and FHE on various datasets, obtained from the server run of the experiments}\label{fig:server_acc_f1}
 \end{figure}
 
 As expected (see \cref{LogisticRegressionExp}) the Logistic Regression model quality did not suffer from compiling it to its \ac{fhe} equivalent.
-For all datasets, the accuracy and F1-scores stay exactly the same while also having a no standard deviation (since we fixed the seed for this experiment).
-This proofs that with a high quantization bit-width and a very shallow \ac{fhe} inference circuit one can achieve perfect accuracy of the \ac{fhe} model.
+For all datasets, the accuracy and F1-scores stayed exactly the same while also having a no standard deviation (since we fixed the seed for this experiment).
+This proofs that with a high quantization bit-width and a very shallow \ac{fhe} inference circuit it is possible to completely avoid an accuracy loss of the \ac{fhe} model.
 
-Our \ac{cart} model (see \cref{XGBExp}) only suffers from an extremely small accuracy loss due to quantization which is not viewable on the plot.
-While this was better than expected, we also have to note that the \ac{pca} that we used in this experiment might have helped a lot here.
-In fact it might have even been much too aggressive since in theory any \ac{cart} model must be at least equally as good and most of the time better than Logistic Regression.
-What we observed instead were changing improvements over Logistic Regression on some datasets (xor, most spam variants), but a worse performance than Logistic Regression on the others.
-As with most experiments we implemented them as close as the example code from the concrete-ml documentation.
-In this case however the recommended usage of \ac{pca} probably crippled the model quite a bit to the point were using it over Logistic Regression makes no sense considering its increased runtimes.
+Our \ac{cart} model (see \cref{XGBExp}) only suffers from an extremely small accuracy reduction due to quantization which is not visible on the plot.
+While this was better than expected, it is also worth noting that the \ac{pca} used in this experiment might have significantly contributed to this.
+In fact, it might even have been much too aggressive since in theory any \ac{cart} model must be equal to or better than Logistic Regression.
+Instead we observed varying improvements over Logistic Regression on some datasets ('XOR', most 'SMS Spam' variants), but a accuracy reductions on others.
+As with most experiments, we implemented them as closely as possible to concrete-ml's documentations example code.
+In this case however the recommended usage of \ac{pca} probably crippled the model quite substantially to the point were using it over Logistic Regression is not very sensible considering its increased runtimes.
 
-For our \ac{fnn} model (see \cref{neural_net_exp}) experiments we did not use a fixed seed since it is not based on scikit-learn anymore and thus concrete-ml does not expose an attribute for doing this.
-As a result our accuracies and F1-scores were subject to variation from run to run which can be seen in the error bars.
-The \ac{fnn} model has slightly better accuracies across the board, except for the spam and cancer datasets where it is slightly behind Logistic Regression.
-The differences are so small however that they are mostly insignificant hinting at the fact that our datasets are not challenging enough to show the differences in model performance well.
-Notably the neural network is the only model having acceptable accuracy in our XOR dataset.
-As expected the accuracy drops quite much after compiling the model to \ac{fhe}.
-How much was highly dependent on the dataset.
-While the digits and spam datasets where barely affected, the \ac{fhe} model performed much poorer than the clear model on the cancer and xor datasets which are very challenging for the quantization.
+For our \ac{fnn} experiments (see \cref{neural_net_exp}) we did not use a fixed seed since the concrete-ml's built-in model used here is not based on scikit-learn anymore and thus does not conveniently expose such functionality.
+As a result our accuracies and F1-scores were subject to run-to-run variation which can be observed in the error bars.
+The \ac{fnn} model has slightly better accuracies across the board, except for the 'SMS Spam' and 'Breast Cancer' datasets where it is slightly behind Logistic Regression.
+The differences are so small however that they are mostly insignificant, hinting at the fact that our datasets are not challenging enough to expose the capability differences of the tested models.
+Nevertheless we still found the \ac{fnn} to be the only model with acceptable accuracy on the 'XOR' dataset.
+As expected the accuracy drops noticeable after compiling the model to \ac{fhe}, to quite varying degrees depending on the dataset.
+While the 'Digits' and 'SMS Spam' datasets where barely affected, in comparison to the clear model the \ac{fhe} model performed much poorer on the 'Breast Cancer' and 'XOR' datasets which are very challenging for the quantization.
 
-Except for smaller variations within the margin of error, the PC run returned the same accuracy and F1-scores.
+Except for smaller variations within the margin of error, the PC run yielded the same accuracy and F1-scores.
 
 \subsection{Runtime}
 
-A full overview of all runtime data is available in \cref{table:inference_cluster_dur} (cluster run) and \cref{table:inference_PC_dur} (PC run).
+The full runtime data for built-in model inference is available in \cref{table:inference_server_dur} (server run) and \cref{table:inference_PC_dur} (PC run).
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot_Logistic Regression.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_Logistic Regression.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-with-ratio_Logistic Regression.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Logistic Regression model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_logReg}
+    \caption{Runtimes of the Logistic Regression model on various datasets, obtained from the server run of the experiments}\label{fig:server_runtime_logReg}
 \end{figure}
 
-The runtime increases due to \ac{fhe} of our Logistic Regression experiment (see \cref{fig:cluster_runtime_logReg}) started out to be relatively modest on datasets with smaller feature sizes with slowdowns around $100\times$.
-However even this kind of slowdown means in practice that an extremely trivial operation like a vector product and addition (i.e. inference of a Logistic Regression model) that (for the whole test dataset) usually takes single- to low two-digit milliseconds becomes an operation taking a good fraction of a second, or even more than a second.
+The runtime increases due to \ac{fhe} of our Logistic Regression experiment (see \cref{fig:server_runtime_logReg}) started out to be relatively modest on datasets with smaller feature sizes with slowdowns around $100\times$.
+However even this kind of slowdown means in practice that an extremely trivial operation like a vector product and addition (i.e. inference of a Logistic Regression model) that for a whole test dataset usually would take a single- to low two-digit amount of milliseconds becomes an operation taking a good fraction of a second or more.
 This also does not include the pre-processing (e.g. encryption) cost, that is higher than the clear processing by similar factors.
 Interestingly the relative slowdown increases drastically with larger feature sizes, suggesting that computing a vector product in \ac{fhe} becomes increasingly inefficient with larger dimensions.
-The PC run (see \cref{fig:PC_runtime_logReg}) was faster for the clear execution than on the cluster, while the \ac{fhe} execution was slower, both by a significant margin.
-This increases the slowdown factors even more, suggesting that while the clear model benefits from the stronger single-core performance of the PC, \ac{fhe} is much better parallelized and thus can benefit much more of the high core-count of the cluster.
+The PC run (see \cref{fig:PC_runtime_logReg}) was faster for the clear execution than on the server, while the \ac{fhe} execution was slower, both by a significant margin.
+This increases the slowdown even more, suggesting that while the clear model benefits from the stronger single-core performance of the PC, \ac{fhe} is much better parallelized and thus can benefit much more of the high core count of the server.
 This is even more apparent for the \ac{fhe} pre-processing.
-While post-processing benefits from higher single-core performance and experiences a significant performance improvement on the PC, pre-processing slows down so much more that in total our relative pre+post numbers increase by quite a lot compared to the cluster run.
+While post-processing benefits from higher single-core performance and experiences a significant performance improvement on the PC, pre-processing slows down so much more that in total our relative pre+post numbers increase by quite a lot compared to the server run.
 While most cloud machines offer high multi-core performance that \ac{fhe} processing can take advantage from, the pre-processing runs on client devices where parallelization results in much less of a performance boost.
-This means that specifically for the pre+post processing results, the PC run is much more representative for real-world conditions than the cluster run.
+This means that specifically for the pre+post processing results, the PC run is much more representative for real-world conditions than the server run.
 Not only does this mean that the pre+post processing is much slower than just running the clear model directly on the client, for Logistic Regression it is also even slower than the actual \ac{fhe} processing, raising the question whether such simple models are even worth running in a homomorphic environment.
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_XGB Tree-based Classification.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-with-ratio_XGB Tree-based Classification.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the XGB tree-based model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_xgb}
+    \caption{Runtimes of the XGB tree-based model on various datasets, obtained from the server run of the experiments}\label{fig:server_runtime_xgb}
 \end{figure}
 
-The \ac{cart} models shows a bit of a different runtime behavior (see \cref{fig:cluster_runtime_xgb}).
+The \ac{cart} models shows a bit of a different runtime behavior (see \cref{fig:server_runtime_xgb}).
 First of all, the runtime does not increase with dataset feature size because the effective feature dimensionality to (almost) the same value by applying \ac{pca}.
 However the Digits dataset still stands out with higher relative runtimes than the rest, suggesting that \ac{fhe} runtimes react much worse to larger class counts than the clear execution does.
 The Synthetic dataset on the other hand is the one with the smallest relative slowdown which might have to do with it being easily separable with even very shallow decision trees (even for larger feature sizes).
@@ -138,53 +139,53 @@ Both the clear and \ac{fhe} executions seem to benefit more from higher core cou
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot_Neural Network Classifier.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_Neural Network Classifier.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-with-ratio_Neural Network Classifier.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the Neural Network model on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_neural_net}
+    \caption{Runtimes of the Neural Network model on various datasets, obtained from the server run of the experiments}\label{fig:server_runtime_neural_net}
 \end{figure}
 
-For our \ac{fnn} model, we make another jump by an order of magnitude regarding relative slowdown, now being in the $\approx 10,000\times$ range of slowdown and even hitting more than $100,000\times$ on the 100 dimensions variation of Spam (see \cref{fig:cluster_runtime_neural_net}).
+For our \ac{fnn} model, we make another jump by an order of magnitude regarding relative slowdown, now being in the $\approx 10,000\times$ range of slowdown and even hitting more than $100,000\times$ on the 100 dimensions variation of Spam (see \cref{fig:server_runtime_neural_net}).
 This is also the reason why we quit our executions here, the slowdown became higher and higher with more dimensions, exploding this experiments execution times.
 However the variance is also much larger here, both between the $10$ executions and between the datasets.
 For example the relative slowdown is much lower for the smaller and simpler datasets like Iris, Cancer or our Synthetic dataset.
 The Digits dataset, the one with the highest amount of classes, stands out here again because of especially large slowdowns, as well as the SMS Spam dataset variations.
-Our PC run was slower across the board, however the \ac{fhe} execution suffered more from the lower core-count than the clear execution making the slowdown factors even worse while also featuring less variance/error across the $10$ executions (see \cref{fig:PC_runtime_neural_net}).
+Our PC run was slower across the board, however the \ac{fhe} execution suffered more from the lower core count than the clear execution making the slowdown factors even worse while also featuring less variance/error across the $10$ executions (see \cref{fig:PC_runtime_neural_net}).
 
 \subsection{How Runtime Grows with Feature Size}
 
-Since we executed our Synthetic and Spam datasets with a variety of feature sizes, we can look at how runtimes grow with the dimensionality of the input features (see \cref{fig:cluster_synth_feature-runtime}).
+Since we executed our Synthetic and Spam datasets with a variety of feature sizes, we can look at how runtimes grow with the dimensionality of the input features (see \cref{fig:server_synth_feature-runtime}).
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Logistic Regression_synth_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_Logistic Regression_synth_.pdf}
         \end{center}
         \caption{Logistic Regression}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_XGB Tree-based Classification_synth_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_XGB Tree-based Classification_synth_.pdf}
         \end{center}
         \caption{XGB Tree-based}
     \end{subfigure}
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_feature-runtime-plot_Neural Network Classifier_synth_.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_feature-runtime-plot_Neural Network Classifier_synth_.pdf}
         \end{center}
         \caption{Neural Network}
     \end{subfigure}
-    \caption{Runtimes plotted against feature size of the 'Synthetic' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, drawn from the cluster run of the experiments}\label{fig:cluster_synth_feature-runtime}
+    \caption{Runtimes plotted against feature size of the 'Synthetic' dataset of all of our three models in both clear and FHE, plotted on a logarithmic scale, obtained from the server run of the experiments}\label{fig:server_synth_feature-runtime}
 \end{figure}
 
 While clear execution and post-processing are not affected that much by the feature size, \ac{fhe} preprocessing and processing increase linearly and steep with growing feature size.
@@ -193,7 +194,7 @@ While of course in absolute values these increases are much higher for the \ac{f
 Our \ac{cart} model is an exception here because of the applied \ac{pca} which normalizes feature size, as the model sees it, to a more or less fixed value.
 We suspect that the chaotic changes in execution times are due to the for some dimensionalities the dataset is easier to separate with shallower trees(after applying \ac{pca}) than for others.
 
-These findings also translate to the SMS dataset, as well as the plots for both datasets of the PC run (see \cref{fig:cluster_spam_feature-runtime}, \cref{fig:PC_synth_feature-runtime}, and \cref{fig:PC_spam_feature-runtime} respectively).
+These findings also translate to the SMS dataset, as well as the plots for both datasets of the PC run (see \cref{fig:server_spam_feature-runtime}, \cref{fig:PC_synth_feature-runtime}, and \cref{fig:PC_spam_feature-runtime} respectively).
 
 We also have to point out though that feature sizes of larger than $250$ are unusual in practice and where integrated into the benchmarks more to push the boundaries of what is possible with this framework, and less to reflect real-world relevant use cases.
 We also observe that increasing the feature size over $250$ on the Spam dataset did not increase accuracy anymore, with $100$ and $50$ dimensions only resulting in relatively minor accuracy losses but quite high runtime gains during \ac{fhe} execution with all model types.
@@ -224,8 +225,8 @@ Nevertheless even for Logistic Regression and our \ac{cart} models we see some i
     \caption{Decision boundaries of the clear and \ac{fhe} Logistic Regression model on the 'Iris' dataset}\label{fig:dec_bound_log-reg_iris}
 \end{figure}
 
-As you can see in \cref{fig:dec_bound_log-reg_iris}, for Logistic Regression the changes in the decision boundary mostly manifest in the boundary being a bit more granular due to quantization.
-There are however exceptions to this rule, as one can see on the breast cancer dataset which has quite large feature dimensions and thus also sees very high changes in boundary granularity (see \cref{fig:dec_bound_log-reg_cancer}).
+As illustrated in \cref{fig:dec_bound_log-reg_iris}, for Logistic Regression the changes in the decision boundary mostly manifest in the boundary being a bit more granular due to quantization.
+There are however exceptions to this rule, which can be observed for example on the 'Breast Cancer' dataset which has quite large feature dimensions and thus also shows very high changes in boundary granularity (see \cref{fig:dec_bound_log-reg_cancer}).
 
 \begin{figure}[h]
     \centering
@@ -292,10 +293,10 @@ More decision boundaries of some of our datasets for these two models can be fou
 
 \section{Encrypted Training with Built-In Model}
 
-These are the results of our second group of experiments, described in \cref{encrypted_training}.
+These are the results from our second group of experiments, described in \cref{encrypted_training}.
 Please note that we were not able to run encrypted training on the 'Breast Cancer' dataset or on the 'Synthetic' dataset for features with more than $250$ dimensions (see \cref{encrypted_training_limitations}).
 Like with encrypted inference on the \ac{fnn} model we also did not run this experiment on the 'SMS Spam' dataset for feature dimensions larger than $100$, again because of time restrictions.
-For the same reason we also only executed this experiment on the cluster and not on the PC.
+For the same reason we also only executed this experiment on the server and not on the PC.
 
 \subsection{Limitations of concrete-ml and Encountered Errors}\label{encrypted_training_limitations}
 
@@ -321,17 +322,17 @@ We can conclude that the encrypted training of concrete-ml cannot be executed on
 
 \subsection{Accuracy and F1-Score}
 
-In \cref{fig:cluster_acc_f1_training} we can see an overview of the accuracy and F1-Scores of the model that resulted from encrypted \ac{sgd} training compared to a model that was trained with \ac{sgd} on clear data.
-A full overview of all the data can be found in \cref{table:training_cluster_acc-f1}.
+\Cref{fig:server_acc_f1_training} presents the accuracy and F1-Scores of the model that resulted from encrypted \ac{sgd} training compared to a model that was trained with \ac{sgd} on clear data.
+The detailed data is available in \cref{table:training_server_acc-f1}.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.6\textwidth]{../figures/cluster_acc_f1-plot_SGD Classifier Training.pdf}
-    \caption{Accuracy and F1-Scores of all of encrypted \ac{sgd} training in both clear and FHE on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_acc_f1_training}
+    \includegraphics[width=0.6\textwidth]{../figures/server_acc_f1-plot_SGD Classifier Training.pdf}
+    \caption{Accuracy and F1-Scores of all of encrypted \ac{sgd} training in both clear and FHE on various datasets, obtained from the server run of the experiments}\label{fig:server_acc_f1_training}
 \end{figure}
 
 Our experiment showed that \ac{fhe}-training had no impact on model accuracy during later inference, both models performed exactly the same on all our datasets.
-That being said, if we compare these values with our Logistic Regression model in \cref{fig:cluster_acc_f1} we can see a clear accuracy reduction.
+That being said, if we compare these values with our Logistic Regression model in \cref{fig:server_acc_f1} we can observe a clear accuracy reduction.
 On our XOR dataset, these models even achieved an F1-Score of $0$.
 The reason for this is that while during inference these models are effectively the same, during training \ac{sgd} is only an approximate algorithm while the earlier Logistic Regression model is being fitted exactly on the training data.
 \ac{sgd} is however probably used here because of it allows online learning, thus our \ac{fhe} circuit only needs to consider the current model weights and the current sample for weight updates, not all training samples at once.
@@ -339,31 +340,31 @@ However for larger datasets \ac{sgd} becomes a requirement anyway, making this a
 
 \subsection{Runtime}
 
-\Cref{fig:cluster_runtime_training} shows an overview of the runtimes of encrypted \ac{sgd} training.
-The full data is available in \cref{table:training_cluster_dur}.
+\Cref{fig:server_runtime_training} shows an overview of the runtimes of encrypted \ac{sgd} training.
+The full data is available in \cref{table:training_server_dur}.
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot_SGD Classifier Training.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot_SGD Classifier Training.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-with-ratio_SGD Classifier Training.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-with-ratio_SGD Classifier Training.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of the encrypted \ac{sgd} training on various datasets, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_training}
+    \caption{Runtimes of the encrypted \ac{sgd} training on various datasets, obtained from the server run of the experiments}\label{fig:server_runtime_training}
 \end{figure}
 
-As we can see the runtime increases are much greater for encrypted training than for the encrypted inference looked at before.
+Here we observed much longer runtimes for encrypted training than for the encrypted inference that we looked at before.
 How much it is exactly varied much and dependent on both the size of the training dataset and the dimensionality of the features.
 For anything more complex than XOR and Iris \ac{fhe} processing was around $500,000\times$ slower than clear execution, with the slowdown peaking at $1,585,672\times$ for the 'Synthetic' dataset with $250$ features.
-This is the largest slowdown that we have seen throughout this thesis, especially considering that this was executed on the cluster and not the PC.
+This is the largest slowdown that we have seen throughout this thesis, especially considering that this was executed on the server and not the PC.
 The plot shows a much exaggerated error for this data which is a result from the high standard deviation on the clear execution, not the \ac{fhe} execution.
 This is probably an outlier due to other users putting or removing from the server during this time in the experiment run.
 Since the clear execution time seems quite sensible compared to the other datasets its actual impact on the data was probably not nearly as large as shown in the plot.
@@ -374,11 +375,11 @@ Again we observe that, even for a more computationally demanding task like model
 
 Because of the limitations discussed in \cref{encrypted_training_limitations} and runtime concerns we were not able to run encrypted training on too many variations of our 'Synthetic' and 'SMS Spam' datasets.
 From what we have seen though encrypted training runtime seems to grow linearly with the feature dimensionality like it did for the Logistic Regression and \ac{fnn} models in encrypted inference.
-The plots for this can be found in \cref{fig:cluster_training_synth_spam_feature-runtime}.
+The plots for this can be found in \cref{fig:server_training_synth_spam_feature-runtime}.
 
 \section{Encrypted Inference with custom approaches for the \acl{ner} task}
 
-These are the results of our third and final group of experiments, described in \cref{ner_exps}.
+These are the results from our third and final group of experiments, described in \cref{ner_exps}.
 Please note that we were only able to run our custom PyTorch model using \ac{ptq}, and our \ac{knn} approach with very unrepresentative and practically useless parameters (see \cref{ner_limitations}).
 
 \subsection{Limitations of concrete-ml and Encountered Errors}\label{ner_limitations}
@@ -430,12 +431,12 @@ Because of this and to still find out about the runtime performance of this \ac{
 
 \subsection{Accuracy and F1-Score}
 
-\Cref{fig:cluster_acc_f1_ner} shows an overview of the accuracy and F1-Scores of two \ac{ner} approaches from the cluster run. The full data is available in \cref{table:ner_cluster_acc-f1} (cluster run) and \cref{table:ner_PC_acc-f1} (PC run).
+\Cref{fig:server_acc_f1_ner} shows an overview of the accuracy and F1-Scores of two \ac{ner} approaches from the server run. The full data is available in \cref{table:ner_server_acc-f1} (server run) and \cref{table:ner_PC_acc-f1} (PC run).
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.6\textwidth]{../figures/cluster_acc_f1-plot-ner.pdf}
-    \caption{Accuracy and F1-Scores of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the cluster run of the experiments}\label{fig:cluster_acc_f1_ner}
+    \includegraphics[width=0.6\textwidth]{../figures/server_acc_f1-plot-ner.pdf}
+    \caption{Accuracy and F1-Scores of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, obtained from the server run of the experiments}\label{fig:server_acc_f1_ner}
 \end{figure}
 
 While we expected quite a large decrease of accuracy due to the use of \ac{ptq}, the large drop from an F1-Score of $80.8\%$ to $46.6\%$ still came at a surprise.
@@ -452,31 +453,31 @@ For example if the vectors are embeddings (semantic word embeddings or also visu
 
 \subsection{Runtime}
 
-\Cref{fig:cluster_runtime_ner} shows an overview of the runtimes of our two \ac{ner} approaches from the cluster run. The full data is available in \cref{table:ner_cluster_dur} (cluster run) and \cref{table:ner_PC_dur} (PC run).
+\Cref{fig:server_runtime_ner} shows an overview of the runtimes of our two \ac{ner} approaches from the server run. The full data is available in \cref{table:ner_server_dur} (server run) and \cref{table:ner_PC_dur} (PC run).
 
 \begin{figure}[h]
     \centering
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-ner.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-ner.pdf}
         \end{center}
         \caption{Both FHE and clear runtimes in absolute numbers on a logarithmic scale}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \begin{center}
-            \includegraphics[width=0.95\textwidth]{../figures/cluster_runtime-plot-ner-with-ratio.pdf}
+            \includegraphics[width=0.95\textwidth]{../figures/server_runtime-plot-ner-with-ratio.pdf}
         \end{center}
         \caption{The FHE runtimes relative to the clear runtimes on a linear scale}
     \end{subfigure}
-    \caption{Runtimes of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, drawn from the cluster run of the experiments}\label{fig:cluster_runtime_ner}
+    \caption{Runtimes of our two \ac{ner} approaches in both clear and FHE on the \ac{cconll} dataset, obtained from the server run of the experiments}\label{fig:server_runtime_ner}
 \end{figure}
 
-The relative slowdown for the processing step of our custom PyTorch model was in the same order of magnitude as that of the Built-In \ac{fnn} model in \cref{fig:cluster_runtime_neural_net}.
+The relative slowdown for the processing step of our custom PyTorch model was in the same order of magnitude as that of the Built-In \ac{fnn} model in \cref{fig:server_runtime_neural_net}.
 The pre- and post-processing however took much longer, with both the absolute runtime and relative slowdown being of similar magnitude than the \ac{fhe} processing itself.
 This again raises the question of usability of this approach, because not only would it have meant almost $20,000\times$ less computation on the client-side if the client had just run the clear model itself, it also means that with the \ac{fhe} approach the client has to compute almost as long as the server.
 On the PC run, these runtime values exploded even by multiple orders of magnitude to a slowdown of over $1,000,000\times$ for both the processing and preprocessing compared to clear model execution.
-This significant difference between cluster and PC execution shows how much \ac{fhe} relies on performance improvements coming from parallelization for these larger and complexer models.
+This significant difference between server and PC execution shows how much \ac{fhe} relies on performance improvements coming from parallelization for these larger and complexer models.
 Because of these long runtimes, especially during the preprocessing step, we had set the testing set to only include $100$ random samples.
 While this is not ideal for our accuracy measurements it was very much necessary to even being able to run these experiments since even for only $100$ samples these kind of slowdowns already meant multiple days of runtime for all $10$ executions of this experiment.
 If we divide the preprocessing time from the PC run by $100$ we can easily see that if this model were deployed in production the user would have to wait almost $2$ minutes for their input to be encrypted and sent to the server, and probably much longer if they are on a less powerful machine like a laptop or smartphone.
